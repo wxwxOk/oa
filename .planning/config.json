@@ -1,0 +1,15 @@
+{
+  "projectName": "oa",
+  "version": "1.0.0",
+  "stack": {
+    "frontend": "vue3+quasar+ts",
+    "backend": "bun+elysia+prisma",
+    "database": "postgresql",
+    "auth": "jwt",
+    "deployment": "docker-compose"
+  },
+  "workflow": {
+    "autoCommit": false,
+    "requireApproval": true
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.quasar/
+.output/
+bun.lockb
+*.log
+.env
+.env.local
+.DS_Store
+coverage/
+.idea/
+.vscode/
+.cache/
+backend/prisma/migrations/dev.db*

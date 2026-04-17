@@ -1,0 +1,54 @@
+# Requirements - OA v1.0
+
+## 功能需求
+
+### FR-1 认证
+- FR-1.1 用户名+密码登录，返回 access token (2h) + refresh token (7d)
+- FR-1.2 access token 过期后可用 refresh token 换取新 token
+- FR-1.3 登出：前端清除 token；后端无状态
+- FR-1.4 密码使用 bcrypt 哈希存储
+
+### FR-2 用户管理
+- FR-2.1 创建/查询/更新/删除用户（软字段：status=DISABLED 视为禁用）
+- FR-2.2 分页列表 + 按用户名/真实姓名/部门筛选
+- FR-2.3 重置密码（管理员操作，生成随机密码或指定）
+- FR-2.4 为用户分配部门与多个角色
+
+### FR-3 部门管理
+- FR-3.1 无限层级树形部门
+- FR-3.2 CRUD；删除时若存在子部门或用户则拒绝
+- FR-3.3 `/departments/tree` 返回嵌套结构
+
+### FR-4 角色与权限（RBAC）
+- FR-4.1 角色 CRUD（code 唯一，如 ADMIN/HR/EMPLOYEE）
+- FR-4.2 权限为扁平列表，按 module 分组（user / department / role）
+- FR-4.3 角色-权限多对多分配
+- FR-4.4 `ADMIN` 角色拥有全部权限（seed 写死）
+
+### FR-5 前端权限控制
+- FR-5.1 登录后拉取当前用户权限码列表
+- FR-5.2 路由守卫：无权限跳转 403
+- FR-5.3 `v-perm="'user:create'"` 指令控制按钮显隐
+
+### FR-6 响应式
+- FR-6.1 `window.innerWidth >= 1024` 使用 PC 布局（侧边 Drawer + 顶部栏）
+- FR-6.2 `< 1024` 使用移动布局（底部 Tab + 抽屉菜单）
+- FR-6.3 表格在移动端切换为卡片列表
+
+## 非功能需求
+- NFR-1 响应时间：列表接口 p95 < 500ms（本地 docker 环境）
+- NFR-2 安全：HTTPS 由反向代理终止；JWT secret 至少 32 字符；防 SQL 注入（Prisma 参数化）
+- NFR-3 可维护性：ESLint + Prettier；后端路由按 module 分文件；API 有 Swagger 文档
+- NFR-4 部署：`docker compose up -d` 一条命令启动
+
+## 验收用例
+
+| ID | 场景 | 预期 |
+|---|---|---|
+| UAT-1 | admin/admin123 登录 | 跳转首页，侧边栏显示「系统管理」菜单 |
+| UAT-2 | 普通用户登录 | 仅显示自己有权限的菜单 |
+| UAT-3 | 创建部门「研发部」→ 子部门「前端组」 | 树形列表展示层级 |
+| UAT-4 | 创建用户分配到「前端组」 + `HR` 角色 | 用户列表可见，详情正确 |
+| UAT-5 | 撤销 HR 的 `user:create` 权限 | HR 登录后「新建用户」按钮消失 |
+| UAT-6 | 浏览器宽度缩至 500px | 切换为底部 Tab 布局 |
+| UAT-7 | access token 过期 | 前端自动调 /refresh 续签，无感继续 |

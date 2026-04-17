@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun --version)",
+      "Bash(docker --version)",
+      "Bash(docker compose up *)",
+      "Bash(netstat -ano)",
+      "Bash(powershell -Command \"Restart-Service -Name com.docker.service -Force\")",
+      "Bash(docker pull *)",
+      "Bash(docker tag *)",
+      "Bash(bun install *)",
+      "Bash(bunx prisma *)",
+      "Bash(bun run *)",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(bunx quasar *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:9000/)",
+      "Bash(curl -s -o /dev/null -w \"前端 HTTP %{http_code}\\\\n\" http://localhost:9000/)",
+      "Bash(curl -s -X POST http://localhost:3000/api/v1/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"username\\\\\":\\\\\"admin\\\\\",\\\\\"password\\\\\":\\\\\"admin123\\\\\"}\")",
+      "Bash(./node_modules/.bin/quasar.exe dev *)",
+      "Bash(curl -s -H \"Origin: http://localhost:9001\" -H \"Access-Control-Request-Method: POST\" -X OPTIONS http://localhost:3000/api/v1/auth/login -I)",
+      "Bash(curl -s -H \"Origin: http://localhost:9001\" -X OPTIONS http://localhost:3000/api/v1/auth/login -I)",
+      "Bash(curl *)",
+      "Bash(taskkill //F //PID 9096 //PID 28896 //PID 31220 //PID 29776)",
+      "Bash(tasklist)",
+      "Bash(taskkill //F //PID 5972)",
+      "Bash(taskkill //F //IM node.exe)"
+    ]
+  }
+}
