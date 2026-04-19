@@ -36,8 +36,8 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — 后端修复：status 筛选 + 权限码分离 + 循环引用校验
-- [ ] 03-02-PLAN.md — 设计系统：Slate + Indigo 色彩 + CSS 变量 + 字体栈
+- [x] 03-01-PLAN.md — 后端修复：status 筛选 + 权限码分离 + 循环引用校验
+- [x] 03-02-PLAN.md — 设计系统：Slate + Indigo 色彩 + CSS 变量 + 字体栈
 - [ ] 03-03-PLAN.md — DepartmentPage 补全：父部门选择器 + 表单校验 + 空态
 - [ ] 03-04-PLAN.md — UserPage 补全：status 筛选 + 表单校验 + 密码弹窗 + 空态
 - [ ] 03-05-PLAN.md — 端到端人工验证
