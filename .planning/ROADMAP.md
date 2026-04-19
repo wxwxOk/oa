@@ -45,3 +45,17 @@ Plans:
 Canonical refs:
 - .planning/REQUIREMENTS.md §FR-2 用户管理
 - .planning/REQUIREMENTS.md §FR-3 部门管理
+
+### Phase 4: RBAC
+
+**Goal:** 交付角色/权限的后端 API + 角色管理前端页面 + 用户-角色挂载；前端实现路由守卫与 `v-perm` 指令，按权限码控制菜单/按钮显隐。
+
+**Requirements:** FR-2.4, FR-4.1, FR-4.2, FR-4.3, FR-4.4, FR-5.1, FR-5.2, FR-5.3, NFR-1, NFR-3
+
+**Plans:** TBD
+
+Canonical refs:
+- .planning/REQUIREMENTS.md §FR-4 角色与权限（RBAC）
+- .planning/REQUIREMENTS.md §FR-5 前端权限控制
+- .planning/REQUIREMENTS.md §FR-2.4 用户-角色挂载
+- .planning/REQUIREMENTS.md §UAT-1, UAT-2, UAT-5 RBAC 验收场景
