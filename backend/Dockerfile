@@ -1,5 +1,5 @@
 # 后端 Dockerfile: Bun + Prisma
-FROM oven/bun:1.1-alpine AS builder
+FROM oven/bun:1.3-alpine AS builder
 WORKDIR /app
 COPY package.json ./
 COPY prisma ./prisma
@@ -7,7 +7,7 @@ RUN bun install
 RUN bunx prisma generate
 COPY . .
 
-FROM oven/bun:1.1-alpine
+FROM oven/bun:1.3-alpine
 WORKDIR /app
 RUN apk add --no-cache openssl
 COPY --from=builder /app /app
