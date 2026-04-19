@@ -42,7 +42,11 @@ export const roleModule = new Elysia({ prefix: '/roles' })
     app.use(authGuard('role:update')).put(
       '/:id',
       async ({ params, body }: any) =>
-        prisma.role.update({ where: { id: Number(params.id) }, data: body }),
+        prisma.role.update({
+          where: { id: Number(params.id) },
+          // 显式提取字段，避免 body 透传在 schema 扩展后把未预期字段写入 DB
+          data: { name: body.name, description: body.description },
+        }),
       {
         params: t.Object({ id: t.String() }),
         body: t.Object({
