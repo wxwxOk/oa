@@ -27,6 +27,24 @@ function buildTree(rows: { id: number; name: string; parentId: number | null; so
   return roots;
 }
 
+// 获取某部门的所有子孙 ID（全量查询 + 内存递归，部门数 < 1000 性能可接受）
+async function getDescendantIds(deptId: number): Promise<Set<number>> {
+  const all = await prisma.department.findMany({
+    select: { id: true, parentId: true },
+  });
+  const ids = new Set<number>();
+  const collect = (pid: number) => {
+    for (const d of all) {
+      if (d.parentId === pid && !ids.has(d.id)) {
+        ids.add(d.id);
+        collect(d.id);
+      }
+    }
+  };
+  collect(deptId);
+  return ids;
+}
+
 export const departmentModule = new Elysia({ prefix: '/departments' })
   .use(authGuard('department:list'))
   .get('/', async () => prisma.department.findMany({ orderBy: [{ sort: 'asc' }, { id: 'asc' }] }))
@@ -50,7 +68,13 @@ export const departmentModule = new Elysia({ prefix: '/departments' })
       '/:id',
       async ({ params, body }: any) => {
         const id = Number(params.id);
-        if (body.parentId === id) throw new BizError('上级部门不能是自己');
+        if (body.parentId !== undefined && body.parentId !== null) {
+          if (body.parentId === id) throw new BizError('上级部门不能是自己');
+          const descendants = await getDescendantIds(id);
+          if (descendants.has(body.parentId)) {
+            throw new BizError('不能将部门移动到其子部门下');
+          }
+        }
         return prisma.department.update({ where: { id }, data: body });
       },
       {
