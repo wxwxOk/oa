@@ -1,42 +1,65 @@
 <template>
   <q-page padding>
-    <div class="row items-center q-mb-md q-gutter-sm">
-      <div class="text-h6">用户管理</div>
-      <q-space />
-      <q-input v-model="keyword" outlined dense placeholder="搜索用户名/姓名" @keyup.enter="load(1)" clearable style="width: 200px">
-        <template #append><q-icon name="search" class="cursor-pointer" @click="load(1)" /></template>
-      </q-input>
-      <q-select
-        v-if="canListDept"
-        v-model="deptFilter"
-        :options="deptFilterOptions"
-        label="选择部门"
-        outlined
-        dense
-        emit-value
-        map-options
-        clearable
-        style="width: 160px"
-        @update:model-value="load(1)"
-      />
-      <q-btn-toggle
-        v-model="statusFilter"
-        toggle-color="primary"
-        flat
-        bordered
-        :options="[
-          { label: '全部', value: '' },
-          { label: '启用', value: 'ACTIVE' },
-          { label: '禁用', value: 'DISABLED' },
-        ]"
-        @update:model-value="load(1)"
-      />
-      <q-btn v-if="canCreateUser" color="primary" icon="add" label="新建用户" @click="openEdit(null)" />
-    </div>
+    <!-- PC 端筛选栏 -->
+    <template v-if="isDesktop">
+      <div class="row items-center q-mb-md q-gutter-sm">
+        <div class="text-h6">用户管理</div>
+        <q-space />
+        <q-input v-model="keyword" outlined dense placeholder="搜索用户名/姓名" @keyup.enter="load(1)" clearable style="width: 200px">
+          <template #append><q-icon name="search" class="cursor-pointer" @click="load(1)" /></template>
+        </q-input>
+        <q-select
+          v-if="canListDept"
+          v-model="deptFilter"
+          :options="deptFilterOptions"
+          label="选择部门"
+          outlined
+          dense
+          emit-value
+          map-options
+          clearable
+          style="width: 160px"
+          @update:model-value="load(1)"
+        />
+        <q-btn-toggle
+          v-model="statusFilter"
+          toggle-color="primary"
+          flat
+          bordered
+          :options="[
+            { label: '全部', value: '' },
+            { label: '启用', value: 'ACTIVE' },
+            { label: '禁用', value: 'DISABLED' },
+          ]"
+          @update:model-value="load(1)"
+        />
+        <q-btn v-if="canCreateUser" color="primary" icon="add" label="新建用户" @click="openEdit(null)" />
+      </div>
+    </template>
+    <!-- 移动端筛选栏 -->
+    <template v-else>
+      <div class="row items-center q-mb-md">
+        <div class="text-h6">用户管理</div>
+        <q-space />
+        <q-btn flat icon="filter_list" label="筛选" @click="filterSheetOpen = true" />
+      </div>
+    </template>
 
-    <!-- 加载中（首次） -->
-    <div v-if="firstLoading" class="q-pa-xl">
-      <q-skeleton type="QTable" />
+    <!-- 加载中（首次）骨架屏 -->
+    <div v-if="firstLoading" class="q-pa-md">
+      <template v-if="isDesktop">
+        <q-skeleton type="rect" height="40px" class="q-mb-sm" />
+        <q-skeleton v-for="i in 5" :key="i" type="rect" height="48px" class="q-mb-xs" />
+      </template>
+      <template v-else>
+        <q-card v-for="i in 3" :key="i" flat bordered class="q-mb-sm" style="border-radius: 8px">
+          <q-card-section>
+            <q-skeleton type="text" width="60%" />
+            <q-skeleton type="text" width="40%" class="q-mt-xs" />
+            <q-skeleton type="text" width="40%" class="q-mt-xs" />
+          </q-card-section>
+        </q-card>
+      </template>
     </div>
     <!-- 错误态 -->
     <div v-else-if="error" class="flex flex-center q-pa-xl">
@@ -46,18 +69,13 @@
       </div>
     </div>
     <!-- 空态 -->
-    <div v-else-if="rows.length === 0 && !loading" class="flex flex-center q-pa-xl">
-      <div class="text-center">
-        <q-icon name="people" size="4em" color="grey-4" />
-        <div class="text-h6 q-mt-md">暂无用户</div>
-        <div class="text-body2 text-grey-6 q-mt-sm">创建第一个用户以开始管理</div>
-        <q-btn v-if="canCreateUser" color="primary" label="新建用户" icon="add" class="q-mt-md" @click="openEdit(null)" />
-      </div>
-    </div>
+    <EmptyState v-else-if="rows.length === 0 && !loading" icon="people" title="暂无用户"
+                description="创建第一个用户以开始管理"
+                :cta-text="canCreateUser ? '新建用户' : undefined" @action="openEdit(null)" />
     <!-- 数据态 -->
     <template v-else>
       <q-table
-        v-if="$q.screen.gt.sm"
+        v-if="isDesktop"
         :rows="rows"
         :columns="columns"
         row-key="id"
@@ -93,7 +111,7 @@
         <q-card v-for="u in rows" :key="u.id" flat bordered>
           <q-card-section>
             <div class="row items-center">
-              <div class="text-subtitle1">{{ u.realName }} <span class="text-caption text-grey">({{ u.username }})</span></div>
+              <div class="text-subtitle1">{{ u.realName }} <span class="text-caption" style="color: var(--oa-text-secondary)">({{ u.username }})</span></div>
               <q-space />
               <q-chip
                 :color="u.status === 'ACTIVE' ? 'positive' : 'grey-4'"
@@ -113,8 +131,24 @@
       </div>
     </template>
 
-    <q-dialog v-model="dialog">
-      <q-card style="min-width: 400px">
+    <!-- 移动端 FAB 新建按钮 -->
+    <q-page-sticky v-if="isMobile && canCreateUser" position="bottom-right" :offset="[16, 72]">
+      <q-btn fab icon="add" color="primary" @click="openEdit(null)" />
+    </q-page-sticky>
+
+    <!-- 移动端筛选 Sheet -->
+    <FilterSheet v-model="filterSheetOpen" :keyword="keyword" :department-id="deptFilter"
+                 :status="statusFilter" :dept-options="deptFilterOptions"
+                 @apply="onFilterApply" @reset="onFilterReset" />
+
+    <q-dialog v-model="dialog" :maximized="isMobile"
+              :transition-show="isMobile ? 'slide-up' : 'scale'"
+              :transition-hide="isMobile ? 'slide-down' : 'scale'">
+      <q-card :style="isMobile ? '' : 'min-width: 400px'">
+        <q-bar v-if="isMobile">
+          <q-space />
+          <q-btn dense flat icon="close" v-close-popup />
+        </q-bar>
         <q-card-section class="text-h6">{{ form.id ? '编辑用户' : '新建用户' }}</q-card-section>
         <q-form ref="formRef" greedy>
         <q-card-section class="q-gutter-sm">
@@ -148,9 +182,14 @@ import type { QForm } from 'quasar';
 import { api } from 'src/boot/axios';
 import { Dialog, Notify, useQuasar, copyToClipboard } from 'quasar';
 import { useAuthStore } from 'src/stores/auth';
+import { useResponsive } from 'src/composables/useResponsive';
+import EmptyState from 'src/components/EmptyState.vue';
+import FilterSheet from 'src/components/FilterSheet.vue';
 
 const $q = useQuasar();
 const auth = useAuthStore();
+const { isDesktop, isMobile } = useResponsive();
+const filterSheetOpen = ref(false);
 
 // 按钮可见性：新建/编辑用户对话框需要选择角色和部门，必须同时具备三项权限
 const canCreateUser = computed(
@@ -343,6 +382,20 @@ function onReset(row: any) {
     });
     Notify.create({ type: 'positive', message: '密码已复制到剪贴板', timeout: 2000 });
   });
+}
+
+function onFilterApply(f: { keyword: string; departmentId: number | null; status: string }) {
+  keyword.value = f.keyword;
+  deptFilter.value = f.departmentId;
+  statusFilter.value = f.status;
+  load(1);
+}
+
+function onFilterReset() {
+  keyword.value = '';
+  deptFilter.value = null;
+  statusFilter.value = '';
+  load(1);
 }
 
 onMounted(async () => {

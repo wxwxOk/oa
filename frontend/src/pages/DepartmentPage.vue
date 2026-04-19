@@ -6,9 +6,13 @@
       <q-btn v-perm="'department:create'" color="primary" icon="add" label="新建部门" @click="openEdit(null)" />
     </div>
 
-    <!-- 加载中 -->
-    <div v-if="loading" class="flex flex-center q-pa-xl">
-      <q-spinner color="primary" size="3em" />
+    <!-- 加载中：树形骨架屏 -->
+    <div v-if="loading" class="q-gutter-sm q-pa-md">
+      <q-skeleton type="rect" height="32px" />
+      <q-skeleton type="rect" height="32px" style="margin-left: 24px" />
+      <q-skeleton type="rect" height="32px" style="margin-left: 24px" />
+      <q-skeleton type="rect" height="32px" style="margin-left: 48px" />
+      <q-skeleton type="rect" height="32px" style="margin-left: 48px" />
     </div>
     <!-- 错误态 -->
     <div v-else-if="error" class="flex flex-center q-pa-xl">
@@ -18,14 +22,10 @@
       </div>
     </div>
     <!-- 空态 -->
-    <div v-else-if="tree.length === 0" class="flex flex-center q-pa-xl">
-      <div class="text-center">
-        <q-icon name="account_tree" size="4em" color="grey-4" />
-        <div class="text-h6 q-mt-md">暂无部门</div>
-        <div class="text-body2 text-grey-6 q-mt-sm">建立组织架构第一步：添加顶级部门</div>
-        <q-btn v-perm="'department:create'" color="primary" label="新建部门" icon="add" class="q-mt-md" @click="openEdit(null)" />
-      </div>
-    </div>
+    <EmptyState v-else-if="tree.length === 0" icon="account_tree" title="暂无部门"
+                description="建立组织架构第一步：添加顶级部门"
+                :cta-text="auth.hasPerm('department:create') ? '新建部门' : undefined"
+                @action="openEdit(null)" />
     <!-- 数据态 -->
     <q-tree
       v-else
@@ -47,8 +47,14 @@
       </template>
     </q-tree>
 
-    <q-dialog v-model="dialog">
-      <q-card style="min-width: 320px">
+    <q-dialog v-model="dialog" :maximized="isMobile"
+              :transition-show="isMobile ? 'slide-up' : 'scale'"
+              :transition-hide="isMobile ? 'slide-down' : 'scale'">
+      <q-card :style="isMobile ? '' : 'min-width: 320px'">
+        <q-bar v-if="isMobile">
+          <q-space />
+          <q-btn dense flat icon="close" v-close-popup />
+        </q-bar>
         <q-card-section class="text-h6">{{ form.id ? '编辑部门' : '新建部门' }}</q-card-section>
         <q-card-section class="q-gutter-sm">
           <q-input
@@ -96,6 +102,12 @@
 import { ref, onMounted, reactive, computed } from 'vue';
 import { api } from 'src/boot/axios';
 import { Dialog, Notify } from 'quasar';
+import { useResponsive } from 'src/composables/useResponsive';
+import { useAuthStore } from 'src/stores/auth';
+import EmptyState from 'src/components/EmptyState.vue';
+
+const { isMobile } = useResponsive();
+const auth = useAuthStore();
 
 interface DeptNode {
   id: number;
