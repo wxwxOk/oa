@@ -75,6 +75,15 @@ Canonical refs:
 
 **Depends on:** Phase 3, Phase 4
 
+**Plans:** 5 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — 基础设施：composables + boot/dark-mode + CSS 变量扩展 + vitest 配置
+- [ ] 05-02-PLAN.md — MainLayout 双布局改造：PC Drawer + 移动端 overlay Drawer + 底部 Tab + fade 过渡
+- [ ] 05-03-PLAN.md — 后端 Dashboard Stats API：GET /dashboard/stats 接口
+- [ ] 05-04-PLAN.md — 页面移动适配：UserPage/DepartmentPage/RolePage + EmptyState + FilterSheet
+- [ ] 05-05-PLAN.md — UI 美化：LoginPage 渐变 + DashboardPage 统计卡片 + 403/404 错误页
+
 Canonical refs:
 - .planning/REQUIREMENTS.md §FR-6 响应式
 - .planning/REQUIREMENTS.md §UAT-6 移动端布局验收
