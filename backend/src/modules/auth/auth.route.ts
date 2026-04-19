@@ -61,4 +61,12 @@ export const authModule = new Elysia({ prefix: '/auth' })
     { body: t.Object({ refreshToken: t.String() }) },
   )
   .use(authGuard())
-  .get('/profile', ({ currentUser }: any) => currentUser);
+  .get('/profile', ({ currentUser }: any) => ({
+    id: currentUser.id,
+    username: currentUser.username,
+    realName: currentUser.realName,
+    avatar: currentUser.avatar ?? null,
+    // 与 /auth/login 返回体字段对齐：前端 UserInfo 统一使用 roles 字段
+    roles: currentUser.roleCodes,
+    permissions: currentUser.permissions,
+  }));
