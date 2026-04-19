@@ -2,6 +2,7 @@ import { route } from 'quasar/wrappers';
 import { createMemoryHistory, createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
 import routes from './routes';
 import { useAuthStore } from 'src/stores/auth';
+import { Notify } from 'quasar';
 
 export default route(function () {
   const createHistory = process.env.SERVER
@@ -16,13 +17,19 @@ export default route(function () {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
-  Router.beforeEach((to, _from, next) => {
+  Router.beforeEach(async (to) => {
     const auth = useAuthStore();
-    if (to.meta.public) return next();
-    if (!auth.isLogin) return next({ path: '/login', query: { redirect: to.fullPath } });
+    if (to.meta.public) return true;
+    if (!auth.isLogin) return { path: '/login', query: { redirect: to.fullPath } };
+
+    await auth.maybeRefreshProfile();
+
     const perm = to.meta.perm as string | undefined;
-    if (perm && !auth.hasPerm(perm)) return next({ path: '/403' });
-    next();
+    if (perm && !auth.hasPerm(perm)) {
+      Notify.create({ type: 'warning', message: '您的权限已更新' });
+      return { path: '/403' };
+    }
+    return true;
   });
 
   return Router;
