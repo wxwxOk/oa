@@ -27,6 +27,7 @@ export const userModule = new Elysia({ prefix: '/users' })
       const pageSize = Math.min(Number(query.pageSize ?? 20), 100);
       const keyword = query.keyword as string | undefined;
       const departmentId = query.departmentId ? Number(query.departmentId) : undefined;
+      const status = query.status as string | undefined;
 
       const where: any = {};
       if (keyword) {
@@ -36,6 +37,7 @@ export const userModule = new Elysia({ prefix: '/users' })
         ];
       }
       if (departmentId) where.departmentId = departmentId;
+      if (status === 'ACTIVE' || status === 'DISABLED') where.status = status;
 
       const [total, items] = await Promise.all([
         prisma.user.count({ where }),
@@ -49,7 +51,7 @@ export const userModule = new Elysia({ prefix: '/users' })
       ]);
       return { total, items, page, pageSize };
     },
-    { query: t.Object({ page: t.Optional(t.String()), pageSize: t.Optional(t.String()), keyword: t.Optional(t.String()), departmentId: t.Optional(t.String()) }) },
+    { query: t.Object({ page: t.Optional(t.String()), pageSize: t.Optional(t.String()), keyword: t.Optional(t.String()), departmentId: t.Optional(t.String()), status: t.Optional(t.String()) }) },
   )
   .guard({ beforeHandle: [] }, (app) =>
     app
@@ -111,7 +113,11 @@ export const userModule = new Elysia({ prefix: '/users' })
             roleIds: t.Optional(t.Array(t.Number())),
           }),
         },
-      )
+      ),
+  )
+  .guard({ beforeHandle: [] }, (app) =>
+    app
+      .use(authGuard('user:reset-password'))
       .post('/:id/reset-password', async ({ params, body }: any) => {
         const id = Number(params.id);
         const newPwd = body.password || '123456';
