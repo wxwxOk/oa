@@ -40,7 +40,7 @@ Plans:
 - [x] 03-02-PLAN.md — 设计系统：Slate + Indigo 色彩 + CSS 变量 + 字体栈
 - [x] 03-03-PLAN.md — DepartmentPage 补全：父部门选择器 + 表单校验 + 空态
 - [x] 03-04-PLAN.md — UserPage 补全：status 筛选 + 表单校验 + 密码弹窗 + 空态
-- [ ] 03-05-PLAN.md — 端到端人工验证
+- [x] 03-05-PLAN.md — 端到端人工验证
 
 Canonical refs:
 - .planning/REQUIREMENTS.md §FR-2 用户管理
