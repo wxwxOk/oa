@@ -52,7 +52,14 @@ Canonical refs:
 
 **Requirements:** FR-2.4, FR-4.1, FR-4.2, FR-4.3, FR-4.4, FR-5.1, FR-5.2, FR-5.3, NFR-1, NFR-3
 
-**Plans:** TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — 后端 RBAC 保护：ADMIN 锁死 + 角色删除拒绝 + userCount
+- [ ] 04-02-PLAN.md — 前端 RolePage 补全：成员数展示 + 按钮禁用逻辑
+- [ ] 04-03-PLAN.md — 前端路由守卫 + 权限刷新：maybeRefreshProfile 60s 防抖
+- [ ] 04-04-PLAN.md — 前端收尾补全：删除确认弹窗对齐 + 一致性验证
+- [ ] 04-05-PLAN.md — 端到端人工验证：UAT-1/UAT-2/UAT-5 + p95 性能
 
 Canonical refs:
 - .planning/REQUIREMENTS.md §FR-4 角色与权限（RBAC）
