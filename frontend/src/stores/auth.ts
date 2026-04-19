@@ -10,11 +10,15 @@ interface UserInfo {
   permissions: string[];
 }
 
+// 模块级变量，避免 Pinia 序列化 Promise 的问题
+let pendingRefresh: Promise<void> | null = null;
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     accessToken: localStorage.getItem('oa_access') || '',
     refreshToken: localStorage.getItem('oa_refresh') || '',
     user: JSON.parse(localStorage.getItem('oa_user') || 'null') as UserInfo | null,
+    lastProfileFetch: 0,
   }),
   getters: {
     isLogin: (s) => !!s.accessToken,
@@ -53,6 +57,25 @@ export const useAuthStore = defineStore('auth', {
       if (!this.user) return false;
       if (this.user.roles.includes('ADMIN')) return true;
       return this.user.permissions.includes(code);
+    },
+    async maybeRefreshProfile() {
+      if (!this.accessToken) return;
+      if (Date.now() - this.lastProfileFetch < 60_000) return;
+      if (pendingRefresh) return pendingRefresh;
+      pendingRefresh = this._doRefreshProfile();
+      try {
+        await pendingRefresh;
+      } finally {
+        pendingRefresh = null;
+      }
+    },
+    async _doRefreshProfile() {
+      try {
+        await this.fetchProfile();
+        this.lastProfileFetch = Date.now();
+      } catch {
+        // 401 由 axios 拦截器处理，此处静默
+      }
     },
   },
 });
