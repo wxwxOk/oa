@@ -32,7 +32,7 @@
               >
                 <q-tooltip v-if="r.code === 'ADMIN'">系统角色不可删除</q-tooltip>
                 <q-tooltip v-else-if="(r._count?.users ?? 0) > 0">
-                  请先解绑 {{ r._count.users }} 个用户
+                  请先解绑 {{ r._count?.users ?? 0 }} 个用户
                 </q-tooltip>
               </q-btn>
             </div>
