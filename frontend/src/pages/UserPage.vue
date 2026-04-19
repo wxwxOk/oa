@@ -3,63 +3,144 @@
     <div class="row items-center q-mb-md q-gutter-sm">
       <div class="text-h6">用户管理</div>
       <q-space />
-      <q-input v-model="keyword" outlined dense placeholder="搜索用户名/姓名" @keyup.enter="load(1)" clearable>
+      <q-input v-model="keyword" outlined dense placeholder="搜索用户名/姓名" @keyup.enter="load(1)" clearable style="width: 200px">
         <template #append><q-icon name="search" class="cursor-pointer" @click="load(1)" /></template>
       </q-input>
-      <q-btn v-perm="'user:create'" color="primary" icon="add" label="新建" @click="openEdit(null)" />
+      <q-select
+        v-model="deptFilter"
+        :options="deptFilterOptions"
+        label="选择部门"
+        outlined
+        dense
+        emit-value
+        map-options
+        clearable
+        style="width: 160px"
+        @update:model-value="load(1)"
+      />
+      <q-btn-toggle
+        v-model="statusFilter"
+        toggle-color="primary"
+        flat
+        bordered
+        :options="[
+          { label: '全部', value: '' },
+          { label: '启用', value: 'ACTIVE' },
+          { label: '禁用', value: 'DISABLED' },
+        ]"
+        @update:model-value="load(1)"
+      />
+      <q-btn v-perm="'user:create'" color="primary" icon="add" label="新建用户" @click="openEdit(null)" />
     </div>
 
-    <q-table
-      v-if="$q.screen.gt.sm"
-      :rows="rows"
-      :columns="columns"
-      row-key="id"
-      :loading="loading"
-      :pagination="pagination"
-      @request="onReq"
-      flat
-      bordered
-    >
-      <template #body-cell-actions="props">
-        <q-td :props="props">
-          <q-btn v-perm="'user:update'" size="sm" flat dense icon="edit" @click="openEdit(props.row)" />
-          <q-btn v-perm="'user:reset-password'" size="sm" flat dense icon="vpn_key" @click="onReset(props.row)" />
-          <q-btn v-perm="'user:delete'" size="sm" flat dense icon="delete" color="negative" @click="onDelete(props.row)" />
-        </q-td>
-      </template>
-    </q-table>
-
-    <!-- 移动端卡片列表 -->
-    <div v-else class="q-gutter-sm">
-      <q-card v-for="u in rows" :key="u.id" flat bordered>
-        <q-card-section>
-          <div class="text-subtitle1">{{ u.realName }} <span class="text-caption text-grey">({{ u.username }})</span></div>
-          <div class="text-caption">部门: {{ u.department?.name ?? '-' }}</div>
-          <div class="text-caption">角色: {{ u.roles.map((r: any) => r.role.name).join(', ') || '-' }}</div>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn v-perm="'user:update'" flat dense icon="edit" @click="openEdit(u)" />
-          <q-btn v-perm="'user:delete'" flat dense icon="delete" color="negative" @click="onDelete(u)" />
-        </q-card-actions>
-      </q-card>
+    <!-- 加载中（首次） -->
+    <div v-if="firstLoading" class="q-pa-xl">
+      <q-skeleton type="QTable" />
     </div>
+    <!-- 错误态 -->
+    <div v-else-if="error" class="flex flex-center q-pa-xl">
+      <div class="text-center">
+        <div class="text-body1">加载失败，请检查网络后重试</div>
+        <q-btn color="primary" label="重试" class="q-mt-md" @click="load(1)" />
+      </div>
+    </div>
+    <!-- 空态 -->
+    <div v-else-if="rows.length === 0 && !loading" class="flex flex-center q-pa-xl">
+      <div class="text-center">
+        <q-icon name="people" size="4em" color="grey-4" />
+        <div class="text-h6 q-mt-md">暂无用户</div>
+        <div class="text-body2 text-grey-6 q-mt-sm">创建第一个用户以开始管理</div>
+        <q-btn v-perm="'user:create'" color="primary" label="新建用户" icon="add" class="q-mt-md" @click="openEdit(null)" />
+      </div>
+    </div>
+    <!-- 数据态 -->
+    <template v-else>
+      <q-table
+        v-if="$q.screen.gt.sm"
+        :rows="rows"
+        :columns="columns"
+        row-key="id"
+        :loading="loading"
+        :pagination="pagination"
+        @request="onReq"
+        flat
+        bordered
+      >
+        <template #body-cell-status="props">
+          <q-td :props="props">
+            <q-chip
+              :color="props.row.status === 'ACTIVE' ? 'positive' : 'grey-4'"
+              :text-color="props.row.status === 'ACTIVE' ? 'white' : 'grey-8'"
+              dense
+              size="sm"
+            >
+              {{ props.row.status === 'ACTIVE' ? '启用' : '禁用' }}
+            </q-chip>
+          </q-td>
+        </template>
+        <template #body-cell-actions="props">
+          <q-td :props="props">
+            <q-btn v-perm="'user:update'" size="sm" flat dense icon="edit" @click="openEdit(props.row)" />
+            <q-btn v-perm="'user:reset-password'" size="sm" flat dense icon="vpn_key" @click="onReset(props.row)" />
+            <q-btn v-perm="'user:delete'" size="sm" flat dense icon="delete" color="negative" @click="onDelete(props.row)" />
+          </q-td>
+        </template>
+      </q-table>
+
+      <!-- 移动端卡片列表 -->
+      <div v-else class="q-gutter-sm">
+        <q-card v-for="u in rows" :key="u.id" flat bordered>
+          <q-card-section>
+            <div class="row items-center">
+              <div class="text-subtitle1">{{ u.realName }} <span class="text-caption text-grey">({{ u.username }})</span></div>
+              <q-space />
+              <q-chip
+                :color="u.status === 'ACTIVE' ? 'positive' : 'grey-4'"
+                :text-color="u.status === 'ACTIVE' ? 'white' : 'grey-8'"
+                dense size="sm"
+              >{{ u.status === 'ACTIVE' ? '启用' : '禁用' }}</q-chip>
+            </div>
+            <div class="text-caption q-mt-xs">部门: {{ u.department?.name ?? '-' }}</div>
+            <div class="text-caption">角色: {{ u.roles.map((r: any) => r.role.name).join(', ') || '-' }}</div>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn v-perm="'user:update'" flat dense icon="edit" @click="openEdit(u)" />
+            <q-btn v-perm="'user:reset-password'" flat dense icon="vpn_key" @click="onReset(u)" />
+            <q-btn v-perm="'user:delete'" flat dense icon="delete" color="negative" @click="onDelete(u)" />
+          </q-card-actions>
+        </q-card>
+      </div>
+    </template>
 
     <q-dialog v-model="dialog">
-      <q-card style="min-width: 360px">
-        <q-card-section class="text-h6">{{ form.id ? '编辑' : '新建' }}用户</q-card-section>
+      <q-card style="min-width: 400px">
+        <q-card-section class="text-h6">{{ form.id ? '编辑用户' : '新建用户' }}</q-card-section>
         <q-card-section class="q-gutter-sm">
-          <q-input v-if="!form.id" v-model="form.username" label="用户名" outlined />
-          <q-input v-if="!form.id" v-model="form.password" label="初始密码 (默认 123456)" outlined />
-          <q-input v-model="form.realName" label="真实姓名" outlined />
-          <q-input v-model="form.email" label="邮箱" outlined />
-          <q-input v-model="form.phone" label="手机" outlined />
+          <q-input v-if="!form.id" v-model="form.username" outlined lazy-rules="ondemand"
+            :rules="[(v: string) => !!v || '请输入用户名', (v: string) => v.length >= 2 || '至少 2 个字符']">
+            <template #label>用户名 <span class="text-negative">*</span></template>
+          </q-input>
+          <q-input v-if="!form.id" v-model="form.password" outlined lazy-rules="ondemand"
+            :rules="[(v: string) => !!v || '请输入密码', (v: string) => v.length >= 4 || '至少 4 个字符']">
+            <template #label>初始密码 (默认 123456)</template>
+          </q-input>
+          <q-input v-model="form.realName" outlined lazy-rules="ondemand"
+            :rules="[(v: string) => !!v || '请输入真实姓名']">
+            <template #label>真实姓名 <span class="text-negative">*</span></template>
+          </q-input>
+          <q-input v-model="form.email" outlined lazy-rules="ondemand"
+            :rules="[(v: string) => !v || /^\S+@\S+\.\S+$/.test(v) || '邮箱格式不正确']"
+            label="邮箱" />
+          <q-input v-model="form.phone" outlined lazy-rules="ondemand"
+            :rules="[(v: string) => !v || /^\d{6,15}$/.test(v) || '手机号格式不正确']"
+            label="手机" />
           <q-select v-model="form.departmentId" :options="deptOptions" label="部门" outlined emit-value map-options clearable />
           <q-select v-model="form.roleIds" :options="roleOptions" label="角色" outlined multiple emit-value map-options />
           <q-toggle v-if="form.id" v-model="form.statusActive" label="启用" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="取消" v-close-popup />
-          <q-btn color="primary" label="保存" @click="onSave" />
+          <q-btn color="primary" label="保存用户" @click="onSave" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -69,12 +150,18 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { api } from 'src/boot/axios';
-import { Dialog, Notify } from 'quasar';
+import { Dialog, Notify, useQuasar, copyToClipboard } from 'quasar';
 
+const $q = useQuasar();
 const loading = ref(false);
+const firstLoading = ref(true);
+const error = ref(false);
 const keyword = ref('');
+const statusFilter = ref('');
+const deptFilter = ref<number | null>(null);
+const deptFilterOptions = ref<Array<{ label: string; value: number }>>([]);
 const rows = ref<any[]>([]);
-const deptOptions = ref<any[]>([]);
+const deptOptions = ref<Array<{ label: string; value: number }>>([]);
 const roleOptions = ref<any[]>([]);
 const dialog = ref(false);
 const form = reactive<any>({});
@@ -84,7 +171,7 @@ const columns = [
   { name: 'realName', label: '姓名', field: 'realName', align: 'left' as const },
   { name: 'dept', label: '部门', field: (r: any) => r.department?.name ?? '-', align: 'left' as const },
   { name: 'roles', label: '角色', field: (r: any) => r.roles.map((x: any) => x.role.name).join(', '), align: 'left' as const },
-  { name: 'status', label: '状态', field: 'status', align: 'center' as const, format: (v: string) => (v === 'ACTIVE' ? '启用' : '禁用') },
+  { name: 'status', label: '状态', field: 'status', align: 'center' as const },
   { name: 'actions', label: '操作', field: 'id', align: 'center' as const },
 ];
 
@@ -94,13 +181,23 @@ async function load(page = pagination.value.page) {
   loading.value = true;
   try {
     const { data } = await api.get('/users', {
-      params: { page, pageSize: pagination.value.rowsPerPage, keyword: keyword.value || undefined },
+      params: {
+        page,
+        pageSize: pagination.value.rowsPerPage,
+        keyword: keyword.value || undefined,
+        departmentId: deptFilter.value || undefined,
+        status: statusFilter.value || undefined,
+      },
     });
     rows.value = data.items;
     pagination.value.rowsNumber = data.total;
     pagination.value.page = data.page;
+    error.value = false;
+  } catch {
+    error.value = true;
   } finally {
     loading.value = false;
+    firstLoading.value = false;
   }
 }
 
@@ -110,9 +207,30 @@ function onReq(props: any) {
   load(props.pagination.page);
 }
 
+interface DeptNode {
+  id: number;
+  name: string;
+  parentId: number | null;
+  sort: number;
+  children: DeptNode[];
+}
+
+function flattenTreeForFilter(nodes: DeptNode[], depth = 0): Array<{ label: string; value: number }> {
+  const result: Array<{ label: string; value: number }> = [];
+  for (const node of nodes) {
+    const indent = depth > 0 ? '\u3000'.repeat(depth) + '\u2514 ' : '';
+    result.push({ label: indent + node.name, value: node.id });
+    if (node.children?.length) {
+      result.push(...flattenTreeForFilter(node.children, depth + 1));
+    }
+  }
+  return result;
+}
+
 async function loadMeta() {
-  const [d, r] = await Promise.all([api.get('/departments'), api.get('/roles')]);
-  deptOptions.value = d.data.map((x: any) => ({ label: x.name, value: x.id }));
+  const [d, r] = await Promise.all([api.get('/departments/tree'), api.get('/roles')]);
+  deptFilterOptions.value = flattenTreeForFilter(d.data);
+  deptOptions.value = flattenTreeForFilter(d.data);
   roleOptions.value = r.data.map((x: any) => ({ label: x.name, value: x.id }));
 }
 
@@ -139,7 +257,7 @@ async function onSave() {
       realName: form.realName,
       email: form.email || undefined,
       phone: form.phone || undefined,
-      departmentId: form.departmentId,
+      departmentId: form.departmentId ?? null,
       roleIds: form.roleIds,
       status: form.statusActive ? 'ACTIVE' : 'DISABLED',
     });
@@ -150,7 +268,7 @@ async function onSave() {
       realName: form.realName,
       email: form.email || undefined,
       phone: form.phone || undefined,
-      departmentId: form.departmentId ?? undefined,
+      departmentId: form.departmentId ?? null,
       roleIds: form.roleIds,
     });
   }
@@ -160,7 +278,12 @@ async function onSave() {
 }
 
 function onDelete(row: any) {
-  Dialog.create({ title: '确认删除', message: `删除用户 ${row.username}?`, cancel: true }).onOk(async () => {
+  Dialog.create({
+    title: '删除用户',
+    message: `将永久删除用户 ${row.username}。此操作不可恢复。`,
+    cancel: true,
+    ok: { label: '确认删除', color: 'negative' },
+  }).onOk(async () => {
     await api.delete(`/users/${row.id}`);
     Notify.create({ type: 'positive', message: '已删除' });
     await load();
@@ -168,9 +291,23 @@ function onDelete(row: any) {
 }
 
 function onReset(row: any) {
-  Dialog.create({ title: '重置密码', message: '将密码重置为 123456?', cancel: true }).onOk(async () => {
+  Dialog.create({
+    title: '重置密码',
+    message: '密码将重置为 123456，用户下次登录需立即修改。',
+    cancel: true,
+    ok: { label: '确认重置', color: 'primary' },
+  }).onOk(async () => {
     const { data } = await api.post(`/users/${row.id}/reset-password`, {});
-    Notify.create({ type: 'positive', message: `新密码: ${data.password}`, timeout: 5000 });
+    // 自动复制到剪贴板
+    copyToClipboard(data.password).catch(() => {});
+    Dialog.create({
+      title: '密码已重置',
+      message: `新密码：<code style="font-size:16px;padding:2px 8px;background:#f1f5f9;border-radius:4px">${data.password}</code>`,
+      html: true,
+      ok: '关闭',
+      persistent: true,
+    });
+    Notify.create({ type: 'positive', message: '密码已复制到剪贴板', timeout: 2000 });
   });
 }
 
