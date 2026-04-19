@@ -21,6 +21,12 @@ body {
   --oa-text-tertiary: #64748B;
   --oa-hover: #EEF2FF;
   --oa-focus-ring: #4F46E5;
+  --oa-surface-elevated: #FFFFFF;
+  --oa-skeleton: #E2E8F0;
+  --oa-tab-inactive: #94A3B8;
+  --oa-login-gradient-start: #4F46E5;
+  --oa-login-gradient-end: #6366F1;
+  --oa-stat-icon-bg: #EEF2FF;
 }
 
 // CSS 自定义属性 — Dark Mode
@@ -33,6 +39,12 @@ body {
   --oa-text-tertiary: #64748B;
   --oa-hover: #1E1B4B;
   --oa-focus-ring: #6366F1;
+  --oa-surface-elevated: #1E293B;
+  --oa-skeleton: #334155;
+  --oa-tab-inactive: #64748B;
+  --oa-login-gradient-start: #312E81;
+  --oa-login-gradient-end: #3730A3;
+  --oa-stat-icon-bg: #1E1B4B;
 }
 
 // Typography 覆盖 — 对话框标题 20px/600
@@ -58,6 +70,15 @@ body {
 .q-btn:active {
   transform: scale(0.98);
   transition: transform 100ms ease;
+}
+
+// 微交互 — Dashboard 统计卡片 hover
+.stat-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 }
 
 // 页面背景色
