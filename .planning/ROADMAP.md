@@ -66,3 +66,15 @@ Canonical refs:
 - .planning/REQUIREMENTS.md §FR-5 前端权限控制
 - .planning/REQUIREMENTS.md §FR-2.4 用户-角色挂载
 - .planning/REQUIREMENTS.md §UAT-1, UAT-2, UAT-5 RBAC 验收场景
+
+### Phase 5: 响应式体验
+
+**Goal:** 实现 PC/Mobile 双布局自适应切换（≥1024px PC 布局，<1024px 移动布局）；表格在移动端切换为卡片列表；支持暗色模式切换。
+
+**Requirements:** FR-6.1, FR-6.2, FR-6.3, NFR-1
+
+**Depends on:** Phase 3, Phase 4
+
+Canonical refs:
+- .planning/REQUIREMENTS.md §FR-6 响应式
+- .planning/REQUIREMENTS.md §UAT-6 移动端布局验收
