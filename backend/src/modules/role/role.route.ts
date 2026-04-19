@@ -1,13 +1,16 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../../plugins/prisma';
 import { authGuard } from '../../middlewares/auth';
-import { notFound } from '../../utils/errors';
+import { BizError, notFound } from '../../utils/errors';
 
 export const roleModule = new Elysia({ prefix: '/roles' })
   .use(authGuard('role:list'))
   .get('/', async () =>
     prisma.role.findMany({
-      include: { permissions: { include: { permission: { select: { id: true, code: true } } } } },
+      include: {
+        permissions: { include: { permission: { select: { id: true, code: true } } } },
+        _count: { select: { users: true } },
+      },
       orderBy: { id: 'asc' },
     }),
   )
@@ -54,6 +57,11 @@ export const roleModule = new Elysia({ prefix: '/roles' })
       '/:id/permissions',
       async ({ params, body }: any) => {
         const roleId = Number(params.id);
+        // D-02: ADMIN 角色不能清空所有权限
+        const role = await prisma.role.findUnique({ where: { id: roleId } });
+        if (role?.code === 'ADMIN' && body.permissionIds.length === 0) {
+          throw new BizError('ADMIN 角色不能清空所有权限');
+        }
         await prisma.rolePermission.deleteMany({ where: { roleId } });
         if (body.permissionIds.length) {
           await prisma.rolePermission.createMany({
@@ -70,7 +78,19 @@ export const roleModule = new Elysia({ prefix: '/roles' })
   )
   .guard({}, (app) =>
     app.use(authGuard('role:delete')).delete('/:id', async ({ params }: any) => {
-      await prisma.role.delete({ where: { id: Number(params.id) } });
+      const id = Number(params.id);
+      const role = await prisma.role.findUnique({
+        where: { id },
+        include: { _count: { select: { users: true } } },
+      });
+      if (!role) throw notFound('角色不存在');
+      // D-08: ADMIN 检查优先于挂载检查
+      if (role.code === 'ADMIN') throw new BizError('系统角色不可删除');
+      // D-06: 挂载用户检查
+      if (role._count.users > 0) {
+        throw new BizError(`该角色仍有 ${role._count.users} 个用户，请先解绑`);
+      }
+      await prisma.role.delete({ where: { id } });
       return { ok: true };
     }),
   );
