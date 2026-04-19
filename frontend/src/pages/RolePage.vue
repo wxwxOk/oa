@@ -19,12 +19,22 @@
         >
           <q-item-section>
             <q-item-label>{{ r.name }}</q-item-label>
-            <q-item-label caption>{{ r.code }}</q-item-label>
+            <q-item-label caption>{{ r.code }} · 成员: {{ r._count?.users ?? 0 }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <div class="row q-gutter-xs">
               <q-btn v-perm="'role:update'" size="sm" flat dense icon="edit" @click.stop="openEdit(r)" />
-              <q-btn v-perm="'role:delete'" size="sm" flat dense icon="delete" color="negative" @click.stop="onDelete(r)" />
+              <q-btn
+                v-perm="'role:delete'"
+                size="sm" flat dense icon="delete" color="negative"
+                :disable="r.code === 'ADMIN' || (r._count?.users ?? 0) > 0"
+                @click.stop="onDelete(r)"
+              >
+                <q-tooltip v-if="r.code === 'ADMIN'">系统角色不可删除</q-tooltip>
+                <q-tooltip v-else-if="(r._count?.users ?? 0) > 0">
+                  请先解绑 {{ r._count.users }} 个用户
+                </q-tooltip>
+              </q-btn>
             </div>
           </q-item-section>
         </q-item>
@@ -45,7 +55,17 @@
               inline
             />
           </div>
-          <q-btn v-perm="'role:assign-permission'" color="primary" label="保存权限" @click="savePerms" />
+          <q-btn
+            v-perm="'role:assign-permission'"
+            color="primary"
+            label="保存权限"
+            :disable="isAdminSelected && checkedIds.length === 0"
+            @click="savePerms"
+          >
+            <q-tooltip v-if="isAdminSelected && checkedIds.length === 0">
+              ADMIN 角色不能清空所有权限
+            </q-tooltip>
+          </q-btn>
         </q-card-section>
       </q-card>
     </div>
@@ -87,6 +107,9 @@ const groupedPerms = computed(() => {
   permissions.value.forEach((p) => ((g[p.module] ||= []).push(p)));
   return g;
 });
+
+// 当前选中角色是否为 ADMIN
+const isAdminSelected = computed(() => selected.value?.code === 'ADMIN');
 
 async function loadRoles() {
   const { data } = await api.get('/roles');
