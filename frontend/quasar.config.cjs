@@ -3,7 +3,7 @@ const { configure } = require('quasar/wrappers');
 
 module.exports = configure(function (/* ctx */) {
   return {
-    boot: ['axios', 'perm'],
+    boot: ['axios', 'perm', 'dark-mode'],
     store: true,
     css: ['app.scss'],
     extras: ['material-icons'],
