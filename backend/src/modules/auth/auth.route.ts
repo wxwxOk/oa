@@ -7,7 +7,7 @@ import { unauthorized } from '../../utils/errors';
 export const authModule = new Elysia({ prefix: '/auth' })
   .post(
     '/login',
-    async ({ body, jwt }: any) => {
+    async ({ body, accessJwt, refreshJwt }: any) => {
       const { username, password } = body;
       const user = await prisma.user.findUnique({
         where: { username },
@@ -18,8 +18,8 @@ export const authModule = new Elysia({ prefix: '/auth' })
       if (!user || user.status === 'DISABLED') throw unauthorized('用户不存在或已禁用');
       if (!bcrypt.compareSync(password, user.password)) throw unauthorized('用户名或密码错误');
 
-      const accessToken = await jwt.sign({ sub: String(user.id), type: 'access' });
-      const refreshToken = await jwt.sign({ sub: String(user.id), type: 'refresh' });
+      const accessToken = await accessJwt.sign({ sub: String(user.id), type: 'access' });
+      const refreshToken = await refreshJwt.sign({ sub: String(user.id), type: 'refresh' });
 
       const permCodes = new Set<string>();
       const roleCodes: string[] = [];
@@ -50,10 +50,12 @@ export const authModule = new Elysia({ prefix: '/auth' })
   )
   .post(
     '/refresh',
-    async ({ body, jwt }: any) => {
-      const payload = await jwt.verify(body.refreshToken);
+    async ({ body, accessJwt, refreshJwt }: any) => {
+      // 必须使用 refreshJwt 实例验证 refresh token：
+      // access token 签名用的是 accessJwt 的 exp/secret 上下文，无法通过 refreshJwt.verify
+      const payload = await refreshJwt.verify(body.refreshToken);
       if (!payload || payload.type !== 'refresh') throw unauthorized('refresh token 无效');
-      const accessToken = await jwt.sign({ sub: payload.sub, type: 'access' });
+      const accessToken = await accessJwt.sign({ sub: payload.sub, type: 'access' });
       return { accessToken };
     },
     { body: t.Object({ refreshToken: t.String() }) },

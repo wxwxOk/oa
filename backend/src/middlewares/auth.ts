@@ -5,12 +5,15 @@ import { unauthorized, forbidden } from '../utils/errors';
 // 从 header 解析 JWT 并加载当前用户 + 权限码
 export const authGuard = (requiredPerm?: string) =>
   new Elysia({ name: `auth-guard-${requiredPerm ?? 'any'}` })
-    .derive({ as: 'scoped' }, async ({ jwt, headers }: any) => {
+    .derive({ as: 'scoped' }, async ({ accessJwt, headers }: any) => {
       const auth = headers.authorization;
       if (!auth?.startsWith('Bearer ')) throw unauthorized();
       const token = auth.slice(7);
-      const payload = await jwt.verify(token);
+      // 仅接受 access token：refresh token 经由独立 refreshJwt 实例签发，
+      // accessJwt.verify 会因 payload 不匹配而拒绝；双保险再校验 payload.type
+      const payload = await accessJwt.verify(token);
       if (!payload || !payload.sub) throw unauthorized('令牌无效');
+      if (payload.type !== 'access') throw unauthorized('请使用 access token');
 
       const userId = Number(payload.sub);
       const user = await prisma.user.findUnique({
