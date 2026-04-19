@@ -1,3 +1,66 @@
 .full-page {
   min-height: 100vh;
 }
+
+// === OA Design System (03-UI-SPEC.md) ===
+
+// 中文优先字体栈
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans CN',
+    'Noto Sans CJK SC', sans-serif;
+}
+
+// CSS 自定义属性 — Light Mode
+:root {
+  --oa-bg: #F8FAFC;
+  --oa-surface: #FFFFFF;
+  --oa-border: #E2E8F0;
+  --oa-text-primary: #0F172A;
+  --oa-text-secondary: #475569;
+  --oa-text-tertiary: #64748B;
+  --oa-hover: #EEF2FF;
+  --oa-focus-ring: #4F46E5;
+}
+
+// CSS 自定义属性 — Dark Mode
+.body--dark {
+  --oa-bg: #0F172A;
+  --oa-surface: #1E293B;
+  --oa-border: #334155;
+  --oa-text-primary: #F8FAFC;
+  --oa-text-secondary: #94A3B8;
+  --oa-text-tertiary: #64748B;
+  --oa-hover: #1E1B4B;
+  --oa-focus-ring: #6366F1;
+}
+
+// Typography 覆盖 — 对话框标题 20px/600
+.text-h6 {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+// 微交互 — 表格行 hover
+.q-table tbody tr:hover {
+  background-color: var(--oa-hover);
+  transition: background-color 150ms ease;
+}
+
+// 微交互 — Focus ring（无障碍可见焦点）
+.q-field--outlined .q-field__control:focus-within {
+  outline: 2px solid var(--oa-focus-ring);
+  outline-offset: 2px;
+}
+
+// 微交互 — 按钮点击反馈
+.q-btn:active {
+  transform: scale(0.98);
+  transition: transform 100ms ease;
+}
+
+// 页面背景色
+.q-page {
+  background-color: var(--oa-bg);
+}

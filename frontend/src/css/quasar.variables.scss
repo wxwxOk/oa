@@ -1,11 +1,12 @@
-$primary   : #1976d2;
-$secondary : #26a69a;
-$accent    : #9c27b0;
+// OA Design System — Slate + Indigo (03-UI-SPEC.md)
+$primary   : #4F46E5;  // indigo-600
+$secondary : #475569;  // slate-600
+$accent    : #6366F1;  // indigo-500（dark mode 备用）
 
-$dark      : #1d1d1d;
-$dark-page : #121212;
+$dark      : #0F172A;  // slate-900
+$dark-page : #0F172A;  // slate-900
 
-$positive  : #21ba45;
-$negative  : #c10015;
-$info      : #31ccec;
-$warning   : #f2c037;
+$positive  : #16A34A;  // green-600
+$negative  : #DC2626;  // red-600
+$info      : #3B82F6;  // blue-500
+$warning   : #F59E0B;  // amber-500
