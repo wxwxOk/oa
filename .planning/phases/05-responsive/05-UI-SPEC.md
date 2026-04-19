@@ -68,23 +68,44 @@ created: 2026-04-20
 
 ## Typography
 
-继承 Phase 3 字体体系，无变更：
+### Core Type Scale（4 sizes, 2 weights）
+
+继承 Phase 3 字体体系，精简为 4 级核心字阶 + 2 个字重：
 
 | Role | Size | Weight | Line Height | Quasar 映射 |
 |------|------|--------|-------------|------------|
-| H1 (页面标题) | 28px | 600 | 1.2 | 自定义 |
-| H2 (区块标题/对话框标题) | 20px | 600 | 1.2 | 覆盖 `text-h6` |
+| Heading (页面标题/区块标题/对话框标题) | 20px | 600 | 1.2 | 覆盖 `text-h6` |
 | Body (正文) | 16px | 400 | 1.5 | Quasar 默认 |
-| Label (标签) | 14px | 400 | 1.5 | `text-body2` |
-| Caption (辅助) | 12px | 400 | 1.5 | `text-caption` |
+| Label (标签/辅助正文) | 14px | 400 | 1.5 | `text-body2` |
+| Caption (辅助/注释) | 12px | 400 | 1.5 | `text-caption` |
 
-新增：
-- Dashboard 欢迎词：24px / 600 / 1.3（`text-h5` + 自定义 weight）
-- Dashboard 统计数字：32px / 700 / 1.0（`text-h4` 覆盖）
-- Dashboard 统计标签：14px / 400 / 1.5（`text-body2 text-grey`）
-- 登录页品牌标题：28px / 700 / 1.2（`text-h5 text-weight-bold`）
-- 403/404 错误码：72px / 700 / 1.0（`text-h1`）
-- 403/404 描述文字：16px / 400 / 1.5（`text-body1`）
+字重限制：仅使用 400（regular）和 600（semibold），全项目禁止使用 700。
+
+### Display Overrides（单用途，不属于可复用字阶）
+
+以下尺寸仅限声明的特定场景使用，不得在其他上下文复用：
+
+| Size | Weight | Line Height | Scope | Justification |
+|------|--------|-------------|-------|---------------|
+| 32px | 600 | 1.0 | Dashboard 统计数字（DashboardPage 统计卡片内的数值展示） | 大数字需要视觉冲击力，与 14px 统计标签形成层级对比 |
+| 72px | 600 | 1.0 | 403/404 错误码显示（ErrorPage 错误码数字） | 错误页核心视觉元素，需极大尺寸传达"此页异常"信号 |
+
+### Phase 5 各场景字体映射
+
+| 场景 | 映射到 | 具体规格 |
+|------|--------|---------|
+| H1 页面标题（原 28px） | Core: Heading | 20px / 600 / 1.2 |
+| H2 区块标题/对话框标题 | Core: Heading | 20px / 600 / 1.2 |
+| Dashboard 欢迎词（原 24px） | Core: Heading | 20px / 600 / 1.2 |
+| Dashboard 统计数字 | Display Override | 32px / 600 / 1.0 |
+| Dashboard 统计标签 | Core: Label | 14px / 400 / 1.5 |
+| 登录页品牌标题（原 28px/700） | Core: Heading | 20px / 600 / 1.2，`$primary` 色 |
+| 登录页副标题 | Core: Label | 14px / 400 / 1.5，`var(--oa-text-secondary)` |
+| 403/404 错误码 | Display Override | 72px / 600 / 1.0 |
+| 403/404 描述文字 | Core: Body | 16px / 400 / 1.5 |
+| 空态标题 | Core: Heading | 20px / 600 / 1.2 |
+| 空态描述 | Core: Label | 14px / 400 / 1.5 |
+| 底部 Tab 文字 | Core: Caption | 12px / 400 / 1.5 |
 
 ---
 
@@ -93,6 +114,8 @@ created: 2026-04-20
 ### 继承 Phase 3 色彩契约
 
 所有 `--oa-*` CSS 变量和 Quasar SCSS 变量保持不变。
+
+60/30/10 色彩分配确认：Phase 5 新增的页面和组件（Dashboard、登录页、错误页、底部 Tab 栏）均遵循 Phase 3 建立的 60% 主表面（`var(--oa-bg)` / `var(--oa-surface)`）、30% 次级表面（卡片、侧边栏、Tab 栏背景）、10% 强调色（`$primary` indigo，仅用于 CTA 按钮、选中态、品牌标题）的分配比例，无偏离。
 
 ### 暗色模式完善 — 硬编码色替换映射（D-09）
 
@@ -163,7 +186,6 @@ created: 2026-04-20
 | 移动端用户卡片 | 8px | `shadow-1` | 统一 D-13 |
 | overlay Drawer | 0px | `shadow-4` | 覆盖层需要阴影 |
 | 403/404 页面按钮 | 8px | none | 与卡片圆角统一 |
-
 ---
 
 ## Animation Contract (D-14)
@@ -368,7 +390,7 @@ PC 端布局：
 │         │                 │                 │
 │         │  [用户名]       │                 │
 │         │  [密码    👁]   │                 │
-│         │  [  登录  ]     │                 │
+│         │  [ 立即登录 ]   │                 │
 │         │                 │                 │
 │         │  默认: admin    │                 │
 │         └─────────────────┘                 │
@@ -385,7 +407,7 @@ PC 端布局：
 | 装饰圆形 | 2 个，`position: absolute`，`border-radius: 50%`，`background: rgba(255,255,255,0.1)` |
 | 装饰圆 1 | 200px，`top: -60px; left: -60px` |
 | 装饰圆 2 | 150px，`bottom: -40px; right: -40px` |
-| 品牌标题 | 28px / 700 / `$primary` 色 |
+| 品牌标题 | 20px / 600 / `$primary` 色 |
 | 副标题 | 14px / 400 / `var(--oa-text-secondary)` |
 | 暗色切换 | 卡片右上角小按钮（`q-btn flat round dense icon="dark_mode"`） |
 
@@ -422,7 +444,7 @@ PC 端布局：
 | 统计卡片布局 | PC: `row q-gutter-md`，3 列等宽；Mobile: 纵向堆叠 `col-12` |
 | 统计卡片高度 | 120px min-height |
 | 统计图标 | 48px 圆形背景（`var(--oa-stat-icon-bg)`），24px material-icon |
-| 统计数字 | 32px / 700 / `var(--oa-text-primary)` |
+| 统计数字 | 32px / 600 / `var(--oa-text-primary)` |
 | 统计标签 | 14px / 400 / `var(--oa-text-secondary)` |
 | 快捷操作 | PC: 4 列 `row q-gutter-sm`；Mobile: 2x2 grid |
 | 快捷操作卡片 | 80px 高，居中图标 + 文字，hover `translateY(-2px)` |
@@ -456,7 +478,7 @@ PC 端布局：
 │ 状态                        │
 │ [全部] [启用] [禁用]        │
 │                             │
-│ [  重置  ] [  应用筛选  ]   │
+│ [ 重置筛选 ] [ 应用筛选  ]  │
 └─────────────────────────────┘
 ```
 
@@ -538,7 +560,7 @@ function toggleDark() {
 |---------|------|
 | 品牌标题 | OA 管理系统 |
 | 副标题 | 请使用您的账号登录 |
-| 登录按钮 | 登录 |
+| 登录按钮 | 立即登录 |
 | 默认提示 | 默认账号: admin / admin123 |
 | 登录成功 | 登录成功（Notify positive） |
 | 登录失败 | 用户名或密码错误（Notify negative） |
@@ -595,7 +617,7 @@ function toggleDark() {
 | Sheet 内搜索 label | 搜索 |
 | Sheet 内部门 label | 部门 |
 | Sheet 内状态 label | 状态 |
-| 重置按钮 | 重置 |
+| 重置按钮 | 重置筛选 |
 | 应用按钮 | 应用筛选 |
 
 #### RolePage 移动端（D-05）
