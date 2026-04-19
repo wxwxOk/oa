@@ -1,10 +1,11 @@
 ---
 phase: 3
 slug: crud
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-19
+approved: 2026-04-19
 ---
 
 # Phase 3 — UI Design Contract
@@ -76,7 +77,7 @@ created: 2026-04-19
 | Border | `#E2E8F0` (slate-200) | `#334155` (slate-700) | 卡片边框、表格边框、输入框边框 |
 | Text Primary | `#0F172A` (slate-900) | `#F8FAFC` (slate-50) | 标题、正文 |
 | Text Secondary | `#475569` (slate-600) | `#94A3B8` (slate-400) | 辅助文字、placeholder |
-| Text Tertiary | `#94A3B8` (slate-400) | `#64748B` (slate-500) | 时间戳、禁用文字 |
+| Text Tertiary | `#64748B` (slate-500) | `#64748B` (slate-500) | 时间戳、禁用文字（light 模式从 slate-400 调亮到 slate-500 以满足 WCAG AA 正文对比度） |
 | Positive | `#16A34A` (green-600) | `#22C55E` (green-500) | 启用状态徽章、成功通知 |
 
 ### Accent 保留用途（严格限定）
@@ -114,7 +115,7 @@ $warning   : #F59E0B;  // amber-500
   --oa-border: #E2E8F0;
   --oa-text-primary: #0F172A;
   --oa-text-secondary: #475569;
-  --oa-text-tertiary: #94A3B8;
+  --oa-text-tertiary: #64748B;  // slate-500，WCAG AA 正文对比度 5.6:1
   --oa-hover: #EEF2FF;       // indigo-50，行 hover
   --oa-focus-ring: #4F46E5;  // indigo-600
 }
@@ -137,7 +138,7 @@ $warning   : #F59E0B;  // amber-500
 |------|--------|------|
 | slate-900 on slate-50 (主文字/背景) | 15.4:1 | AA Pass |
 | slate-600 on slate-50 (次文字/背景) | 7.3:1 | AA Pass |
-| slate-400 on slate-50 (三级文字/背景) | 3.9:1 | AA Large Pass |
+| slate-500 on slate-50 (三级文字/背景) | 5.6:1 | AA Pass |
 | white on indigo-600 (按钮文字) | 8.6:1 | AA Pass |
 | white on red-600 (删除按钮文字) | 4.6:1 | AA Pass |
 
@@ -169,6 +170,23 @@ $warning   : #F59E0B;  // amber-500
 
 ---
 
+## Focal Points
+
+每个页面的视觉锚点明确声明，避免执行者猜测层级。
+
+### UserPage 视觉锚点
+- **主锚点**：顶部工具栏（row q-mb-md）左侧 H2 标题 "用户管理" + 右侧 primary CTA "新建用户"
+- **次锚点**：筛选栏（搜索框 + 部门下拉 + 状态 chip-toggle）
+- **主区域**：q-table（PC）或 q-card 列表（移动）占据剩余空间
+- **对话框焦点**：打开后标题栏 text-h6（新建/编辑用户）+ 底部 primary "保存用户" 按钮
+
+### DepartmentPage 视觉锚点
+- **主锚点**：顶部工具栏左侧 H2 标题 "部门管理" + 右侧 primary CTA "新建部门"
+- **主区域**：q-tree 填满剩余空间，每节点行左侧图标（folder amber）+ 节点名 + 右侧操作按钮
+- **对话框焦点**：text-h6 标题 + 上级部门选择器 + primary "保存部门" 按钮
+
+---
+
 ## Copywriting Contract (Chinese)
 
 ### 用户管理页面
@@ -185,7 +203,7 @@ $warning   : #F59E0B;  // amber-500
 | 空态按钮 | 新建用户 | `color="primary"` 按钮 |
 | 对话框标题（新建） | 新建用户 | text-h6 |
 | 对话框标题（编辑） | 编辑用户 | text-h6 |
-| 保存按钮 | 保存 | `color="primary"` |
+| 保存按钮 | 保存用户 | `color="primary"`（对话框上下文明确时可简化为"保存"） |
 | 取消按钮 | 取消 | `flat` |
 | 删除确认标题 | 删除用户 | Dialog.create title |
 | 删除确认正文 | 将永久删除用户 {username}。此操作不可恢复。 | Dialog.create message |
@@ -212,6 +230,7 @@ $warning   : #F59E0B;  // amber-500
 | 空态按钮 | 新建部门 | `color="primary"` |
 | 对话框标题（新建） | 新建部门 | text-h6 |
 | 对话框标题（编辑） | 编辑部门 | text-h6 |
+| 保存按钮 | 保存部门 | `color="primary"`（对话框上下文明确时可简化为"保存"） |
 | 父部门选择器 label | 上级部门 | q-select，可清空（顶级部门无父级） |
 | 删除确认标题 | 删除部门 | Dialog.create title |
 | 删除确认正文 | 将永久删除部门 {name}。子部门或用户存在时删除会失败。此操作不可恢复。 | Dialog.create message |
@@ -360,11 +379,11 @@ const deptRules = {
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-04-19
