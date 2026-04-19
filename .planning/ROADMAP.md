@@ -24,5 +24,5 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — 后端双 JWT 实例 + secret 校验 + Dockerfile 修复
-- [ ] 02-02-PLAN.md — 端到端验证（API 测试 + 前端登录流程）
+- [x] 02-01-PLAN.md — 后端双 JWT 实例 + secret 校验 + Dockerfile 修复
+- [x] 02-02-PLAN.md — 端到端验证（API 测试 + 前端登录流程）
