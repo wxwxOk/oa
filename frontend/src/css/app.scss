@@ -72,6 +72,15 @@ body {
   transition: transform 100ms ease;
 }
 
+// 微交互 — Dashboard 统计卡片 hover
+.stat-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
 // 页面背景色
 .q-page {
   background-color: var(--oa-bg);

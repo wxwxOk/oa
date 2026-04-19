@@ -1,21 +1,30 @@
 <template>
   <q-page padding>
-    <div class="text-h5 q-mb-md">欢迎, {{ auth.user?.realName }}</div>
+    <!-- 欢迎词 -->
+    <div style="font-size: 20px; font-weight: 600; color: var(--oa-text-primary)">
+      {{ greeting }}，{{ auth.user?.realName }}
+    </div>
+    <div class="q-mt-xs q-mb-lg" style="font-size: 14px; color: var(--oa-text-secondary)">
+      欢迎回到 OA 管理系统
+    </div>
 
     <!-- 统计卡片 -->
-    <div :class="isDesktop ? 'row q-gutter-md' : 'q-gutter-sm'">
-      <q-card v-for="card in statCards" :key="card.label" flat bordered
-              :class="isDesktop ? 'col' : ''" style="border-radius: 8px">
+    <div :class="isDesktop ? 'row q-gutter-md q-mb-lg' : 'q-gutter-sm q-mb-lg'">
+      <q-card v-for="item in statCards" :key="item.label"
+              :class="isDesktop ? 'col stat-card' : 'stat-card'" flat bordered
+              style="border-radius: 8px; min-height: 120px">
         <q-card-section>
-          <div class="row items-center q-gutter-sm">
-            <q-icon :name="card.icon" size="28px" color="primary" />
+          <div class="row items-center q-gutter-md">
+            <div style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--oa-stat-icon-bg)">
+              <q-icon :name="item.icon" size="24px" color="primary" />
+            </div>
             <div>
-              <div style="font-size: 12px; color: var(--oa-text-secondary)">{{ card.label }}</div>
-              <div v-if="statsLoading" style="margin-top: 4px">
-                <q-skeleton type="text" width="40px" />
+              <div style="font-size: 14px; color: var(--oa-text-secondary)">{{ item.label }}</div>
+              <div v-if="statsLoading">
+                <q-skeleton type="text" width="60px" height="32px" />
               </div>
-              <div v-else style="font-size: 24px; font-weight: 700; color: var(--oa-text-primary)">
-                {{ card.value }}
+              <div v-else style="font-size: 32px; font-weight: 600; line-height: 1; color: var(--oa-text-primary)">
+                {{ statsError ? '--' : item.value }}
               </div>
             </div>
           </div>
@@ -23,53 +32,60 @@
       </q-card>
     </div>
 
-    <!-- 快捷入口 -->
-    <div class="q-mt-lg">
-      <div class="text-subtitle1 q-mb-sm">快捷入口</div>
-      <div :class="isDesktop ? 'row q-gutter-md' : 'q-gutter-sm'">
-        <q-card v-for="link in quickLinks" :key="link.to" flat bordered clickable
-                :class="isDesktop ? 'col' : ''" style="border-radius: 8px; cursor: pointer"
-                @click="$router.push(link.to)">
-          <q-card-section class="text-center">
-            <q-icon :name="link.icon" size="32px" color="primary" />
-            <div class="q-mt-xs" style="font-size: 14px; color: var(--oa-text-primary)">{{ link.label }}</div>
-          </q-card-section>
-        </q-card>
-      </div>
+    <!-- 快捷操作 -->
+    <div style="font-size: 20px; font-weight: 600; color: var(--oa-text-primary)" class="q-mb-md">
+      快捷操作
+    </div>
+    <div :class="isDesktop ? 'row q-gutter-sm' : 'q-gutter-sm'">
+      <q-btn v-for="action in quickActions" :key="action.to"
+             outline color="primary" :icon="action.icon" :label="action.label"
+             :to="action.to" style="border-radius: 8px" />
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { api } from 'src/boot/axios';
 import { useAuthStore } from 'src/stores/auth';
 import { useResponsive } from 'src/composables/useResponsive';
-import { api } from 'src/boot/axios';
+import { Notify } from 'quasar';
 
 const auth = useAuthStore();
 const { isDesktop } = useResponsive();
 
+const greeting = computed(() => {
+  const h = new Date().getHours();
+  if (h >= 6 && h < 12) return '早上好';
+  if (h >= 12 && h < 18) return '下午好';
+  return '晚上好';
+});
+
+const stats = ref({ userCount: 0, departmentCount: 0, roleCount: 0 });
 const statsLoading = ref(true);
-const stats = ref({ userCount: 0, deptCount: 0, roleCount: 0 });
+const statsError = ref(false);
 
 const statCards = computed(() => [
-  { icon: 'people', label: '活跃用户', value: stats.value.userCount },
-  { icon: 'account_tree', label: '部门数量', value: stats.value.deptCount },
-  { icon: 'security', label: '角色数量', value: stats.value.roleCount },
+  { icon: 'people', label: '用户总数', value: stats.value.userCount },
+  { icon: 'account_tree', label: '部门总数', value: stats.value.departmentCount },
+  { icon: 'security', label: '角色总数', value: stats.value.roleCount },
 ]);
 
-const quickLinks = [
-  { icon: 'people', label: '用户管理', to: '/users' },
-  { icon: 'account_tree', label: '部门管理', to: '/departments' },
-  { icon: 'security', label: '角色权限', to: '/roles' },
-];
+const quickActions = computed(() => {
+  const actions = [];
+  if (auth.hasPerm('user:create')) actions.push({ icon: 'person_add', label: '新建用户', to: '/users' });
+  if (auth.hasPerm('department:create')) actions.push({ icon: 'create_new_folder', label: '新建部门', to: '/departments' });
+  if (auth.hasPerm('role:list')) actions.push({ icon: 'admin_panel_settings', label: '角色管理', to: '/roles' });
+  return actions;
+});
 
 onMounted(async () => {
   try {
     const { data } = await api.get('/dashboard/stats');
     stats.value = data;
   } catch {
-    // 静默失败，显示 0
+    statsError.value = true;
+    Notify.create({ type: 'warning', message: '统计数据加载失败' });
   } finally {
     statsLoading.value = false;
   }
