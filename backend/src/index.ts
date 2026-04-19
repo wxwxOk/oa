@@ -8,6 +8,14 @@ import { userModule } from './modules/user/user.route';
 import { departmentModule } from './modules/department/department.route';
 import { roleModule, permissionModule } from './modules/role/role.route';
 
+// 启动前强制校验 JWT_SECRET：长度不足 32 字符直接拒绝启动，
+// 杜绝使用开发默认值或弱 secret 的情况。
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  console.error('JWT_SECRET 必须至少 32 字符，当前长度:', JWT_SECRET?.length ?? 0);
+  process.exit(1);
+}
+
 const app = new Elysia()
   .use(
     cors({
@@ -16,11 +24,20 @@ const app = new Elysia()
       allowedHeaders: ['Content-Type', 'Authorization'],
     }),
   )
+  // access token：短生命周期，用于接口鉴权
   .use(
     jwt({
-      name: 'jwt',
-      secret: process.env.JWT_SECRET ?? 'dev-secret-change-me',
+      name: 'accessJwt',
+      secret: JWT_SECRET,
       exp: process.env.JWT_EXPIRES_IN ?? '2h',
+    }),
+  )
+  // refresh token：长生命周期，用于换发 access token
+  .use(
+    jwt({
+      name: 'refreshJwt',
+      secret: JWT_SECRET,
+      exp: process.env.JWT_REFRESH_EXPIRES_IN ?? '7d',
     }),
   )
   .use(swagger({ path: '/swagger', documentation: { info: { title: 'OA API', version: '1.0.0' } } }))
