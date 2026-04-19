@@ -115,29 +115,23 @@
     <q-dialog v-model="dialog">
       <q-card style="min-width: 400px">
         <q-card-section class="text-h6">{{ form.id ? '编辑用户' : '新建用户' }}</q-card-section>
+        <q-form ref="formRef" greedy>
         <q-card-section class="q-gutter-sm">
-          <q-input v-if="!form.id" v-model="form.username" outlined lazy-rules="ondemand"
-            :rules="[(v: string) => !!v || '请输入用户名', (v: string) => v.length >= 2 || '至少 2 个字符']">
-            <template #label>用户名 <span class="text-negative">*</span></template>
-          </q-input>
-          <q-input v-if="!form.id" v-model="form.password" outlined lazy-rules="ondemand"
-            :rules="[(v: string) => !!v || '请输入密码', (v: string) => v.length >= 4 || '至少 4 个字符']">
-            <template #label>初始密码 (默认 123456)</template>
-          </q-input>
-          <q-input v-model="form.realName" outlined lazy-rules="ondemand"
-            :rules="[(v: string) => !!v || '请输入真实姓名']">
-            <template #label>真实姓名 <span class="text-negative">*</span></template>
-          </q-input>
-          <q-input v-model="form.email" outlined lazy-rules="ondemand"
-            :rules="[(v: string) => !v || /^\S+@\S+\.\S+$/.test(v) || '邮箱格式不正确']"
-            label="邮箱" />
-          <q-input v-model="form.phone" outlined lazy-rules="ondemand"
-            :rules="[(v: string) => !v || /^\d{6,15}$/.test(v) || '手机号格式不正确']"
-            label="手机" />
+          <q-input v-if="!form.id" v-model="form.username" outlined label="用户名 *"
+            lazy-rules :rules="[(v: string) => !!v || '请输入用户名', (v: string) => v.length >= 2 || '至少 2 个字符']" />
+          <q-input v-if="!form.id" v-model="form.password" outlined label="初始密码 (默认 123456)"
+            lazy-rules :rules="[(v: string) => !form.id && !v ? '请输入密码' : true, (v: string) => !v || v.length >= 4 || '至少 4 个字符']" />
+          <q-input v-model="form.realName" outlined label="真实姓名 *"
+            lazy-rules :rules="[(v: string) => !!v || '请输入真实姓名']" />
+          <q-input v-model="form.email" outlined label="邮箱"
+            lazy-rules :rules="[(v: string) => !v || /^\S+@\S+\.\S+$/.test(v) || '邮箱格式不正确']" />
+          <q-input v-model="form.phone" outlined label="手机"
+            lazy-rules :rules="[(v: string) => !v || /^\d{6,15}$/.test(v) || '手机号格式不正确']" />
           <q-select v-model="form.departmentId" :options="deptOptions" label="部门" outlined emit-value map-options clearable />
           <q-select v-model="form.roleIds" :options="roleOptions" label="角色" outlined multiple emit-value map-options />
           <q-toggle v-if="form.id" v-model="form.statusActive" label="启用" />
         </q-card-section>
+        </q-form>
         <q-card-actions align="right">
           <q-btn flat label="取消" v-close-popup />
           <q-btn color="primary" label="保存用户" @click="onSave" />
@@ -149,6 +143,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
+import type { QForm } from 'quasar';
 import { api } from 'src/boot/axios';
 import { Dialog, Notify, useQuasar, copyToClipboard } from 'quasar';
 
@@ -165,6 +160,7 @@ const deptOptions = ref<Array<{ label: string; value: number }>>([]);
 const roleOptions = ref<any[]>([]);
 const dialog = ref(false);
 const form = reactive<any>({});
+const formRef = ref<QForm | null>(null);
 
 const columns = [
   { name: 'username', label: '用户名', field: 'username', align: 'left' as const },
@@ -252,6 +248,8 @@ function openEdit(row: any) {
 }
 
 async function onSave() {
+  const valid = await formRef.value?.validate();
+  if (!valid) return;
   if (form.id) {
     await api.put(`/users/${form.id}`, {
       realName: form.realName,
