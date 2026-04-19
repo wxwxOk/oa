@@ -121,7 +121,7 @@
           <q-input v-if="!form.id" v-model="form.username" outlined label="用户名 *"
             lazy-rules :rules="[(v: string) => !!v || '请输入用户名', (v: string) => v.length >= 2 || '至少 2 个字符']" />
           <q-input v-if="!form.id" v-model="form.password" outlined label="初始密码 (默认 123456)"
-            lazy-rules :rules="[(v: string) => !form.id && !v ? '请输入密码' : true, (v: string) => !v || v.length >= 4 || '至少 4 个字符']" />
+            lazy-rules :rules="[(v: string) => form.id === null && !v ? '请输入密码' : true, (v: string) => !v || v.length >= 4 || '至少 4 个字符']" />
           <q-input v-model="form.realName" outlined label="真实姓名 *"
             lazy-rules :rules="[(v: string) => !!v || '请输入真实姓名']" />
           <q-input v-model="form.email" outlined label="邮箱"
@@ -334,10 +334,10 @@ function onReset(row: any) {
     const { data } = await api.post(`/users/${row.id}/reset-password`, {});
     // 自动复制到剪贴板
     copyToClipboard(data.password).catch(() => {});
+    // 使用纯文本展示密码，避免 html: true 引入 XSS 风险（即便 password 由服务端生成）
     Dialog.create({
       title: '密码已重置',
-      message: `新密码：<code style="font-size:16px;padding:2px 8px;background:#f1f5f9;border-radius:4px">${data.password}</code>`,
-      html: true,
+      message: `新密码：${data.password}`,
       ok: '关闭',
       persistent: true,
     });
