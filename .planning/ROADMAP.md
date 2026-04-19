@@ -58,7 +58,7 @@ Plans:
 - [x] 04-01-PLAN.md — 后端 RBAC 保护：ADMIN 锁死 + 角色删除拒绝 + userCount
 - [x] 04-02-PLAN.md — 前端 RolePage 补全：成员数展示 + 按钮禁用逻辑
 - [x] 04-03-PLAN.md — 前端路由守卫 + 权限刷新：maybeRefreshProfile 60s 防抖
-- [ ] 04-04-PLAN.md — 前端收尾补全：删除确认弹窗对齐 + 一致性验证
+- [x] 04-04-PLAN.md — 前端收尾补全：删除确认弹窗对齐 + 一致性验证
 - [ ] 04-05-PLAN.md — 端到端人工验证：UAT-1/UAT-2/UAT-5 + p95 性能
 
 Canonical refs:
