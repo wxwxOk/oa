@@ -785,22 +785,22 @@ defineEmits<{ action: [] }>();
 | A3 | Quasar `q-layout` 系统自动处理 footer 高度补偿 | Pitfall 4 | 低 — Quasar 官方文档明确说明此行为 |
 | A4 | `body--dark` class 下 CSS 变量自动切换 | Pattern 2 | 低 — app.scss 已有 `.body--dark` 选择器定义暗色变量 |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **后端 authGuard 的确切导入路径**
+1. RESOLVED: **后端 authGuard 的确切导入路径**
    - What we know: Phase 3/4 已实现 JWT 鉴权中间件
-   - What's unclear: 中间件的确切文件路径和导出名称
-   - Recommendation: 实现时 grep `authGuard` 或 `auth.guard` 确认
+   - RESOLVED: `backend/src/middlewares/auth.ts` 导出 `authGuard(requiredPerm?: string)`
+   - Plan 03 已确认路径并直接使用。
 
-2. **Dashboard 统计是否需要权限控制**
+2. RESOLVED: **Dashboard 统计是否需要权限控制**
    - What we know: Dashboard 是所有登录用户可见的首页
-   - What's unclear: 统计数据（用户数/部门数/角色数）是否对非 ADMIN 用户敏感
-   - Recommendation: 所有登录用户均可查看统计数字（仅数量，不含详情），无需额外权限
+   - RESOLVED: 所有登录用户可查看（仅聚合 count，非特权数据）。Plan 03 使用 authGuard() 无参数。
+   - 
 
-3. **移动端底部 Tab 栏的菜单项是否需要权限过滤**
+3. RESOLVED: **移动端底部 Tab 栏的菜单项是否需要权限过滤**
    - What we know: PC 端 Drawer 菜单已有权限过滤（Phase 4 D-14 MainLayout 菜单过滤）
-   - What's unclear: 底部 Tab 栏是否复用同一过滤逻辑
-   - Recommendation: 复用 — 底部 Tab 和 Drawer 菜单使用同一 `navLinks` computed 属性
+   - RESOLVED: 复用 PC 端 visibleMenus computed。Plan 02 MainLayout 改造中底部 Tab 和 Drawer 使用同一 visibleMenus。
+   - 
 
 
 ## Validation Architecture

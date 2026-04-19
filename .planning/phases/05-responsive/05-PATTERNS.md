@@ -231,7 +231,7 @@ defineEmits<{ action: [] }>();
 
 ---
 
-#### `frontend/src/components/SkeletonTable.vue` (component, presentational) — CREATE
+#### `frontend/src/components/SkeletonTable.vue` (component, presentational) — DEFERRED (v1.0 使用 inline 骨架屏方案，各页面直接内联 q-skeleton 组件，无需抽象为独立组件)
 
 **Analog:** `frontend/src/pages/UserPage.vue` L38-40
 
@@ -268,7 +268,7 @@ withDefaults(defineProps<{ rows?: number }>(), { rows: 5 });
 
 ---
 
-#### `frontend/src/components/SkeletonList.vue` (component, presentational) — CREATE
+#### `frontend/src/components/SkeletonList.vue` (component, presentational) — DEFERRED (v1.0 使用 inline 骨架屏方案，各页面直接内联 q-skeleton 卡片骨架，无需抽象为独立组件)
 
 **Analog:** `frontend/src/pages/UserPage.vue` L92-113 (移动端卡片列表结构)
 
@@ -481,7 +481,7 @@ onMounted(load);
 
 ---
 
-#### `frontend/src/services/dashboard.ts` (service, request-response) — CREATE
+#### `frontend/src/services/dashboard.ts` (service, request-response) — DEFERRED (v1.0 DashboardPage 直接使用 api.get 调用，无需抽象为独立 service 层)
 
 **Analog:** `frontend/src/boot/axios.ts` L6-8 (api 实例)
 

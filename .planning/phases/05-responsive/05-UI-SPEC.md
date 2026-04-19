@@ -25,7 +25,7 @@ created: 2026-04-20
 | Font stack | 继承 Phase 3（中文优先字体栈） |
 | Quasar plugins | Notify, Dialog, LoadingBar（继承） |
 | Dark mode | localStorage 持久化 + 启动时读取（D-08） |
-| Responsive breakpoint | 统一 `$q.screen.gt.md`（1024px，D-01） |
+| Responsive breakpoint | 统一 `$q.screen.gt.sm`（>=1024px，D-01） |
 
 ---
 
@@ -33,13 +33,13 @@ created: 2026-04-20
 
 | Token | Width | Layout | Source |
 |-------|-------|--------|--------|
-| `lt.md` | < 1024px | Mobile：底部 Tab + overlay Drawer + 全屏弹窗 | D-01 |
-| `gt.md` / `gte.md` | >= 1024px | PC：固定侧边 Drawer + 顶部栏 + 标准弹窗 | D-01 |
+| `lt.md` (即 !gt.sm) | < 1024px | Mobile：底部 Tab + overlay Drawer + 全屏弹窗 | D-01 |
+| `gt.sm` | >= 1024px | PC：固定侧边 Drawer + 顶部栏 + 标准弹窗 | D-01 |
 
 断点判断统一规则：
-- PC 判断：`$q.screen.gt.md` 或 `$q.screen.width >= 1024`
-- Mobile 判断：`!$q.screen.gt.md`
-- 禁止使用 `$q.screen.gt.sm` / `$q.screen.lt.md` 混用（D-01 修正）
+- PC 判断：`$q.screen.gt.sm`（Quasar md 断点 = 1024px，gt.sm 即 width >= 1024）
+- Mobile 判断：`!$q.screen.gt.sm`
+- 统一使用 useResponsive() composable（内部使用 $q.screen.gt.sm）。Quasar 断点命名: sm=600, md=1024, lg=1440, xl=1920。gt.sm 即 >=1024px。
 
 ---
 
