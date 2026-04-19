@@ -7,6 +7,7 @@
         <template #append><q-icon name="search" class="cursor-pointer" @click="load(1)" /></template>
       </q-input>
       <q-select
+        v-if="canListDept"
         v-model="deptFilter"
         :options="deptFilterOptions"
         label="选择部门"
@@ -30,7 +31,7 @@
         ]"
         @update:model-value="load(1)"
       />
-      <q-btn v-perm="'user:create'" color="primary" icon="add" label="新建用户" @click="openEdit(null)" />
+      <q-btn v-if="canCreateUser" color="primary" icon="add" label="新建用户" @click="openEdit(null)" />
     </div>
 
     <!-- 加载中（首次） -->
@@ -50,7 +51,7 @@
         <q-icon name="people" size="4em" color="grey-4" />
         <div class="text-h6 q-mt-md">暂无用户</div>
         <div class="text-body2 text-grey-6 q-mt-sm">创建第一个用户以开始管理</div>
-        <q-btn v-perm="'user:create'" color="primary" label="新建用户" icon="add" class="q-mt-md" @click="openEdit(null)" />
+        <q-btn v-if="canCreateUser" color="primary" label="新建用户" icon="add" class="q-mt-md" @click="openEdit(null)" />
       </div>
     </div>
     <!-- 数据态 -->
@@ -80,7 +81,7 @@
         </template>
         <template #body-cell-actions="props">
           <q-td :props="props">
-            <q-btn v-perm="'user:update'" size="sm" flat dense icon="edit" @click="openEdit(props.row)" />
+            <q-btn v-if="canUpdateUser" size="sm" flat dense icon="edit" @click="openEdit(props.row)" />
             <q-btn v-perm="'user:reset-password'" size="sm" flat dense icon="vpn_key" @click="onReset(props.row)" />
             <q-btn v-perm="'user:delete'" size="sm" flat dense icon="delete" color="negative" @click="onDelete(props.row)" />
           </q-td>
@@ -104,7 +105,7 @@
             <div class="text-caption">角色: {{ u.roles.map((r: any) => r.role.name).join(', ') || '-' }}</div>
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn v-perm="'user:update'" flat dense icon="edit" @click="openEdit(u)" />
+            <q-btn v-if="canUpdateUser" flat dense icon="edit" @click="openEdit(u)" />
             <q-btn v-perm="'user:reset-password'" flat dense icon="vpn_key" @click="onReset(u)" />
             <q-btn v-perm="'user:delete'" flat dense icon="delete" color="negative" @click="onDelete(u)" />
           </q-card-actions>
@@ -142,12 +143,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import type { QForm } from 'quasar';
 import { api } from 'src/boot/axios';
 import { Dialog, Notify, useQuasar, copyToClipboard } from 'quasar';
+import { useAuthStore } from 'src/stores/auth';
 
 const $q = useQuasar();
+const auth = useAuthStore();
+
+// 按钮可见性：新建/编辑用户对话框需要选择角色和部门，必须同时具备三项权限
+const canCreateUser = computed(
+  () => auth.hasPerm('user:create') && auth.hasPerm('role:list') && auth.hasPerm('department:list'),
+);
+const canUpdateUser = computed(
+  () => auth.hasPerm('user:update') && auth.hasPerm('role:list') && auth.hasPerm('department:list'),
+);
+const canListDept = computed(() => auth.hasPerm('department:list'));
+
 const loading = ref(false);
 const firstLoading = ref(true);
 const error = ref(false);
@@ -223,14 +236,37 @@ function flattenTreeForFilter(nodes: DeptNode[], depth = 0): Array<{ label: stri
   return result;
 }
 
-async function loadMeta() {
-  const [d, r] = await Promise.all([api.get('/departments/tree'), api.get('/roles')]);
-  deptFilterOptions.value = flattenTreeForFilter(d.data);
-  deptOptions.value = flattenTreeForFilter(d.data);
-  roleOptions.value = r.data.map((x: any) => ({ label: x.name, value: x.id }));
+async function loadDeptFilter() {
+  const { data } = await api.get('/departments/tree');
+  const flat = flattenTreeForFilter(data);
+  deptFilterOptions.value = flat;
+  deptOptions.value = flat;
 }
 
-function openEdit(row: any) {
+// 对话框打开时懒加载 roles（和必要时的 departments），避免进页面就拉冗余 meta
+async function loadDialogMeta() {
+  const tasks: Array<Promise<void>> = [];
+  // 部门：若尚未通过筛选器加载过（如当前用户无 department:list 权限但可进对话框的罕见场景），按需拉取
+  if (deptOptions.value.length === 0 && auth.hasPerm('department:list')) {
+    tasks.push(
+      api.get('/departments/tree').then(({ data }) => {
+        deptOptions.value = flattenTreeForFilter(data);
+      }),
+    );
+  }
+  // 角色：每次打开对话框刷新，保证权限变更后下拉及时更新
+  if (auth.hasPerm('role:list')) {
+    tasks.push(
+      api.get('/roles').then(({ data }) => {
+        roleOptions.value = data.map((x: any) => ({ label: x.name, value: x.id }));
+      }),
+    );
+  }
+  await Promise.all(tasks);
+}
+
+async function openEdit(row: any) {
+  await loadDialogMeta();
   if (row) {
     Object.assign(form, {
       id: row.id,
@@ -310,7 +346,10 @@ function onReset(row: any) {
 }
 
 onMounted(async () => {
-  await loadMeta();
+  // 部门筛选器下拉仅在有 department:list 权限时加载；角色 meta 延后到对话框打开时
+  if (canListDept.value) {
+    await loadDeptFilter();
+  }
   await load();
 });
 </script>
