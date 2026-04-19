@@ -145,8 +145,14 @@ async function onSave() {
 }
 
 function onDelete(r: any) {
-  Dialog.create({ title: '确认删除', message: `删除角色 ${r.name}?`, cancel: true }).onOk(async () => {
+  Dialog.create({
+    title: '删除角色',
+    message: `将永久删除角色 ${r.name}。此操作不可恢复。`,
+    cancel: true,
+    ok: { label: '确认删除', color: 'negative' },
+  }).onOk(async () => {
     await api.delete(`/roles/${r.id}`);
+    Notify.create({ type: 'positive', message: '已删除' });
     if (selected.value?.id === r.id) selected.value = null;
     await loadRoles();
   });
