@@ -26,3 +26,15 @@
 Plans:
 - [x] 02-01-PLAN.md — 后端双 JWT 实例 + secret 校验 + Dockerfile 修复
 - [x] 02-02-PLAN.md — 端到端验证（API 测试 + 前端登录流程）
+
+### Phase 3: 组织架构 CRUD
+
+**Goal:** 交付部门（无限层级树）与用户 CRUD 的后端 API + 前端管理页面；完成用户↔部门挂载。角色分配留给 Phase 4。
+
+**Requirements:** FR-2.1, FR-2.2, FR-2.3, FR-3.1, FR-3.2, FR-3.3, NFR-1, NFR-3
+
+**Plans:** TBD
+
+Canonical refs:
+- .planning/REQUIREMENTS.md §FR-2 用户管理
+- .planning/REQUIREMENTS.md §FR-3 部门管理
