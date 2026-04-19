@@ -21,3 +21,9 @@ Vue3 + Quasar + TS / Bun + Elysia + Prisma / PostgreSQL 16 / JWT / Docker Compos
 - Windows 本地开发环境
 - Bun 作为后端运行时（非 Node）
 - 部署目标：Docker Compose 单机
+
+## Progress
+- ✅ Phase 1: 基础架构（Elysia + Prisma + LoginPage 骨架）
+- ✅ Phase 2: 数据层 + 认证（双 JWT 实例 + JWT_SECRET 启动校验 + E2E 登录链路实测通过；FR-1.1/1.2/1.3/1.4 + NFR-2/4 已验证）
+
+_Last updated: 2026-04-19_
