@@ -107,6 +107,11 @@
               @click="openShare(props.row)"
             />
             <q-btn
+              v-perm="'form:submission:list'"
+              size="sm" flat dense icon="visibility" color="primary"
+              @click="$router.push(`/templates/${props.row.id}/submissions`)"
+            />
+            <q-btn
               v-if="props.row.status === 'DRAFT' || props.row.status === 'OFFLINE'"
               v-perm="'form:template:publish'"
               size="sm" flat dense icon="publish" color="primary"
