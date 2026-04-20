@@ -494,17 +494,19 @@ function getShareUrl(code: string): string {
 | A2 | Elysia 默认请求体大小限制足够容纳签名数据（~5MB） | Pitfalls | MEDIUM — 如果默认限制过小，签名提交会失败，需显式配置 |
 | A3 | 权限码使用 form:template:edit 复用于分享操作 | Code Examples | LOW — 可能需要新增 form:template:share 权限码，取决于 RBAC 粒度需求 |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **分享权限码是否需要独立？**
    - What we know: 现有权限体系有 form:template:list/create/edit/delete/publish
    - What's unclear: 分享操作是否需要独立的 form:template:share 权限码
    - Recommendation: 复用 form:template:edit 权限即可，分享是编辑模板的延伸操作。如需更细粒度控制，可在 Phase 9 或后续迭代中拆分。
+   - RESOLVED: Plan 08-01 新增 form:template:share 权限码，Plan 08-02 在分享端点中使用该权限。
 
 2. **公开 API 是否需要速率限制？**
    - What we know: 公开提交 API 无鉴权，理论上可被滥用
    - What's unclear: 当前阶段是否需要实现速率限制
    - Recommendation: v1.1 暂不实现，但在 API 设计中预留扩展点。可在 Elysia 层面后续添加 IP 限流中间件。
+   - RESOLVED: 当前阶段不实现速率限制，后续可在 Elysia 层面添加 IP 限流中间件。
 
 ## Environment Availability
 
