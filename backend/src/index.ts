@@ -9,6 +9,7 @@ import { departmentModule } from './modules/department/department.route';
 import { roleModule, permissionModule } from './modules/role/role.route';
 import { dashboardModule } from './modules/dashboard/dashboard.route';
 import { formTemplateModule } from './modules/template/template.route';
+import { publicFillModule } from './modules/public/public.route';
 
 // 启动前强制校验 JWT_SECRET：长度不足 32 字符直接拒绝启动，
 // 杜绝使用开发默认值或弱 secret 的情况。
@@ -53,15 +54,19 @@ const app = new Elysia()
     return { code: 'INTERNAL', message: error.message ?? 'Server error' };
   })
   .get('/health', () => ({ ok: true, ts: Date.now() }))
-  .group('/api/v1', (app) =>
+  .group('/api', (app) =>
     app
-      .use(authModule)
-      .use(userModule)
-      .use(departmentModule)
-      .use(roleModule)
-      .use(permissionModule)
-      .use(dashboardModule)
-      .use(formTemplateModule),
+      .group('/v1', (app) =>
+        app
+          .use(authModule)
+          .use(userModule)
+          .use(departmentModule)
+          .use(roleModule)
+          .use(permissionModule)
+          .use(dashboardModule)
+          .use(formTemplateModule),
+      )
+      .use(publicFillModule),
   )
   .listen(Number(process.env.PORT ?? 3000));
 
