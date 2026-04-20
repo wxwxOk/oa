@@ -25,11 +25,11 @@ Requirements for v1.1 milestone. Each maps to roadmap phases.
 
 ### 分享与填写
 
-- [ ] **SHARE-01**: 用户可为已发布模板生成唯一分享链接，记录分享人和时间
+- [x] **SHARE-01**: 用户可为已发布模板生成唯一分享链接，记录分享人和时间
 - [ ] **SHARE-02**: 分享链接可生成二维码供扫码填写
 - [ ] **SHARE-03**: 外部人员通过浏览器打开链接免登录填写表单
-- [ ] **SHARE-04**: 模板可配置是否要求填写者提供身份信息（如姓名/手机号）
-- [ ] **SHARE-05**: 填写者提交后数据自动归档存储
+- [x] **SHARE-04**: 模板可配置是否要求填写者提供身份信息（如姓名/手机号）
+- [x] **SHARE-05**: 填写者提交后数据自动归档存储
 
 ### 数据与统计
 
@@ -79,11 +79,11 @@ Deferred to future release.
 | DSGN-03 | Phase 7 | Pending |
 | DSGN-04 | Phase 7 | Complete |
 | DSGN-05 | Phase 7 | Complete |
-| SHARE-01 | Phase 8 | Pending |
+| SHARE-01 | Phase 8 | Complete |
 | SHARE-02 | Phase 8 | Pending |
 | SHARE-03 | Phase 8 | Pending |
-| SHARE-04 | Phase 8 | Pending |
-| SHARE-05 | Phase 8 | Pending |
+| SHARE-04 | Phase 8 | Complete |
+| SHARE-05 | Phase 8 | Complete |
 | DATA-01 | Phase 9 | Pending |
 | DATA-02 | Phase 9 | Pending |
 | DATA-03 | Phase 9 | Pending |
