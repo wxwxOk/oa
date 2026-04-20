@@ -1,18 +1,36 @@
 # Project: OA 管理系统
 
-## Vision
-为中小企业提供轻量、开源的 OA 平台。v1.0 聚焦组织架构（用户+部门+RBAC），后续扩展考勤、工作流、公告。
+## What This Is
+轻量开源 OA 平台，面向中小企业。v1.0 交付完整的组织架构管理（用户 + 部门 + RBAC），含 PC/Mobile 双布局响应式界面和 Docker 一键部署。
 
-## Scope (v1.0)
-- 登录 / JWT 刷新 / 登出
-- 用户 CRUD + 重置密码 + 启/禁用
-- 部门树 CRUD
-- 角色 CRUD + 权限分配
-- 前端菜单/按钮级权限控制
-- PC + 移动端响应式（Quasar）
+## Core Value
+开箱即用的组织架构管理 — `docker compose up -d` 即可运行。
 
-## Out of Scope (v1.0)
-考勤打卡、请假审批、工作流引擎、公告、文件管理、SSO/LDAP、多租户、审计日志。
+## Current State
+✅ v1.0 MVP shipped (2026-04-20)
+
+## Requirements
+
+### Validated
+- ✓ FR-1 认证：双 JWT + bcrypt + 无感续签 — v1.0
+- ✓ FR-2 用户管理：CRUD + 分页筛选 + 重置密码 + 角色分配 — v1.0
+- ✓ FR-3 部门管理：无限层级树 + 循环引用校验 — v1.0
+- ✓ FR-4 RBAC：角色 CRUD + 权限分配 + ADMIN 锁死 — v1.0
+- ✓ FR-5 前端权限控制：路由守卫 + v-perm 指令 — v1.0
+- ✓ FR-6 响应式：PC/Mobile 双布局 + 暗色模式 — v1.0
+- ✓ NFR-1 性能：列表 p95 < 500ms — v1.0
+- ✓ NFR-2 安全：JWT secret 校验 + Prisma 参数化 — v1.0
+- ✓ NFR-3 可维护性：ESLint + 模块化路由 — v1.0
+- ✓ NFR-4 部署：docker compose up -d 一条命令 — v1.0
+
+### Active
+(Next milestone TBD)
+
+### Out of Scope
+- 考勤打卡、请假审批、工作流引擎 — v2.0+ 考虑
+- 公告、文件管理 — v2.0+ 考虑
+- SSO/LDAP、多租户 — 企业版方向
+- 审计日志 — v1.1 候选
 
 ## Tech Stack
 Vue3 + Quasar + TS / Bun + Elysia + Prisma / PostgreSQL 16 / JWT / Docker Compose
@@ -22,8 +40,20 @@ Vue3 + Quasar + TS / Bun + Elysia + Prisma / PostgreSQL 16 / JWT / Docker Compos
 - Bun 作为后端运行时（非 Node）
 - 部署目标：Docker Compose 单机
 
-## Progress
-- ✅ Phase 1: 基础架构（Elysia + Prisma + LoginPage 骨架）
-- ✅ Phase 2: 数据层 + 认证（双 JWT 实例 + JWT_SECRET 启动校验 + E2E 登录链路实测通过；FR-1.1/1.2/1.3/1.4 + NFR-2/4 已验证）
+## Context
+v1.0 以 2,404 LOC (TS/Vue) 在 3 天内完成，113 commits。
+技术亮点：Bun 全链路构建（后端运行 + 前端打包）、Quasar 双布局响应式、Prisma ORM。
 
-_Last updated: 2026-04-19_
+## Key Decisions
+
+| Decision | Outcome |
+|---|---|
+| Bun 替代 Node 作为后端运行时 | ✓ 构建速度快，Docker 镜像小 |
+| Quasar 作为 UI 框架 | ✓ 内置响应式组件，减少自定义 CSS |
+| 双 JWT 实例（access + refresh） | ✓ 安全性好，无感续签体验佳 |
+| Prisma ORM | ✓ 类型安全，migration 管理方便 |
+| Docker 多阶段构建 | ✓ 生产镜像精简 |
+| Bash + PowerShell 双份脚本 | ✓ 跨平台部署支持 |
+
+---
+*Last updated: 2026-04-20 after v1.0 milestone*

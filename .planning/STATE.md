@@ -1,9 +1,9 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: Phase 06 Complete
-last_updated: "2026-04-20T02:38:00.000Z"
+milestone_name: MVP
+status: v1.0 shipped
+last_updated: "2026-04-20T03:45:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 6
@@ -14,10 +14,15 @@ progress:
 # State
 
 - Initialized: 2026-04-17
-- Current Phase: 6 (Complete)
-- Status: All 6 phases complete — milestone v1.0 ready for final verification
-- Last action: Phase 06 docker-docs — 3/3 plans executed
-- Resume: Milestone verification / completion
+- Milestone: v1.0 MVP — SHIPPED 2026-04-20
+- Status: Milestone complete, awaiting next milestone
+
+## Project Reference
+
+See: .planning/PROJECT.md (updated 2026-04-20)
+
+**Core value:** 开箱即用的组织架构管理
+**Current focus:** Planning next milestone
 
 ## Decisions
 - Backend Dockerfile: production-only deps in runner via separate bun install --production + prisma overlay
