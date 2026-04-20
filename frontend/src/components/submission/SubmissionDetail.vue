@@ -96,9 +96,9 @@ const displayFields = computed(() => {
 
 // 签名字段
 const signatureField = computed(() => {
-  const schema = props.submission.template.schema as any[];
+  const schema = props.submission.template.schema as any[] | null;
   const data = props.submission.data as Record<string, any>;
-  const sigField = schema?.find((f: any) => f.type === 'signature');
+  const sigField = Array.isArray(schema) ? schema.find((f: any) => f.type === 'signature') : null;
   if (sigField && data[sigField.id]) {
     return { value: data[sigField.id] };
   }
