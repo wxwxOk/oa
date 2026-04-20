@@ -39,7 +39,7 @@ Inherited from 03-UI-SPEC.md. All values are multiples of 4, mapped to Quasar cl
 |-------|-------|-------------|-------|
 | xs | 4px | `q-pa-xs` / `q-gutter-xs` | Icon gaps, inline padding |
 | sm | 8px | `q-pa-sm` / `q-gutter-sm` | Field palette item internal padding, property editor field gaps |
-| md | 16px | `q-pa-md` / `q-gutter-md` | Designer panel internal padding, page default spacing |
+| md | 16px | `q-pa-md` / `q-gutter-md` | Designer panel internal padding, canvas field card padding, page default spacing |
 | lg | 24px | `q-pa-lg` / `q-mb-lg` | Panel-to-panel gap, section padding |
 | xl | 32px | `q-pa-xl` | Page-level major spacing |
 | 2xl | 48px | `style="padding: 48px"` | Empty state area padding |
@@ -88,7 +88,7 @@ Inherited from 03-UI-SPEC.md (Slate + Indigo):
 
 ### Accent reserved for (Phase 7 specific):
 
-1. Primary CTA buttons ("创建模板", "保存", "发布")
+1. Primary CTA buttons ("创建模板", "保存模板" / "保存设计", "发布模板")
 2. Sidebar nav active item ("模板管理")
 3. Canvas selected field highlight border (`2px solid var(--oa-focus-ring)`)
 4. Field palette drag ghost border
@@ -104,6 +104,18 @@ Inherited from 03-UI-SPEC.md (Slate + Indigo):
 | 已下线 (OFFLINE) | `color="grey-5" text-color="white"` | 已下线 |
 
 Source: 03-UI-SPEC.md color contract, quasar.variables.scss
+
+---
+
+## Focal Points
+
+### Template List Page
+The primary focal point is the "创建模板" button (top-right, accent color, icon + label). When the list is empty, the focal point shifts to the EmptyState component's "创建模板" CTA button (centered, accent color). When data is present, the table rows with status badges draw secondary attention.
+
+### Designer Page
+The primary focal point is the Designer Canvas (center panel, largest area, `flex: 1`). The top toolbar "保存设计" and "发布模板" / "下线模板" buttons serve as secondary focal points. When a field is selected, the Property Editor (right panel) becomes the active interaction focal point with its form fields.
+
+Source: Phase 7 layout contract
 
 ---
 
@@ -131,10 +143,9 @@ Source: 03-UI-SPEC.md color contract, quasar.variables.scss
 
 - Full height: `calc(100vh - toolbar-height)` where toolbar is the top bar with title + save/publish buttons
 - Top toolbar: `height: 48px`, contains:
-  - Left: back button (icon `arrow_back`, flat) + template name (text-h6, editable inline or static)
-  - Right: "保存" button (flat) + "发布" / "下线" button (primary/negative)
+  - Left: back button (icon `arrow_back`, flat, `aria-label="返回模板列表"`) + template name (text-h6, editable inline or static)
+  - Right: "保存设计" button (flat) + "发布模板" / "下线模板" button (primary/negative)
 - No page padding on designer (panels fill edge-to-edge below toolbar)
-
 ### Field Palette
 
 - Two collapsible groups using `q-expansion-item`:
@@ -153,7 +164,7 @@ Source: 03-UI-SPEC.md color contract, quasar.variables.scss
   - Empty state: dashed border `2px dashed var(--oa-border)`, centered text "从左侧拖入字段" (14px, `var(--oa-text-tertiary)`)
   - Drop hover: dashed border changes to `2px dashed var(--oa-focus-ring)`
 - Each field on canvas:
-  - Container: `q-card flat bordered`, margin-bottom 8px, padding 12px
+  - Container: `q-card flat bordered`, margin-bottom 8px, padding 16px (`q-pa-md`)
   - Selected state: border changes to `2px solid var(--oa-focus-ring)`, background `var(--oa-hover)`
   - Unselected state: `1px solid var(--oa-border)`
   - Top row: drag handle icon (`drag_indicator`, 16px, `var(--oa-text-tertiary)`) + field label (14px semibold) + required badge (`q-badge color="negative"` with "*") + delete icon button (right-aligned, `delete` icon, `color="negative"`, flat dense)
@@ -172,14 +183,14 @@ Source: 03-UI-SPEC.md color contract, quasar.variables.scss
   - 必填 (required): `q-toggle`
   - 提示文字 (placeholder): `q-input`
   - 选项列表 (options): only for radio/checkbox — editable list with add/remove buttons
-- Field gap: 12px (`q-gutter-sm` + 4px extra via `q-mb-sm`)
+- Field gap: 8px (`q-gutter-sm`)
 - Panel inner padding: 16px
 
 ### Signature Field Preview (on canvas)
 
 - Canvas element: 400x200px, white background, `1px solid var(--oa-border)`
 - In designer: shows static placeholder text "签名区域" centered (not interactive)
-- "清除" button below canvas: `q-btn flat dense size="sm" label="清除"`
+- "清除签名" button below canvas: `q-btn flat dense size="sm" label="清除签名"`
 
 Source: 07-CONTEXT.md (3-panel, WYSIWYG, field groups), 07-RESEARCH.md (vue-draggable-plus patterns)
 
@@ -215,8 +226,8 @@ Follows v1.0 table page pattern (UserPage/RolePage):
 | Action | Icon | Color | Permission | Condition |
 |--------|------|-------|-----------|-----------|
 | 设计 | `edit_note` | default | `form:template:edit` | Always |
-| 发布 | `publish` | primary | `form:template:publish` | status === DRAFT or OFFLINE |
-| 下线 | `unpublished` | warning | `form:template:publish` | status === PUBLISHED |
+| 发布模板 | `publish` | primary | `form:template:publish` | status === DRAFT or OFFLINE |
+| 下线模板 | `unpublished` | warning | `form:template:publish` | status === PUBLISHED |
 | 删除 | `delete` | negative | `form:template:delete` | status === DRAFT only |
 
 All action buttons: `q-btn size="sm" flat dense`
@@ -248,8 +259,8 @@ Source: 07-CONTEXT.md (table layout, status filter, delete policy), 03-UI-SPEC.m
 | 创建对话框标题 | 创建模板 | text-h6 |
 | 模板名称 label | 模板名称 | `q-input outlined`, required (red asterisk) |
 | 模板描述 label | 描述 | `q-input outlined type="textarea"`, optional |
-| 保存按钮 | 保存 | `color="primary"` |
-| 取消按钮 | 取消 | `flat` |
+| 保存按钮 | 保存模板 | `color="primary"` |
+| 取消按钮 | 放弃创建 | `flat` |
 | 删除确认标题 | 删除模板 | Dialog.create title |
 | 删除确认正文 | 将永久删除模板「{name}」。此操作不可恢复。 | Dialog.create message |
 | 删除确认按钮 | 确认删除 | `color="negative"` |
@@ -259,7 +270,7 @@ Source: 07-CONTEXT.md (table layout, status filter, delete policy), 03-UI-SPEC.m
 | 下线确认标题 | 下线模板 | Dialog.create title |
 | 下线确认正文 | 下线后已有分享链接将无法填写。确认下线？ | Dialog.create message |
 | 下线确认按钮 | 确认下线 | `color="warning"` |
-| 网络错误 | 加载失败，请检查网络后重试 | inline hint + "重试" button |
+| 网络错误 | 加载失败，请检查网络后重试 | inline hint + "重新加载" button |
 | 保存成功 | 保存成功 | Notify positive |
 | 删除成功 | 已删除 | Notify positive |
 | 发布成功 | 已发布 | Notify positive |
@@ -269,10 +280,10 @@ Source: 07-CONTEXT.md (table layout, status filter, delete policy), 03-UI-SPEC.m
 
 | Element | Copy | Context |
 |---------|------|---------|
-| 返回按钮 | (icon only: arrow_back) | flat, navigates to template list |
-| 保存按钮 | 保存 | flat button in toolbar |
-| 发布按钮 | 发布 | `color="primary"` in toolbar (when DRAFT/OFFLINE) |
-| 下线按钮 | 下线 | `color="negative"` in toolbar (when PUBLISHED) |
+| 返回按钮 | (icon only: arrow_back, `aria-label="返回模板列表"`) | flat, navigates to template list |
+| 保存按钮 | 保存设计 | flat button in toolbar |
+| 发布按钮 | 发布模板 | `color="primary"` in toolbar (when DRAFT/OFFLINE) |
+| 下线按钮 | 下线模板 | `color="negative"` in toolbar (when PUBLISHED) |
 | 字段库标题 — 基础字段 | 基础字段 | `q-expansion-item` header |
 | 字段库标题 — 特殊字段 | 特殊字段 | `q-expansion-item` header |
 | 画布空态 | 从左侧拖入字段 | centered, dashed border zone |
@@ -283,7 +294,7 @@ Source: 07-CONTEXT.md (table layout, status filter, delete policy), 03-UI-SPEC.m
 | 选项列表 label | 选项 | property editor, radio/checkbox only |
 | 添加选项按钮 | 添加选项 | `q-btn flat dense size="sm" icon="add"` |
 | 签名区域占位 | 签名区域 | canvas signature field placeholder |
-| 清除签名按钮 | 清除 | `q-btn flat dense size="sm"` |
+| 清除签名按钮 | 清除签名 | `q-btn flat dense size="sm"` |
 | 保存成功 | 保存成功 | Notify positive |
 | 版本更新提示 | 模板已更新至 v{N} | Notify info (when published template saved, version bumped) |
 
@@ -322,8 +333,8 @@ Source: 07-CONTEXT.md (lifecycle states), 03-UI-SPEC.md (copywriting patterns)
 | Loading (filter/page) | Status filter change or pagination | `q-table :loading="true"` built-in progress bar |
 | Empty | `rows.length === 0 && !loading` | EmptyState component: icon `description` + "暂无模板" + "创建第一个表单模板开始收集信息" + "创建模板" button |
 | Data | `rows.length > 0` | PC: q-table / Mobile: q-card list |
-| Error (network) | API request failed | Centered hint "加载失败，请检查网络后重试" + "重试" button |
-| Create dialog | Click "创建模板" | q-dialog: name (required) + description (optional) + save/cancel |
+| Error (network) | API request failed | Centered hint "加载失败，请检查网络后重试" + "重新加载" button |
+| Create dialog | Click "创建模板" | q-dialog: name (required) + description (optional) + 保存模板/放弃创建 |
 | Delete confirm | Click row delete button | Dialog.create: "将永久删除模板「{name}」。此操作不可恢复。" + `color="negative"` confirm |
 | Publish confirm | Click row publish button | Dialog.create: "发布后模板可用于生成分享链接。确认发布？" |
 | Offline confirm | Click row offline button | Dialog.create: "下线后已有分享链接将无法填写。确认下线？" |
@@ -341,10 +352,10 @@ Source: 07-CONTEXT.md (lifecycle states), 03-UI-SPEC.md (copywriting patterns)
 | Field deselected | Click canvas background or another field | Previous card border reverts, property editor updates |
 | Drag in progress | Dragging from palette or reordering | SortableJS ghost element, 150ms animation |
 | Property editing | Modify values in property editor | Canvas field updates in real-time (two-way binding via store) |
-| Save (draft) | Click "保存" when status is DRAFT | API PUT, Notify positive "保存成功" |
-| Save (published) | Click "保存" when status is PUBLISHED | API PUT, version auto-increments, Notify info "模板已更新至 v{N}" |
-| Publish | Click "发布" | Dialog confirm -> API PATCH status, button changes to "下线" |
-| Offline | Click "下线" | Dialog confirm -> API PATCH status, button changes to "发布" |
+| Save (draft) | Click "保存设计" when status is DRAFT | API PUT, Notify positive "保存成功" |
+| Save (published) | Click "保存设计" when status is PUBLISHED | API PUT, version auto-increments, Notify info "模板已更新至 v{N}" |
+| Publish | Click "发布模板" | Dialog confirm -> API PATCH status, button changes to "下线模板" |
+| Offline | Click "下线模板" | Dialog confirm -> API PATCH status, button changes to "发布模板" |
 
 Source: 07-CONTEXT.md (lifecycle, save behavior), 03-UI-SPEC.md (state patterns)
 
