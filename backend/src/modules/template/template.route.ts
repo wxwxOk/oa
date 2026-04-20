@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia';
+import { nanoid } from 'nanoid';
 import { prisma } from '../../plugins/prisma';
 import { authGuard } from '../../middlewares/auth';
 import { BizError, notFound } from '../../utils/errors';
@@ -63,6 +64,7 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
             data.schemaVersion = tpl.schemaVersion + 1;
           }
         }
+        if (body.requireIdentity !== undefined) data.requireIdentity = body.requireIdentity;
         return prisma.formTemplate.update({ where: { id }, data });
       },
       {
@@ -83,6 +85,7 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
               }),
             ),
           ),
+          requireIdentity: t.Optional(t.Boolean()),
         }),
       },
     ),
@@ -126,5 +129,26 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
           action: t.Union([t.Literal('publish'), t.Literal('offline')]),
         }),
       },
+    ),
+  )
+  // 创建分享链接 (per D-01, D-04: 每次生成独立链接，nanoid 12位短码)
+  .guard({}, (app) =>
+    app.use(authGuard('form:template:share')).post(
+      '/:id/share-links',
+      async ({ params, currentUser }: any) => {
+        const templateId = Number(params.id);
+        const tpl = await prisma.formTemplate.findUnique({ where: { id: templateId } });
+        if (!tpl) throw notFound('模板不存在');
+        if (tpl.status !== 'PUBLISHED') throw new BizError('仅已发布模板可生成分享链接');
+        const link = await prisma.shareLink.create({
+          data: {
+            code: nanoid(12),
+            templateId,
+            creatorId: currentUser.id,
+          },
+        });
+        return link;
+      },
+      { params: t.Object({ id: t.String() }) },
     ),
   );
