@@ -9,11 +9,11 @@ Requirements for v1.1 milestone. Each maps to roadmap phases.
 
 ### 模板管理
 
-- [ ] **TMPL-01**: 用户可创建表单模板，定义模板名称和描述
-- [ ] **TMPL-02**: 用户可编辑和删除自己创建的表单模板
-- [ ] **TMPL-03**: 模板创建/编辑/删除受 RBAC 权限控制
-- [ ] **TMPL-04**: 用户可发布/下线模板，下线后分享链接不可填写
-- [ ] **TMPL-05**: 修改已发布模板时自动保存 schema 版本，已收集数据不受影响
+- [x] **TMPL-01**: 用户可创建表单模板，定义模板名称和描述
+- [x] **TMPL-02**: 用户可编辑和删除自己创建的表单模板
+- [x] **TMPL-03**: 模板创建/编辑/删除受 RBAC 权限控制
+- [x] **TMPL-04**: 用户可发布/下线模板，下线后分享链接不可填写
+- [x] **TMPL-05**: 修改已发布模板时自动保存 schema 版本，已收集数据不受影响
 
 ### 表单设计器
 
@@ -69,11 +69,11 @@ Deferred to future release.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TMPL-01 | Phase 7 | Pending |
-| TMPL-02 | Phase 7 | Pending |
-| TMPL-03 | Phase 7 | Pending |
-| TMPL-04 | Phase 7 | Pending |
-| TMPL-05 | Phase 7 | Pending |
+| TMPL-01 | Phase 7 | Complete |
+| TMPL-02 | Phase 7 | Complete |
+| TMPL-03 | Phase 7 | Complete |
+| TMPL-04 | Phase 7 | Complete |
+| TMPL-05 | Phase 7 | Complete |
 | DSGN-01 | Phase 7 | Pending |
 | DSGN-02 | Phase 7 | Pending |
 | DSGN-03 | Phase 7 | Pending |
