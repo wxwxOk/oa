@@ -61,8 +61,8 @@ Plans:
 **Plans**: 4 plans
 Plans:
 - [x] 08-01-PLAN.md — 数据层：Prisma ShareLink + Submission 模型 + 依赖安装 + DB push
-- [ ] 08-02-PLAN.md — 后端 API：分享链接创建端点 + 公开填写/提交 API
-- [ ] 08-03-PLAN.md — 前端管理端：ShareDialog + 分享按钮 + 身份信息开关
+- [x] 08-02-PLAN.md — 后端 API：分享链接创建端点 + 公开填写/提交 API
+- [x] 08-03-PLAN.md — 前端管理端：ShareDialog + 分享按钮 + 身份信息开关
 - [ ] 08-04-PLAN.md — 公开填写页：FormFieldRenderer + PublicFillPage + 路由 + 端到端验证
 **UI hint**: yes
 
