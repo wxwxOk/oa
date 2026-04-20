@@ -80,8 +80,8 @@ Plans:
 Plans:
 - [x] 09-01-PLAN.md — 后端 API：权限种子 + 提交数据查询 + 员工统计聚合
 - [x] 09-02-PLAN.md — 前端基础层：npm 依赖安装 + submission store + 打印样式 + PDF 导出
-- [ ] 09-03-PLAN.md — 前端页面：SubmissionPage 列表+详情抽屉+打印+PDF 导出+路由+入口
-- [ ] 09-04-PLAN.md — 统计面板：FormStatsPanel 表格+图表 + Dashboard 嵌入
+- [x] 09-03-PLAN.md — 前端页面：SubmissionPage 列表+详情抽屉+打印+PDF 导出+路由+入口
+- [x] 09-04-PLAN.md — 统计面板：FormStatsPanel 表格+图表 + Dashboard 嵌入
 **UI hint**: yes
 
 ## Progress
