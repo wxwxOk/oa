@@ -27,6 +27,7 @@ model User {
   department   Department? @relation(fields: [departmentId], references: [id])
   roles        UserRole[]
   templates    FormTemplate[]
+  shareLinks   ShareLink[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -90,17 +91,51 @@ enum TemplateStatus {
 }
 
 model FormTemplate {
-  id            Int            @id @default(autoincrement())
-  name          String
-  description   String?
-  schema        Json           @default("[]")
-  schemaVersion Int            @default(1)
-  status        TemplateStatus @default(DRAFT)
-  creatorId     Int
-  creator       User           @relation(fields: [creatorId], references: [id])
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id              Int            @id @default(autoincrement())
+  name            String
+  description     String?
+  schema          Json           @default("[]")
+  schemaVersion   Int            @default(1)
+  status          TemplateStatus @default(DRAFT)
+  requireIdentity Boolean        @default(false)
+  creatorId       Int
+  creator         User           @relation(fields: [creatorId], references: [id])
+  shareLinks      ShareLink[]
+  submissions     Submission[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@index([creatorId])
   @@index([status])
+}
+
+model ShareLink {
+  id          Int          @id @default(autoincrement())
+  code        String       @unique
+  templateId  Int
+  template    FormTemplate @relation(fields: [templateId], references: [id])
+  creatorId   Int
+  creator     User         @relation(fields: [creatorId], references: [id])
+  createdAt   DateTime     @default(now())
+  submissions Submission[]
+
+  @@index([templateId])
+  @@index([creatorId])
+}
+
+model Submission {
+  id             Int          @id @default(autoincrement())
+  data           Json
+  schemaVersion  Int
+  submitterName  String?
+  submitterPhone String?
+  templateId     Int
+  template       FormTemplate @relation(fields: [templateId], references: [id])
+  shareLinkId    Int
+  shareLink      ShareLink    @relation(fields: [shareLinkId], references: [id])
+  createdAt      DateTime     @default(now())
+
+  @@index([templateId])
+  @@index([shareLinkId])
+  @@index([createdAt])
 }
