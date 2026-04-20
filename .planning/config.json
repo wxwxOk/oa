@@ -10,6 +10,7 @@
   },
   "workflow": {
     "autoCommit": false,
-    "requireApproval": true
+    "requireApproval": true,
+    "_auto_chain_active": false
   }
 }
