@@ -5,6 +5,13 @@
       <q-btn flat dense icon="arrow_back" aria-label="返回模板列表" @click="router.push('/templates')" />
       <span class="text-h6 q-ml-sm ellipsis">{{ store.current?.name ?? '' }}</span>
       <q-space />
+      <q-toggle
+        v-if="store.current"
+        v-model="store.current.requireIdentity"
+        label="要求填写者提供身份信息"
+        dense
+        class="q-mr-md"
+      />
       <q-btn flat label="保存设计" :loading="saving" @click="handleSave" />
       <q-btn
         v-if="store.current?.status !== 'PUBLISHED'"
@@ -69,7 +76,10 @@ async function handleSave() {
   saving.value = true;
   try {
     const prev = store.current.schemaVersion;
-    await store.update(templateId, { schema: store.current.schema });
+    await store.update(templateId, {
+      schema: store.current.schema,
+      requireIdentity: store.current.requireIdentity,
+    });
     $q.notify({ type: 'positive', message: '保存成功' });
     if (store.current.schemaVersion > prev) {
       $q.notify({ type: 'info', message: `模板已更新至 v${store.current.schemaVersion}` });
