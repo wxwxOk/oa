@@ -1,0 +1,11 @@
+node_modules
+Dockerfile*
+docker-compose*
+.dockerignore
+.git
+.gitignore
+.env
+.env.*
+coverage
+dist
+*.log
