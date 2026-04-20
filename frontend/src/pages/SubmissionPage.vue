@@ -271,7 +271,9 @@ async function handleBatchExport() {
     const detail = await store.fetchDetail(templateId.value, items[index].id);
     currentDetail.value = detail;
     await nextTick();
-    return document.getElementById('print-area')!;
+    const el = document.getElementById('print-area');
+    if (!el) throw new Error('print-area element not found');
+    return el;
   };
 
   try {
