@@ -69,5 +69,9 @@ export const submissionModule = new Elysia({ prefix: '/templates/:templateId/sub
       },
     });
     if (!submission) throw notFound('提交记录不存在');
+    // 校验提交记录归属于 URL 中的 templateId
+    if (submission.templateId !== Number(params.templateId)) {
+      throw notFound('提交记录不存在');
+    }
     return submission;
   });
