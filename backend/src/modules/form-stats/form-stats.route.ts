@@ -65,11 +65,15 @@ export const formStatsModule = new Elysia({ prefix: '/form-stats' })
       : [];
     const userMap = new Map(users.map((u) => [u.id, u.realName]));
 
-    // 组装返回结果
-    return Array.from(statsMap.entries()).map(([userId, stats]) => ({
-      userId,
-      realName: userMap.get(userId) ?? '',
-      shareCount: stats.shareCount,
-      submissionCount: stats.submissionCount,
-    }));
+    // 组装返回结果，按提交数量降序排列并限制条数
+    const limit = Math.min(Number(query.limit) || 100, 500);
+    return Array.from(statsMap.entries())
+      .map(([userId, stats]) => ({
+        userId,
+        realName: userMap.get(userId) ?? '',
+        shareCount: stats.shareCount,
+        submissionCount: stats.submissionCount,
+      }))
+      .sort((a, b) => b.submissionCount - a.submissionCount)
+      .slice(0, limit);
   });
