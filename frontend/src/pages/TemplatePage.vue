@@ -101,6 +101,12 @@
               @click="$router.push(`/templates/${props.row.id}/design`)"
             />
             <q-btn
+              v-if="props.row.status === 'PUBLISHED'"
+              v-perm="'form:template:share'"
+              size="sm" flat dense icon="share" color="primary"
+              @click="openShare(props.row)"
+            />
+            <q-btn
               v-if="props.row.status === 'DRAFT' || props.row.status === 'OFFLINE'"
               v-perm="'form:template:publish'"
               size="sm" flat dense icon="publish" color="primary"
@@ -140,6 +146,12 @@
             </div>
           </q-card-section>
           <q-card-actions align="right">
+            <q-btn
+              v-if="t.status === 'PUBLISHED'"
+              v-perm="'form:template:share'"
+              flat dense icon="share" color="primary"
+              @click="openShare(t)"
+            />
             <q-btn
               v-if="t.status === 'DRAFT' || t.status === 'OFFLINE'"
               v-perm="'form:template:publish'"
@@ -193,6 +205,8 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <ShareDialog v-model="shareDialog" :template-id="shareTemplateId" />
   </q-page>
 </template>
 
@@ -204,6 +218,7 @@ import { useRouter } from 'vue-router';
 import { useTemplateStore } from 'src/stores/template';
 import { useResponsive } from 'src/composables/useResponsive';
 import EmptyState from 'src/components/EmptyState.vue';
+import ShareDialog from 'src/components/ShareDialog.vue';
 import type { Template } from 'src/stores/template';
 
 const store = useTemplateStore();
@@ -215,6 +230,14 @@ const error = ref(false);
 const createDialog = ref(false);
 const createFormRef = ref<QForm | null>(null);
 const createForm = reactive({ name: '', description: '' });
+
+const shareDialog = ref(false);
+const shareTemplateId = ref(0);
+
+function openShare(row: Template) {
+  shareTemplateId.value = row.id;
+  shareDialog.value = true;
+}
 
 const columns = [
   { name: 'name', label: '模板名称', field: 'name', align: 'left' as const },

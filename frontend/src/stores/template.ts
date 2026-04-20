@@ -18,6 +18,7 @@ export interface Template {
   schema: FormField[];
   schemaVersion: number;
   status: 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
+  requireIdentity: boolean;
   creatorId: number;
   creator: { id: number; realName: string };
   createdAt: string;
@@ -63,7 +64,7 @@ export const useTemplateStore = defineStore('template', {
       const { data } = await api.post('/templates', { name, description });
       return data;
     },
-    async update(id: number, payload: { name?: string; description?: string; schema?: FormField[] }) {
+    async update(id: number, payload: { name?: string; description?: string; schema?: FormField[]; requireIdentity?: boolean }) {
       const { data } = await api.put(`/templates/${id}`, payload);
       if (this.current?.id === id) this.current = data;
       return data;
@@ -74,6 +75,10 @@ export const useTemplateStore = defineStore('template', {
     async changeStatus(id: number, action: 'publish' | 'offline') {
       const { data } = await api.patch(`/templates/${id}/status`, { action });
       if (this.current?.id === id) this.current = data;
+      return data;
+    },
+    async createShareLink(templateId: number) {
+      const { data } = await api.post(`/templates/${templateId}/share-links`);
       return data;
     },
     selectField(fieldId: string | null) {
