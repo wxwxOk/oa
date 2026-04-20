@@ -103,7 +103,7 @@ import FormFieldRenderer from 'src/components/public-fill/FormFieldRenderer.vue'
 import type { FormField } from 'src/stores/template';
 
 // 独立 axios 实例，无 token 拦截器
-const publicApi = axios.create({ baseURL: process.env.API_BASE, timeout: 15000 });
+const publicApi = axios.create({ baseURL: '/api', timeout: 15000 });
 
 const route = useRoute();
 const { isMobile } = useResponsive();
