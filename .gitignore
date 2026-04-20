@@ -12,3 +12,4 @@ coverage/
 .vscode/
 .cache/
 backend/prisma/migrations/dev.db*
+backups/
