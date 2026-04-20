@@ -125,6 +125,7 @@ const allMenus = [
   { path: '/departments', title: '部门', icon: 'account_tree', perm: 'department:list' },
   { path: '/users', title: '用户', icon: 'people', perm: 'user:list' },
   { path: '/roles', title: '角色', icon: 'security', perm: 'role:list' },
+  { path: '/templates', title: '模板管理', icon: 'description', perm: 'form:template:list' },
 ];
 
 const visibleMenus = computed(() => allMenus.filter((m) => !m.perm || auth.hasPerm(m.perm)));
