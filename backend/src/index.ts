@@ -8,6 +8,7 @@ import { userModule } from './modules/user/user.route';
 import { departmentModule } from './modules/department/department.route';
 import { roleModule, permissionModule } from './modules/role/role.route';
 import { dashboardModule } from './modules/dashboard/dashboard.route';
+import { formTemplateModule } from './modules/template/template.route';
 
 // 启动前强制校验 JWT_SECRET：长度不足 32 字符直接拒绝启动，
 // 杜绝使用开发默认值或弱 secret 的情况。
@@ -59,7 +60,8 @@ const app = new Elysia()
       .use(departmentModule)
       .use(roleModule)
       .use(permissionModule)
-      .use(dashboardModule),
+      .use(dashboardModule)
+      .use(formTemplateModule),
   )
   .listen(Number(process.env.PORT ?? 3000));
 
