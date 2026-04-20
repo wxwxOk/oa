@@ -5,7 +5,7 @@ module.exports = configure(function (/* ctx */) {
   return {
     boot: ['axios', 'perm', 'dark-mode'],
     store: true,
-    css: ['app.scss'],
+    css: ['app.scss', 'assets/print.css'],
     extras: ['material-icons'],
     build: {
       target: { browser: ['es2022'], node: 'node20' },
