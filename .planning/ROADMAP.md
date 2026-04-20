@@ -87,3 +87,15 @@ Plans:
 Canonical refs:
 - .planning/REQUIREMENTS.md §FR-6 响应式
 - .planning/REQUIREMENTS.md §UAT-6 移动端布局验收
+
+### Phase 6: Docker 化 + 文档
+
+**Goal:** 交付生产级 Dockerfile（前后端真·多阶段构建）、docker-compose 生产强化、完整 README、Bash+PowerShell 双份部署脚本。
+
+**Requirements:** NFR-2, NFR-4
+
+**Depends on:** Phase 5
+
+Canonical refs:
+- .planning/REQUIREMENTS.md §NFR-4 部署
+- .planning/REQUIREMENTS.md §NFR-2 安全
