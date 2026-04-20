@@ -7,7 +7,7 @@
 | 3 | 组织架构 CRUD | 部门树、用户 CRUD 页面 | ⏳ |
 | 4 | RBAC | 角色管理、权限分配、前端 v-perm 指令 | ⏳ |
 | 5 | 响应式体验 | PC/Mobile 双布局、暗色模式 | ⏳ |
-| 6 | 1/3 | In Progress|  |
+| 6 | Docker 化 + 文档 | 多阶段 Dockerfile、README、部署脚本 | 🔄 |
 
 ## Dependencies
 - Phase 2 依赖 Phase 1
@@ -96,12 +96,12 @@ Canonical refs:
 
 **Depends on:** Phase 5
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans executed
 
 Plans:
 - [x] 06-01-PLAN.md — Docker 基础设施：Dockerfile 重写 + compose 强化 + .dockerignore + binaryTargets
 - [x] 06-02-PLAN.md — 部署脚本：init/backup/restore/upgrade/health/check-env（Bash + PowerShell）
-- [ ] 06-03-PLAN.md — README 完整文档：架构图 + 部署说明 + 反向代理 + FAQ + 升级流程
+- [x] 06-03-PLAN.md — README 完整文档：架构图 + 部署说明 + 反向代理 + FAQ + 升级流程
 
 Canonical refs:
 - .planning/REQUIREMENTS.md §NFR-4 部署
