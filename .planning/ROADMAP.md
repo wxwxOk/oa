@@ -58,7 +58,12 @@ Plans:
   3. 外部人员通过浏览器打开分享链接，无需登录即可填写表单并提交（含手写签名）
   4. 模板可配置是否要求填写者提供身份信息（姓名/手机号），配置后填写页相应展示身份字段
   5. 填写者提交后数据自动归档存储，关联模板版本快照和分享记录
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 08-01-PLAN.md — 数据层：Prisma ShareLink + Submission 模型 + 依赖安装 + DB push
+- [ ] 08-02-PLAN.md — 后端 API：分享链接创建端点 + 公开填写/提交 API
+- [ ] 08-03-PLAN.md — 前端管理端：ShareDialog + 分享按钮 + 身份信息开关
+- [ ] 08-04-PLAN.md — 公开填写页：FormFieldRenderer + PublicFillPage + 路由 + 端到端验证
 **UI hint**: yes
 
 ### Phase 9: 数据查看 + 打印 + 统计
@@ -82,5 +87,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-6 | v1.0 | 25/25 | Complete | 2026-04-20 |
 | 7. 模板管理 + 表单设计器 | v1.1 | 5/5 | Complete | 2026-04-20 |
-| 8. 分享链接 + 公开填写 | v1.1 | 0/TBD | Not started | - |
+| 8. 分享链接 + 公开填写 | v1.1 | 0/4 | Planning complete | - |
 | 9. 数据查看 + 打印 + 统计 | v1.1 | 0/TBD | Not started | - |
