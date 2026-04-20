@@ -30,6 +30,8 @@ const PERMISSIONS = [
   { code: 'form:template:delete', name: '删除模板', module: 'form' },
   { code: 'form:template:publish', name: '发布/下线模板', module: 'form' },
   { code: 'form:template:share', name: '分享模板', module: 'form' },
+  { code: 'form:submission:list', name: '查看提交数据', module: 'form' },
+  { code: 'form:stats:view', name: '查看表单统计', module: 'form' },
 ];
 
 async function main() {
