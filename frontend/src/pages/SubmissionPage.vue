@@ -228,7 +228,7 @@ async function openDetail(row: SubmissionRow) {
 async function openAndPrint(row: SubmissionRow) {
   await openDetail(row);
   await nextTick();
-  window.print();
+  handlePrint();
 }
 
 async function openAndExport(row: SubmissionRow) {
@@ -237,9 +237,24 @@ async function openAndExport(row: SubmissionRow) {
   handleExportPdf();
 }
 
-// 打印
+// 打印：克隆 #print-area 到 body 层级，JS 隐藏其他元素
 function handlePrint() {
+  const printArea = document.getElementById('print-area');
+  if (!printArea) return;
+  const clone = printArea.cloneNode(true) as HTMLElement;
+  clone.id = 'print-clone';
+  const hidden: HTMLElement[] = [];
+  Array.from(document.body.children).forEach((el) => {
+    const htmlEl = el as HTMLElement;
+    if (htmlEl.style.display !== 'none') {
+      hidden.push(htmlEl);
+      htmlEl.style.setProperty('display', 'none', 'important');
+    }
+  });
+  document.body.appendChild(clone);
   window.print();
+  document.body.removeChild(clone);
+  hidden.forEach((el) => el.style.removeProperty('display'));
 }
 
 // 单条 PDF 导出
@@ -267,10 +282,13 @@ async function handleBatchExport() {
   batchDialogOpen.value = true;
   batchExporting.value = true;
 
+  drawerOpen.value = true;
+
   const renderFn = async (index: number): Promise<HTMLElement> => {
     const detail = await store.fetchDetail(templateId.value, items[index].id);
     currentDetail.value = detail;
     await nextTick();
+    await new Promise(r => setTimeout(r, 100));
     const el = document.getElementById('print-area');
     if (!el) throw new Error('print-area element not found');
     return el;
@@ -295,6 +313,8 @@ async function handleBatchExport() {
   } finally {
     batchDialogOpen.value = false;
     batchExporting.value = false;
+    drawerOpen.value = false;
+    currentDetail.value = null;
     selected.value = [];
   }
 }

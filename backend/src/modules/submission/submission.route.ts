@@ -3,11 +3,11 @@ import { prisma } from '../../plugins/prisma';
 import { authGuard } from '../../middlewares/auth';
 import { notFound } from '../../utils/errors';
 
-export const submissionModule = new Elysia({ prefix: '/templates/:templateId/submissions' })
+export const submissionModule = new Elysia({ prefix: '/templates/:id/submissions' })
   .use(authGuard('form:submission:list'))
   // 列表端点
   .get('/', async ({ params, query }: any) => {
-    const templateId = Number(params.templateId);
+    const templateId = Number(params.id);
     const page = Number(query.page) || 1;
     const size = Number(query.size) || 20;
     const where: any = { templateId };
@@ -47,7 +47,7 @@ export const submissionModule = new Elysia({ prefix: '/templates/:templateId/sub
   })
   // 分享人列表端点（供前端筛选下拉框使用）
   .get('/sharers', async ({ params }: any) => {
-    const templateId = Number(params.templateId);
+    const templateId = Number(params.id);
     const links = await prisma.shareLink.findMany({
       where: { templateId },
       select: { creator: { select: { id: true, realName: true } } },
@@ -56,9 +56,9 @@ export const submissionModule = new Elysia({ prefix: '/templates/:templateId/sub
     return links.map((l) => l.creator);
   })
   // 详情端点
-  .get('/:id', async ({ params }: any) => {
+  .get('/:subId', async ({ params }: any) => {
     const submission = await prisma.submission.findUnique({
-      where: { id: Number(params.id) },
+      where: { id: Number(params.subId) },
       include: {
         shareLink: {
           include: { creator: { select: { id: true, realName: true } } },
@@ -70,7 +70,7 @@ export const submissionModule = new Elysia({ prefix: '/templates/:templateId/sub
     });
     if (!submission) throw notFound('提交记录不存在');
     // 校验提交记录归属于 URL 中的 templateId
-    if (submission.templateId !== Number(params.templateId)) {
+    if (submission.templateId !== Number(params.id)) {
       throw notFound('提交记录不存在');
     }
     return submission;

@@ -1,0 +1,15 @@
+/* 打印样式 */
+@media print {
+  .q-header,
+  .q-drawer,
+  .q-footer,
+  .q-page-sticky,
+  .no-print {
+    display: none !important;
+  }
+
+  .q-page {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

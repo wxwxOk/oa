@@ -64,12 +64,21 @@ const versionMismatch = computed(() =>
   props.submission.schemaVersion !== props.submission.template.schemaVersion
 );
 
+// 安全解析 schema（可能是字符串或数组）
+function parseSchema(raw: any): any[] | null {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string') {
+    try { const parsed = JSON.parse(raw); return Array.isArray(parsed) ? parsed : null; } catch { return null; }
+  }
+  return null;
+}
+
 // 解析字段展示列表
 const displayFields = computed(() => {
-  const schema = props.submission.template.schema as any[];
+  const schema = parseSchema(props.submission.template.schema);
   const data = props.submission.data as Record<string, any>;
 
-  if (!versionMismatch.value && Array.isArray(schema)) {
+  if (!versionMismatch.value && schema) {
     // 版本一致：用 schema 字段定义渲染
     return schema
       .filter((f: any) => f.type !== 'signature')
@@ -81,24 +90,33 @@ const displayFields = computed(() => {
         options: f.options,
       }));
   } else {
-    // 版本不一致：直接展示 key-value
+    // 版本不一致或 schema 无法解析：用 schema 做 label 映射
+    const labelMap = schema
+      ? Object.fromEntries(schema.map((f: any) => [f.id, f.label]))
+      : {};
     return Object.entries(data)
-      .filter(([key]) => !key.startsWith('signature'))
+      .filter(([key]) => {
+        if (schema) {
+          const field = schema.find((f: any) => f.id === key);
+          return !field || field.type !== 'signature';
+        }
+        return !key.startsWith('signature');
+      })
       .map(([key, value]) => ({
         id: key,
-        label: key,
+        label: labelMap[key] || key,
         value,
-        type: 'text',
-        options: undefined,
+        type: schema?.find((f: any) => f.id === key)?.type || 'text',
+        options: schema?.find((f: any) => f.id === key)?.options,
       }));
   }
 });
 
 // 签名字段
 const signatureField = computed(() => {
-  const schema = props.submission.template.schema as any[] | null;
+  const schema = parseSchema(props.submission.template.schema);
   const data = props.submission.data as Record<string, any>;
-  const sigField = Array.isArray(schema) ? schema.find((f: any) => f.type === 'signature') : null;
+  const sigField = schema ? schema.find((f: any) => f.type === 'signature') : null;
   if (sigField && data[sigField.id]) {
     return { value: data[sigField.id] };
   }
@@ -115,6 +133,9 @@ function formatFieldValue(field: { value: any; type: string; options?: any[] }) 
   if (field.value == null || field.value === '') return '—';
   if (field.type === 'checkbox' && Array.isArray(field.value)) {
     return field.value.join('、');
+  }
+  if (field.type === 'date' && typeof field.value === 'string' && field.value.includes('T')) {
+    return field.value.split('T')[0];
   }
   return String(field.value);
 }

@@ -35,13 +35,17 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('oa_user', JSON.stringify(data.user));
     },
     async doRefresh(): Promise<string> {
-      const { data } = await api.post('/auth/refresh', { refreshToken: this.refreshToken });
+      const { data } = await api.post(
+        '/auth/refresh',
+        { refreshToken: this.refreshToken },
+        { skipAuthRefresh: true, skipAuthErrorNotify: true },
+      );
       this.accessToken = data.accessToken;
       localStorage.setItem('oa_access', data.accessToken);
       return data.accessToken;
     },
     async fetchProfile() {
-      const { data } = await api.get('/auth/profile');
+      const { data } = await api.get('/auth/profile', { skipAuthErrorNotify: true });
       this.user = data;
       localStorage.setItem('oa_user', JSON.stringify(data));
     },
