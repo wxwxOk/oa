@@ -41,6 +41,9 @@
              outline color="primary" :icon="action.icon" :label="action.label"
              :to="action.to" style="border-radius: 8px" />
     </div>
+
+    <!-- 表单统计 — 需要 form:stats:view 权限 -->
+    <FormStatsPanel v-if="auth.hasPerm('form:stats:view')" />
   </q-page>
 </template>
 
@@ -50,6 +53,7 @@ import { api } from 'src/boot/axios';
 import { useAuthStore } from 'src/stores/auth';
 import { useResponsive } from 'src/composables/useResponsive';
 import { Notify } from 'quasar';
+import FormStatsPanel from 'src/components/submission/FormStatsPanel.vue';
 
 const auth = useAuthStore();
 const { isDesktop } = useResponsive();
