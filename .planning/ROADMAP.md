@@ -76,7 +76,12 @@ Plans:
   3. 用户可通过浏览器打印提交数据，打印排版接近纸质表格效果
   4. 用户可将提交数据导出为 PDF 文件保存
   5. 用户可查看基础统计面板：每个员工的分享次数和收集数量
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — 后端 API：权限种子 + 提交数据查询 + 员工统计聚合
+- [ ] 09-02-PLAN.md — 前端基础层：npm 依赖安装 + submission store + 打印样式 + PDF 导出
+- [ ] 09-03-PLAN.md — 前端页面：SubmissionPage 列表+详情抽屉+打印+PDF 导出+路由+入口
+- [ ] 09-04-PLAN.md — 统计面板：FormStatsPanel 表格+图表 + Dashboard 嵌入
 **UI hint**: yes
 
 ## Progress
@@ -88,4 +93,4 @@ Plans:
 | 1-6 | v1.0 | 25/25 | Complete | 2026-04-20 |
 | 7. 模板管理 + 表单设计器 | v1.1 | 5/5 | Complete | 2026-04-20 |
 | 8. 分享链接 + 公开填写 | v1.1 | 0/4 | Planning complete | - |
-| 9. 数据查看 + 打印 + 统计 | v1.1 | 0/TBD | Not started | - |
+| 9. 数据查看 + 打印 + 统计 | v1.1 | 0/4 | Planning complete | - |
