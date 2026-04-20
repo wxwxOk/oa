@@ -42,7 +42,7 @@
 **Plans**: 5 plans
 Plans:
 - [x] 07-01-PLAN.md — Backend: Prisma FormTemplate model + CRUD/publish API + permission seeds
-- [ ] 07-02-PLAN.md — Frontend: Template list page (QTable) + Pinia store + route registration
+- [x] 07-02-PLAN.md — Frontend: Template list page (QTable) + Pinia store + route registration
 - [ ] 07-03-PLAN.md — Frontend: 3-panel form designer (palette + canvas + property editor)
 - [ ] 07-04-PLAN.md — Frontend: SignatureField component + dependency install + sidebar nav
 - [ ] 07-05-PLAN.md — Checkpoint: End-to-end human verification walkthrough
@@ -81,6 +81,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-6 | v1.0 | 25/25 | Complete | 2026-04-20 |
-| 7. 模板管理 + 表单设计器 | v1.1 | 1/5 | Executing | - |
+| 7. 模板管理 + 表单设计器 | v1.1 | 2/5 | Executing | - |
 | 8. 分享链接 + 公开填写 | v1.1 | 0/TBD | Not started | - |
 | 9. 数据查看 + 打印 + 统计 | v1.1 | 0/TBD | Not started | - |
