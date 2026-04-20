@@ -12,6 +12,11 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   {
+    path: '/f/:code',
+    component: () => import('pages/PublicFillPage.vue'),
+    meta: { public: true },
+  },
+  {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     redirect: '/dashboard',
