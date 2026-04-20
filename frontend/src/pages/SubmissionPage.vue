@@ -316,10 +316,9 @@ onMounted(async () => {
     // 分享人加载失败不阻塞页面
   }
   await load(1);
-  // 从第一条数据获取模板名称（如果有数据的话）
+  // 从列表第一条数据获取模板名称（列表响应已包含 template.name）
   if (store.rows.length > 0) {
-    const detail = await store.fetchDetail(templateId.value, store.rows[0].id);
-    templateName.value = detail.template.name;
+    templateName.value = (store.rows[0] as any).template?.name ?? '';
   }
 });
 </script>

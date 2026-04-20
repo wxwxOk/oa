@@ -34,6 +34,7 @@ export const submissionModule = new Elysia({ prefix: '/templates/:templateId/sub
           shareLink: {
             include: { creator: { select: { id: true, realName: true } } },
           },
+          template: { select: { name: true } },
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * size,
