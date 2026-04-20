@@ -37,7 +37,10 @@ export async function exportToPdf(
       const sliceCanvas = document.createElement('canvas');
       sliceCanvas.width = canvas.width;
       sliceCanvas.height = (sliceHeight / contentWidth) * canvas.width;
-      const ctx = sliceCanvas.getContext('2d')!;
+      const ctx = sliceCanvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Canvas 2D context unavailable — browser resource limit reached');
+      }
       ctx.drawImage(
         canvas,
         0, sourceY, canvas.width, sliceCanvas.height,
@@ -105,7 +108,10 @@ export async function exportBatchToPdf(
         const sliceCanvas = document.createElement('canvas');
         sliceCanvas.width = canvas.width;
         sliceCanvas.height = (sliceHeight / contentWidth) * canvas.width;
-        const ctx = sliceCanvas.getContext('2d')!;
+        const ctx = sliceCanvas.getContext('2d');
+        if (!ctx) {
+          throw new Error('Canvas 2D context unavailable — browser resource limit reached');
+        }
         ctx.drawImage(
           canvas,
           0, sourceY, canvas.width, sliceCanvas.height,
