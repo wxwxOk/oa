@@ -81,6 +81,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-6 | v1.0 | 25/25 | Complete | 2026-04-20 |
-| 7. 模板管理 + 表单设计器 | v1.1 | 0/5 | Planning | - |
+| 7. 模板管理 + 表单设计器 | v1.1 | 2/5 | Executing | - |
 | 8. 分享链接 + 公开填写 | v1.1 | 0/TBD | Not started | - |
 | 9. 数据查看 + 打印 + 统计 | v1.1 | 0/TBD | Not started | - |
