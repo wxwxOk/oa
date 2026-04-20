@@ -43,7 +43,7 @@
 Plans:
 - [x] 07-01-PLAN.md — Backend: Prisma FormTemplate model + CRUD/publish API + permission seeds
 - [x] 07-02-PLAN.md — Frontend: Template list page (QTable) + Pinia store + route registration
-- [ ] 07-03-PLAN.md — Frontend: 3-panel form designer (palette + canvas + property editor)
+- [x] 07-03-PLAN.md — Frontend: 3-panel form designer (palette + canvas + property editor)
 - [ ] 07-04-PLAN.md — Frontend: SignatureField component + dependency install + sidebar nav
 - [ ] 07-05-PLAN.md — Checkpoint: End-to-end human verification walkthrough
 **UI hint**: yes

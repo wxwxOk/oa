@@ -17,11 +17,11 @@ Requirements for v1.1 milestone. Each maps to roadmap phases.
 
 ### 表单设计器
 
-- [ ] **DSGN-01**: 用户可通过拖拽方式添加和排序表单字段
-- [ ] **DSGN-02**: 支持基础字段类型：文本、多行文本、单选、多选、日期、手机号
+- [x] **DSGN-01**: 用户可通过拖拽方式添加和排序表单字段
+- [x] **DSGN-02**: 支持基础字段类型：文本、多行文本、单选、多选、日期、手机号
 - [ ] **DSGN-03**: 支持手写签名字段（Canvas 签名板）
-- [ ] **DSGN-04**: 用户可配置字段属性：必填、提示文字、选项列表
-- [ ] **DSGN-05**: 设计器提供实时预览
+- [x] **DSGN-04**: 用户可配置字段属性：必填、提示文字、选项列表
+- [x] **DSGN-05**: 设计器提供实时预览
 
 ### 分享与填写
 
@@ -74,11 +74,11 @@ Deferred to future release.
 | TMPL-03 | Phase 7 | Complete |
 | TMPL-04 | Phase 7 | Complete |
 | TMPL-05 | Phase 7 | Complete |
-| DSGN-01 | Phase 7 | Pending |
-| DSGN-02 | Phase 7 | Pending |
+| DSGN-01 | Phase 7 | Complete |
+| DSGN-02 | Phase 7 | Complete |
 | DSGN-03 | Phase 7 | Pending |
-| DSGN-04 | Phase 7 | Pending |
-| DSGN-05 | Phase 7 | Pending |
+| DSGN-04 | Phase 7 | Complete |
+| DSGN-05 | Phase 7 | Complete |
 | SHARE-01 | Phase 8 | Pending |
 | SHARE-02 | Phase 8 | Pending |
 | SHARE-03 | Phase 8 | Pending |
