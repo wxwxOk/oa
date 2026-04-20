@@ -26,6 +26,7 @@ model User {
   departmentId Int?
   department   Department? @relation(fields: [departmentId], references: [id])
   roles        UserRole[]
+  templates    FormTemplate[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -80,4 +81,26 @@ model RolePermission {
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
+}
+
+enum TemplateStatus {
+  DRAFT
+  PUBLISHED
+  OFFLINE
+}
+
+model FormTemplate {
+  id            Int            @id @default(autoincrement())
+  name          String
+  description   String?
+  schema        Json           @default("[]")
+  schemaVersion Int            @default(1)
+  status        TemplateStatus @default(DRAFT)
+  creatorId     Int
+  creator       User           @relation(fields: [creatorId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([creatorId])
+  @@index([status])
 }

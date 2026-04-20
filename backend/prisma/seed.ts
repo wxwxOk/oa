@@ -23,6 +23,12 @@ const PERMISSIONS = [
   { code: 'role:update', name: '编辑角色', module: 'role' },
   { code: 'role:delete', name: '删除角色', module: 'role' },
   { code: 'role:assign-permission', name: '分配权限', module: 'role' },
+  // 表单模板模块
+  { code: 'form:template:list', name: '模板列表', module: 'form' },
+  { code: 'form:template:create', name: '创建模板', module: 'form' },
+  { code: 'form:template:edit', name: '编辑模板', module: 'form' },
+  { code: 'form:template:delete', name: '删除模板', module: 'form' },
+  { code: 'form:template:publish', name: '发布/下线模板', module: 'form' },
 ];
 
 async function main() {
