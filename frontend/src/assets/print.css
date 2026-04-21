@@ -37,6 +37,27 @@
     max-height: 150px;
   }
 
+  /* 动态表格打印 */
+  .dynamic-table-print {
+    page-break-inside: avoid;
+    margin-top: 12px;
+  }
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 12pt;
+  }
+  .print-table th,
+  .print-table td {
+    border: 1px solid #000;
+    padding: 6px 8px;
+  }
+  .print-table th {
+    font-weight: 600;
+    background: #f5f5f5;
+  }
+
   /* 页面设置 */
   @page {
     margin: 15mm;
