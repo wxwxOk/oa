@@ -34,7 +34,7 @@ import { useDraggable } from 'vue-draggable-plus';
 import { FIELD_GROUPS, type FieldTypeDef } from './fieldRegistry';
 import type { SchemaField } from 'src/types/schema';
 
-const GROUP_NAME = 'designer';
+const GROUP_NAME = 'fields';
 
 const basicRef = ref<HTMLElement | null>(null);
 const specialRef = ref<HTMLElement | null>(null);
