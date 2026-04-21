@@ -90,11 +90,18 @@ function updateRowFields(rowIdx: number, newFields: SchemaField[]) {
   emit('update:rows', [...props.rows]);
 }
 
-function onFieldAdd(rowIdx: number, _evt: any) {
+function onFieldAdd(rowIdx: number, evt: any) {
   const row = props.rows[rowIdx];
   if (!row) return;
-  for (const field of row.fields) {
-    compressColSpan(field, row.fields);
+  const newField = row.fields[evt.newIndex];
+  if (!newField) return;
+  const fits = compressColSpan(newField, row.fields);
+  if (!fits) {
+    row.fields.splice(evt.newIndex, 1);
+    newField.colSpan = 12;
+    const newRow: SchemaRow = { type: 'row', fields: [newField] };
+    props.rows.splice(rowIdx + 1, 0, newRow);
+    emit('update:rows', [...props.rows]);
   }
 }
 

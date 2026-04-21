@@ -110,12 +110,19 @@ function ensureSchema(): SchemaV2 {
 
 const schema = computed(() => ensureSchema());
 
-// 项目级别拖拽排序
+// 项目级别拖拽排序 — 字段 drop 自动包裹为 row
 const itemsList = computed({
   get: () => schema.value.items,
   set: (newItems: SchemaItem[]) => {
     const s = ensureSchema();
-    s.items = newItems;
+    s.items = newItems.map(item => {
+      if (item.type !== 'row' && item.type !== 'group' && item.type !== 'dynamic-table') {
+        const field = item as unknown as SchemaField;
+        compressColSpan(field, [field]);
+        return { type: 'row' as const, fields: [field] };
+      }
+      return item;
+    });
   },
 });
 
