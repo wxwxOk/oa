@@ -1,101 +1,100 @@
 <template>
   <div class="designer-canvas" @click.self="store.selectField(null)">
-    <div v-if="!fields.length" class="empty-state" @click.stop="store.selectField(null)">
-      <span style="font-size: 14px; color: var(--oa-text-tertiary)">从左侧拖入字段</span>
+    <div v-if="!hasFields" class="empty-state" @click.stop="store.selectField(null)">
+      <span style="font-size: 14px; color: var(--oa-text-tertiary)">从左侧拖入字段开始设计表单</span>
     </div>
 
-    <div ref="canvasRef" class="canvas-list" :class="{ 'canvas-empty': !fields.length }">
-      <q-card
-        v-for="field in fields"
-        :key="field.id"
-        flat
-        bordered
-        class="field-card q-pa-md q-mb-sm"
-        :class="{ 'field-selected': store.selectedFieldId === field.id }"
-        @click.stop="store.selectField(field.id)"
-      >
-        <div class="row items-center no-wrap q-mb-sm">
-          <q-icon name="drag_indicator" size="16px" class="drag-handle cursor-grab" style="color: var(--oa-text-tertiary)" />
-          <span class="q-ml-xs" style="font-size: 14px; font-weight: 600">{{ field.label }}</span>
-          <q-badge v-if="field.required" color="negative" class="q-ml-xs">*</q-badge>
-          <q-space />
-          <q-btn flat dense icon="delete" color="negative" size="sm" @click.stop="removeField(field.id)" />
-        </div>
-
-        <!-- WYSIWYG preview -->
-        <div class="field-preview">
-          <template v-if="field.type === 'text'">
-            <q-input outlined dense disabled :placeholder="field.placeholder" :label="field.label" />
-          </template>
-          <template v-else-if="field.type === 'textarea'">
-            <q-input outlined dense disabled type="textarea" :placeholder="field.placeholder" />
-          </template>
-          <template v-else-if="field.type === 'radio'">
-            <q-option-group type="radio" disabled :options="mapOptions(field.options)" :model-value="null" />
-          </template>
-          <template v-else-if="field.type === 'checkbox'">
-            <q-option-group type="checkbox" disabled :options="mapOptions(field.options)" :model-value="[]" />
-          </template>
-          <template v-else-if="field.type === 'date'">
-            <q-input outlined dense disabled placeholder="请选择日期">
-              <template #append><q-icon name="calendar_today" /></template>
-            </q-input>
-          </template>
-          <template v-else-if="field.type === 'phone'">
-            <q-input outlined dense disabled :placeholder="field.placeholder || '请输入手机号'" />
-          </template>
-          <template v-else-if="field.type === 'signature'">
-            <div class="signature-preview">
-              <span style="color: var(--oa-text-tertiary)">签名区域</span>
-            </div>
-            <q-btn flat dense size="sm" label="清除签名" class="q-mt-xs" />
-          </template>
-        </div>
-      </q-card>
+    <div ref="canvasRef" class="canvas-list" :class="{ 'canvas-empty': !hasFields }">
+      <GridFormRenderer
+        v-if="hasFields"
+        :schema="schema"
+        mode="designer"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useDraggable } from 'vue-draggable-plus';
-import { useTemplateStore, type FormField } from 'src/stores/template';
+import { useTemplateStore } from 'src/stores/template';
+import type { SchemaV2, SchemaRow, SchemaField } from 'src/types/schema';
+import { createEmptySchema } from 'src/types/schema';
+import GridFormRenderer from 'src/components/renderer/GridFormRenderer.vue';
 
-const GROUP_NAME = 'designer';
 const store = useTemplateStore();
 const canvasRef = ref<HTMLElement | null>(null);
 
-const fields = computed({
-  get: () => store.current?.schema ?? [],
-  set: (val: FormField[]) => {
-    if (store.current) store.current.schema = val;
-  },
-});
-
-function reindex() {
-  fields.value.forEach((f, i) => (f.sort = i));
+function ensureSchema(): SchemaV2 {
+  if (!store.current) return createEmptySchema();
+  if (!store.current.schema || !('version' in store.current.schema)) {
+    store.current.schema = createEmptySchema();
+  }
+  return store.current.schema;
 }
 
-useDraggable(canvasRef, fields, {
-  group: { name: GROUP_NAME, pull: false, put: true },
-  animation: 150,
-  handle: '.drag-handle',
-  onEnd: reindex,
-  onAdd: reindex,
+const schema = computed(() => ensureSchema());
+
+const hasFields = computed(() => schema.value.items.length > 0);
+
+// Flat proxy for useDraggable — maps SchemaV2.items rows for drag-drop
+const flatFields = computed({
+  get: () => {
+    const result: SchemaField[] = [];
+    for (const item of schema.value.items) {
+      if (item.type === 'row') result.push(...item.fields);
+    }
+    return result;
+  },
+  set: () => { /* drag reorder handled in Phase 11 */ },
 });
+
+function addFieldAsRow(field: SchemaField) {
+  const s = ensureSchema();
+  const row: SchemaRow = { type: 'row', fields: [field] };
+  s.items.push(row);
+}
 
 function removeField(id: string) {
   if (!store.current) return;
-  store.current.schema = store.current.schema.filter(f => f.id !== id);
+  const s = ensureSchema();
+  for (let i = s.items.length - 1; i >= 0; i--) {
+    const item = s.items[i];
+    if (item.type === 'row') {
+      const idx = item.fields.findIndex(f => f.id === id);
+      if (idx !== -1) {
+        item.fields.splice(idx, 1);
+        if (item.fields.length === 0) s.items.splice(i, 1);
+        break;
+      }
+    } else if (item.type === 'group') {
+      for (let r = item.rows.length - 1; r >= 0; r--) {
+        const ridx = item.rows[r].fields.findIndex(f => f.id === id);
+        if (ridx !== -1) {
+          item.rows[r].fields.splice(ridx, 1);
+          if (item.rows[r].fields.length === 0) item.rows.splice(r, 1);
+          if (item.rows.length === 0) s.items.splice(i, 1);
+          break;
+        }
+      }
+    }
+  }
   if (store.selectedFieldId === id) store.selectField(null);
-  reindex();
 }
 
-function mapOptions(opts?: string[]) {
-  return (opts ?? []).map(o => ({ label: o, value: o }));
-}
+useDraggable(canvasRef, flatFields, {
+  group: { name: 'designer', pull: false, put: true },
+  animation: 150,
+  onAdd: (evt: any) => {
+    // The cloned SchemaField from FieldPalette
+    const cloned = evt.item?.__draggable_context?.element;
+    if (cloned && cloned.id && cloned.type) {
+      addFieldAsRow(cloned as SchemaField);
+    }
+  },
+});
 
-watch(() => store.current?.schema.length, reindex);
+defineExpose({ removeField });
 </script>
 
 <style scoped>
@@ -120,27 +119,5 @@ watch(() => store.current?.schema.length, reindex);
 }
 .canvas-empty {
   min-height: 0;
-}
-.field-card {
-  border: 1px solid var(--oa-border);
-  transition: background 150ms;
-  cursor: pointer;
-}
-.field-card:hover {
-  background: var(--oa-hover);
-}
-.field-selected {
-  border: 2px solid var(--oa-focus-ring) !important;
-  background: var(--oa-hover);
-}
-.signature-preview {
-  width: 100%;
-  max-width: 400px;
-  height: 200px;
-  border: 1px solid var(--oa-border);
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>

@@ -22,6 +22,17 @@
 
         <q-toggle v-model="field.required" label="必填" />
 
+        <div style="font-size: 14px; color: var(--oa-text-secondary)" class="q-mt-sm">列宽</div>
+        <q-slider
+          v-model="field.colSpan"
+          :min="1"
+          :max="12"
+          :step="1"
+          label
+          :label-value="field.colSpan + ' / 12'"
+          color="primary"
+        />
+
         <q-input
           v-if="field.type !== 'signature'"
           v-model="field.placeholder"
