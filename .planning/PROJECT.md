@@ -9,6 +9,18 @@
 ## Current State
 ✅ v1.0 MVP shipped (2026-04-20)
 ✅ v1.1 自定义表单收集 shipped (2026-04-20)
+🔧 v1.2 模板管理优化 — in progress
+
+## Current Milestone: v1.2 模板管理优化
+
+**Goal:** 升级表单设计器为 12 列栅格布局引擎，支持分组标题、复杂排版、动态行表格，PDF 保真输出，填写页 PC 端还原布局 + 移动端自动单列。
+
+**Target features:**
+- 字段分组 + 分组标题（如"教育经历"、"工作经验"），每组带可视标题栏
+- 12 列栅格布局引擎，字段可跨列放置，支持行/列组合
+- 动态行表格（可重复填写的子表，支持增删行）
+- PDF 保真输出，1:1 还原设计稿布局
+- 填写页响应式：PC 端按设计稿布局渲染，移动端自动单列
 
 ## Requirements
 
@@ -33,7 +45,11 @@
 - ✓ FR-14 基础统计：员工分享次数、收集数量统计 — v1.1
 
 ### Active
-(Next milestone TBD)
+- FR-15 字段分组 + 分组标题 — v1.2
+- FR-16 12 列栅格布局引擎 — v1.2
+- FR-17 动态行表格 — v1.2
+- FR-18 PDF 保真输出 — v1.2
+- FR-19 填写页响应式布局还原 — v1.2
 
 ### Out of Scope
 - 考勤打卡、请假审批、工作流引擎 — v2.0+ 考虑
@@ -42,7 +58,7 @@
 - 审计日志 — v2.0 候选
 - 条件逻辑/分支表单 — 复杂度高，v2.0 考虑
 - 文件/图片上传字段 — 需要文件存储基础设施
-- 多列表单布局 — 单列足够覆盖纸质表格场景
+- 多列表单布局 — ~~单列足够覆盖纸质表格场景~~ v1.2 实现
 - Excel 导出 — v2.0 考虑
 
 ## Tech Stack
@@ -73,9 +89,12 @@ v1.1 新增 15,228 LOC，73 commits，1 天内完成（3 phases, 13 plans）。
 | 浏览器端 print + html2canvas PDF | ✓ 无需服务端依赖，部署简单 |
 | Public routes 独立 Elysia group | ✓ 安全隔离，无 JWT 泄露风险 |
 
+| 12 列栅格布局引擎 | ✓ 类 Bootstrap 栅格，兼顾复杂排版与响应式 |
+| 不兼容 v1.1 旧模板 schema | ✓ 全新设计器替换，简化维护 |
+
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-20 after v1.1 milestone shipped*
+*Last updated: 2026-04-21 after v1.2 milestone started*

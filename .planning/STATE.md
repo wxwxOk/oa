@@ -1,39 +1,40 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: 自定义表单收集
-status: complete
-stopped_at: Milestone archived
-last_updated: "2026-04-20"
-last_activity: 2026-04-20 -- v1.1 milestone shipped
+milestone: v1.2
+milestone_name: 模板管理优化
+status: active
+stopped_at: Defining requirements
+last_updated: "2026-04-21"
+last_activity: 2026-04-21 -- Milestone v1.2 started
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
 
 - Initialized: 2026-04-17
-- Milestone: v1.1 自定义表单收集 — SHIPPED
-- Status: Complete
+- Milestone: v1.2 模板管理优化 — IN PROGRESS
+- Status: Defining requirements
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-20)
+See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** 开箱即用的组织架构管理 + 表单收集
-**Current focus:** Planning next milestone
+**Current focus:** 升级表单设计器为栅格布局引擎 + PDF 保真输出
 
 ## Current Position
 
-Phase: All complete
-Status: Milestone v1.1 shipped
-Last activity: 2026-04-20 -- v1.1 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-21 — Milestone v1.2 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -64,7 +65,11 @@ Progress: [██████████] 100%
 - v1.1: Public routes in separate Elysia group (no authGuard)
 - v1.1: Schema versioning — snapshot at submission time
 - v1.1: vue-chartjs Bar for stats visualization
+- v1.2: 12 列栅格布局引擎（类 Bootstrap）
+- v1.2: 不兼容 v1.1 旧模板 schema，全新设计器替换
+- v1.2: 填写页 PC 端还原布局，移动端自动单列
+- v1.2: 分组是一等公民，每个分组有标题 + 内部栅格布局
 
 ### Blockers/Concerns
 
-None — milestone complete.
+None.
