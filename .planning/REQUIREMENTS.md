@@ -8,8 +8,8 @@
 
 ### Schema 与数据模型
 
-- [ ] **SCHEMA-01**: 表单 schema 从 flat FormField[] 升级为 Group/Row/Column 层级结构，支持 12 列栅格定位（每个字段携带 colSpan 1-12）
-- [ ] **SCHEMA-02**: schema 增加 version:2 标识，渲染器按版本分发（v1 旧 schema 走旧渲染路径，v2 走栅格渲染路径）
+- [x] **SCHEMA-01**: 表单 schema 从 flat FormField[] 升级为 Group/Row/Column 层级结构，支持 12 列栅格定位（每个字段携带 colSpan 1-12）
+- [x] **SCHEMA-02**: schema 增加 version:2 标识，渲染器按版本分发（v1 旧 schema 走旧渲染路径，v2 走栅格渲染路径）
 - [ ] **SCHEMA-03**: v1.1 旧模板不迁移，新建模板使用新 schema；旧模板的已有提交数据仍可查看
 
 ### 设计器
@@ -59,8 +59,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 10 | Pending |
-| SCHEMA-02 | Phase 10 | Pending |
+| SCHEMA-01 | Phase 10 | Complete |
+| SCHEMA-02 | Phase 10 | Complete |
 | SCHEMA-03 | Phase 10 | Pending |
 | DESIGN-01 | Phase 11 | Pending |
 | DESIGN-02 | Phase 12 | Pending |
