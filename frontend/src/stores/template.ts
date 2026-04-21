@@ -1,21 +1,16 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
+import type { SchemaV2, SchemaField } from 'src/types/schema';
+import { flattenFields } from 'src/types/schema';
 
-export interface FormField {
-  id: string;
-  type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'date' | 'phone' | 'signature';
-  label: string;
-  required: boolean;
-  placeholder?: string;
-  options?: string[];
-  sort: number;
-}
+/** @deprecated Use SchemaField from 'src/types/schema' instead */
+export type { SchemaField as FormField } from 'src/types/schema';
 
 export interface Template {
   id: number;
   name: string;
   description: string | null;
-  schema: FormField[];
+  schema: SchemaV2;
   schemaVersion: number;
   status: 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
   requireIdentity: boolean;
@@ -37,9 +32,9 @@ export const useTemplateStore = defineStore('template', {
     selectedFieldId: null as string | null,
   }),
   getters: {
-    selectedField(s): FormField | null {
+    selectedField(s): SchemaField | null {
       if (!s.current || !s.selectedFieldId) return null;
-      return s.current.schema.find((f) => f.id === s.selectedFieldId) ?? null;
+      return flattenFields(s.current.schema).find(f => f.id === s.selectedFieldId) ?? null;
     },
   },
   actions: {
@@ -64,7 +59,7 @@ export const useTemplateStore = defineStore('template', {
       const { data } = await api.post('/templates', { name, description });
       return data;
     },
-    async update(id: number, payload: { name?: string; description?: string; schema?: FormField[]; requireIdentity?: boolean }) {
+    async update(id: number, payload: { name?: string; description?: string; schema?: SchemaV2; requireIdentity?: boolean }) {
       const { data } = await api.put(`/templates/${id}`, payload);
       if (this.current?.id === id) this.current = data;
       return data;
