@@ -1,0 +1,83 @@
+# Requirements: OA 模板管理优化
+
+**Defined:** 2026-04-21
+**Core Value:** 开箱即用的组织架构管理 + 表单收集
+**Milestone:** v1.2
+
+## v1.2 Requirements
+
+### Schema 与数据模型
+
+- [ ] **SCHEMA-01**: 表单 schema 从 flat FormField[] 升级为 Group/Row/Column 层级结构，支持 12 列栅格定位（每个字段携带 colSpan 1-12）
+- [ ] **SCHEMA-02**: schema 增加 version:2 标识，渲染器按版本分发（v1 旧 schema 走旧渲染路径，v2 走栅格渲染路径）
+- [ ] **SCHEMA-03**: v1.1 旧模板不迁移，新建模板使用新 schema；旧模板的已有提交数据仍可查看
+
+### 设计器
+
+- [ ] **DESIGN-01**: 设计器画布支持 12 列栅格，字段可拖拽到指定行/列位置，可调整跨列数（1-12）
+- [ ] **DESIGN-02**: 用户可创建分组区块，每组有可编辑标题栏（如"教育经历"、"工作经验"），组内独立栅格布局
+- [ ] **DESIGN-03**: 用户可添加动态行表格字段，定义列结构（列名/列类型/列宽），填写时可增删行
+- [ ] **DESIGN-04**: 设计器实时预览按栅格布局渲染，所见即所得
+
+### 渲染与填写页
+
+- [ ] **RENDER-01**: PC 端填写页按设计稿栅格布局渲染，与设计器预览一致
+- [ ] **RENDER-02**: 移动端填写页自动降级为单列布局，保证触控体验
+- [ ] **RENDER-03**: 动态行表格在填写页支持增删行操作，每行按列结构渲染输入控件
+
+### PDF 输出
+
+- [ ] **PDF-01**: PDF 导出 1:1 还原栅格布局（表格线/边框/分组标题/字段对齐）
+- [ ] **PDF-02**: PDF 正确处理分页，避免行/分组被截断（break-inside: avoid）
+- [ ] **PDF-03**: PDF 支持中文字体嵌入，避免乱码
+
+## v2 Requirements
+
+### 高级设计器
+
+- **ADV-01**: 条件逻辑/分支（字段显隐规则）
+- **ADV-02**: 嵌套分组（分组内再分组，最多 2 层）
+- **ADV-03**: 模板导入/导出（JSON 格式）
+- **ADV-04**: 模板市场/共享模板库
+
+### 高级填写
+
+- **FILL-01**: 填写进度保存（草稿）
+- **FILL-02**: 多页表单（分步填写）
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| 服务端 PDF 生成（Puppeteer） | Bun 运行时与 Puppeteer 不兼容（WebSocket/启动超时） |
+| v1.1 旧模板自动迁移 | 用户确认不需要兼容旧模式，全新设计器替换 |
+| 嵌套分组（>1 层） | 复杂度过高，v2 考虑 |
+| 条件逻辑/字段显隐 | 独立功能，v2 考虑 |
+| 拖拽绝对定位模式 | 选择了 12 列栅格模式，不做自由定位 |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| SCHEMA-01 | TBD | Pending |
+| SCHEMA-02 | TBD | Pending |
+| SCHEMA-03 | TBD | Pending |
+| DESIGN-01 | TBD | Pending |
+| DESIGN-02 | TBD | Pending |
+| DESIGN-03 | TBD | Pending |
+| DESIGN-04 | TBD | Pending |
+| RENDER-01 | TBD | Pending |
+| RENDER-02 | TBD | Pending |
+| RENDER-03 | TBD | Pending |
+| PDF-01 | TBD | Pending |
+| PDF-02 | TBD | Pending |
+| PDF-03 | TBD | Pending |
+
+**Coverage:**
+- v1.2 requirements: 13 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 13 ⚠️
+
+---
+*Requirements defined: 2026-04-21*
+*Last updated: 2026-04-21 after initial definition*
