@@ -32,6 +32,7 @@
 import { ref } from 'vue';
 import { useDraggable } from 'vue-draggable-plus';
 import { FIELD_GROUPS, type FieldTypeDef } from './fieldRegistry';
+import type { SchemaField } from 'src/types/schema';
 
 const GROUP_NAME = 'designer';
 
@@ -41,15 +42,15 @@ const specialRef = ref<HTMLElement | null>(null);
 const basicFields = ref([...FIELD_GROUPS.basic.types]);
 const specialFields = ref([...FIELD_GROUPS.special.types]);
 
-function cloneField(item: FieldTypeDef) {
+function cloneField(item: FieldTypeDef): SchemaField {
   return {
     id: crypto.randomUUID(),
     type: item.type,
     label: item.label,
     required: false,
-    placeholder: item.defaultProps.placeholder ?? '',
+    colSpan: 12,
+    placeholder: item.defaultProps.placeholder,
     options: item.defaultProps.options ? [...item.defaultProps.options] : undefined,
-    sort: 0,
   };
 }
 
