@@ -59,25 +59,25 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | TBD | Pending |
-| SCHEMA-02 | TBD | Pending |
-| SCHEMA-03 | TBD | Pending |
-| DESIGN-01 | TBD | Pending |
-| DESIGN-02 | TBD | Pending |
-| DESIGN-03 | TBD | Pending |
-| DESIGN-04 | TBD | Pending |
-| RENDER-01 | TBD | Pending |
-| RENDER-02 | TBD | Pending |
-| RENDER-03 | TBD | Pending |
-| PDF-01 | TBD | Pending |
-| PDF-02 | TBD | Pending |
-| PDF-03 | TBD | Pending |
+| SCHEMA-01 | Phase 10 | Pending |
+| SCHEMA-02 | Phase 10 | Pending |
+| SCHEMA-03 | Phase 10 | Pending |
+| DESIGN-01 | Phase 11 | Pending |
+| DESIGN-02 | Phase 12 | Pending |
+| DESIGN-03 | Phase 12 | Pending |
+| DESIGN-04 | Phase 11 | Pending |
+| RENDER-01 | Phase 14 | Pending |
+| RENDER-02 | Phase 14 | Pending |
+| RENDER-03 | Phase 12 | Pending |
+| PDF-01 | Phase 13 | Pending |
+| PDF-02 | Phase 13 | Pending |
+| PDF-03 | Phase 13 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 13 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13/13
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-21*
-*Last updated: 2026-04-21 after initial definition*
+*Last updated: 2026-04-21 after roadmap phase assignment*
