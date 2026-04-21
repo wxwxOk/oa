@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
-import type { SchemaV2, SchemaField } from 'src/types/schema';
+import type { SchemaV2, SchemaField, SchemaGroup, SchemaDynamicTable } from 'src/types/schema';
 import { flattenFields } from 'src/types/schema';
 
 /** @deprecated Use SchemaField from 'src/types/schema' instead */
@@ -35,6 +35,19 @@ export const useTemplateStore = defineStore('template', {
     selectedField(s): SchemaField | null {
       if (!s.current || !s.selectedFieldId) return null;
       return flattenFields(s.current.schema).find(f => f.id === s.selectedFieldId) ?? null;
+    },
+    selectedItem(s): SchemaField | SchemaGroup | SchemaDynamicTable | null {
+      if (!s.current || !s.selectedFieldId) return null;
+      // 先查找普通字段
+      const field = flattenFields(s.current.schema).find(f => f.id === s.selectedFieldId);
+      if (field) return field;
+      // 再查找分组和动态表格
+      for (const item of s.current.schema.items) {
+        if ((item.type === 'group' || item.type === 'dynamic-table') && item.id === s.selectedFieldId) {
+          return item;
+        }
+      }
+      return null;
     },
   },
   actions: {

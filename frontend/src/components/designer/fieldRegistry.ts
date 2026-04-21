@@ -1,4 +1,4 @@
-import type { FieldType, SchemaField } from 'src/types/schema';
+import type { FieldType, SchemaField, SchemaGroup, SchemaDynamicTable, DynamicTableColumnType } from 'src/types/schema';
 
 export interface FieldTypeDef {
   type: FieldType;
@@ -22,3 +22,40 @@ export const FIELD_GROUPS = {
   basic: { label: '基础字段', types: FIELD_TYPES.filter(f => f.group === 'basic') },
   special: { label: '特殊字段', types: FIELD_TYPES.filter(f => f.group === 'special') },
 };
+
+/** 结构项定义（分组、动态表格） */
+export interface StructureItemDef {
+  type: 'group' | 'dynamic-table';
+  label: string;
+  icon: string;
+  create: () => SchemaGroup | SchemaDynamicTable;
+}
+
+export const structureItems: StructureItemDef[] = [
+  {
+    type: 'group',
+    label: '分组',
+    icon: 'folder_open',
+    create: (): SchemaGroup => ({
+      type: 'group',
+      id: crypto.randomUUID(),
+      title: '分组标题',
+      rows: [],
+    }),
+  },
+  {
+    type: 'dynamic-table',
+    label: '动态表格',
+    icon: 'table_chart',
+    create: (): SchemaDynamicTable => ({
+      type: 'dynamic-table',
+      id: crypto.randomUUID(),
+      label: '动态表格',
+      colSpan: 12,
+      columns: [
+        { key: crypto.randomUUID(), label: '列 1', type: 'text' as DynamicTableColumnType },
+        { key: crypto.randomUUID(), label: '列 2', type: 'text' as DynamicTableColumnType },
+      ],
+    }),
+  },
+];
