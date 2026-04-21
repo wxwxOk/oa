@@ -1,11 +1,12 @@
 ---
 phase: 13
 slug: pdf
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 surface_type: print/PDF (non-interactive)
 created: 2026-04-21
+reviewed_at: 2026-04-21
 ---
 
 # Phase 13 — UI Design Contract (PDF 保真输出)
