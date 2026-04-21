@@ -34,7 +34,7 @@ Declared values (must be multiples of 4):
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px | Icon gaps, drag handle padding, inline padding |
-| sm | 8px | Row gap, palette group padding, compact element spacing |
+| sm | 8px | Row gap, palette group padding, compact element spacing, table cell padding |
 | md | 16px | Default element spacing, panel padding, column gap, group body/header padding |
 | lg | 24px | Section padding |
 | xl | 32px | Layout gaps |
@@ -55,6 +55,8 @@ Source: Existing `DesignerCanvas.vue`, `FieldPalette.vue`, `PropertyEditor.vue` 
 | Label | 14px | 600 | 1.5 |
 | Group title | 16px | 600 | 1.2 |
 | Heading | 20px | 600 | 1.2 |
+
+Note: Table headers (column preview, fill table header, print table header) use Label role (14px/600/1.5).
 
 Source: `GroupRenderer.vue` `.group-header` (16px/600), `PropertyEditor.vue` field label (14px/600), `app.scss` `.text-h6` (20px/600)
 
@@ -124,7 +126,7 @@ Source: D-02, D-04, D-05, D-06, existing `GroupRenderer.vue` + `DesignerCanvas.v
 | Body | padding 16px, shows column preview as a mini table header row |
 | Left drag handle | `.item-drag-handle` (same as group) |
 | Selection state | Same as group (2px accent border + shadow) |
-| Column preview | Single header row showing column labels in flex layout, each column `flex: {width}`, font-size 13px, color `var(--oa-text-secondary)`, border-bottom `1px solid var(--oa-border)` |
+| Column preview | Single header row showing column labels in flex layout, each column `flex: {width}`, font-size 14px, font-weight 600, color `var(--oa-text-secondary)`, border-bottom `1px solid var(--oa-border)` |
 | colSpan display | Full width by default (colSpan: 12), shown as `gridColumn: span 12` in parent row context |
 
 Source: D-12, D-09, existing card pattern
@@ -168,8 +170,8 @@ Source: D-09, D-10, D-11, D-12, existing PropertyEditor option-editing pattern
 | Wrapper | `q-card flat bordered`, margin-bottom 8px |
 | Table label | 16px/600, padding `16px 16px 8px`, border-bottom |
 | Table element | Native HTML `<table>`, width 100%, border-collapse collapse |
-| Table header | `<thead>`, background `var(--oa-bg)`, font-size 13px, font-weight 600, color `var(--oa-text-primary)` |
-| Header cell | padding `8px 12px`, border-bottom `2px solid var(--oa-border)`, text-align left |
+| Table header | `<thead>`, background `var(--oa-bg)`, font-size 14px, font-weight 600, color `var(--oa-text-primary)` |
+| Header cell | padding `8px`, border-bottom `2px solid var(--oa-border)`, text-align left |
 | Header action column | Width 40px, empty header, for delete button |
 | Body row | `<tr>`, transition background 150ms |
 | Body row hover | background `var(--oa-hover)` |
@@ -188,8 +190,8 @@ Source: D-13, D-14, D-16, existing hover-reveal pattern from `.row-delete-btn`
 |----------|-------|
 | Table element | Native HTML `<table>`, width 100%, border-collapse collapse, table-layout fixed |
 | Column widths | `<colgroup>` with `<col>` elements, width = `(ratio / totalRatio) * 100%` |
-| Header cell | border `1px solid #000`, padding `6px 8px`, text-align left, font-weight 600, font-size 13px |
-| Body cell | border `1px solid #000`, padding `6px 8px`, font-size 14px |
+| Header cell | border `1px solid #000`, padding `8px`, text-align left, font-weight 600, font-size 14px |
+| Body cell | border `1px solid #000`, padding `8px`, font-size 14px |
 | No delete column | Print mode omits the action column |
 | No add row button | Print mode omits the add button |
 | Checkbox display | Comma-joined selected values |
