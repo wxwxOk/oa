@@ -9,7 +9,7 @@
 ## Current State
 ✅ v1.0 MVP shipped (2026-04-20)
 ✅ v1.1 自定义表单收集 shipped (2026-04-20)
-🔧 v1.2 模板管理优化 — in progress
+🔧 v1.2 模板管理优化 — in progress (Phase 10 complete — schema 类型体系 + 渲染器引擎就绪)
 
 ## Current Milestone: v1.2 模板管理优化
 
