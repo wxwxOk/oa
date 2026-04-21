@@ -14,10 +14,10 @@
 
 ### 设计器
 
-- [ ] **DESIGN-01**: 设计器画布支持 12 列栅格，字段可拖拽到指定行/列位置，可调整跨列数（1-12）
+- [x] **DESIGN-01**: 设计器画布支持 12 列栅格，字段可拖拽到指定行/列位置，可调整跨列数（1-12）
 - [ ] **DESIGN-02**: 用户可创建分组区块，每组有可编辑标题栏（如"教育经历"、"工作经验"），组内独立栅格布局
 - [ ] **DESIGN-03**: 用户可添加动态行表格字段，定义列结构（列名/列类型/列宽），填写时可增删行
-- [ ] **DESIGN-04**: 设计器实时预览按栅格布局渲染，所见即所得
+- [x] **DESIGN-04**: 设计器实时预览按栅格布局渲染，所见即所得
 
 ### 渲染与填写页
 
@@ -62,10 +62,10 @@
 | SCHEMA-01 | Phase 10 | Complete |
 | SCHEMA-02 | Phase 10 | Complete |
 | SCHEMA-03 | Phase 10 | Pending |
-| DESIGN-01 | Phase 11 | Pending |
+| DESIGN-01 | Phase 11 | Complete |
 | DESIGN-02 | Phase 12 | Pending |
 | DESIGN-03 | Phase 12 | Pending |
-| DESIGN-04 | Phase 11 | Pending |
+| DESIGN-04 | Phase 11 | Complete |
 | RENDER-01 | Phase 14 | Pending |
 | RENDER-02 | Phase 14 | Pending |
 | RENDER-03 | Phase 12 | Pending |
