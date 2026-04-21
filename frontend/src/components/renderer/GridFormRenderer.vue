@@ -1,0 +1,71 @@
+<template>
+  <div class="grid-form" :class="'mode-' + mode">
+    <template v-for="(item, idx) in schema.items" :key="idx">
+      <!-- Row -->
+      <div v-if="item.type === 'row'" class="grid-row">
+        <FieldRenderer
+          v-for="field in item.fields"
+          :key="field.id"
+          :field="field"
+          :mode="mode"
+          :style="{ gridColumn: `span ${field.colSpan}` }"
+          :model-value="modelValue?.[field.id]"
+          @update:model-value="emitField(field.id, $event)"
+        />
+      </div>
+
+      <!-- Group -->
+      <GroupRenderer
+        v-else-if="item.type === 'group'"
+        :group="item"
+        :mode="mode"
+        :model-value="modelValue"
+        @update:model-value="$emit('update:modelValue', $event)"
+      />
+
+      <!-- Dynamic Table placeholder (Phase 12) -->
+      <div v-else-if="item.type === 'dynamic-table'" class="dynamic-table-stub">
+        {{ item.label }} — 动态表格 (Phase 12)
+      </div>
+    </template>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { SchemaV2 } from 'src/types/schema';
+import FieldRenderer from './FieldRenderer.vue';
+import GroupRenderer from './GroupRenderer.vue';
+
+const props = defineProps<{
+  schema: SchemaV2;
+  mode: 'designer' | 'fill' | 'print';
+  modelValue?: Record<string, any>;
+}>();
+
+const emit = defineEmits<{
+  'update:modelValue': [value: Record<string, any>];
+}>();
+
+function emitField(fieldId: string, value: any) {
+  emit('update:modelValue', { ...props.modelValue, [fieldId]: value });
+}
+</script>
+
+<style scoped>
+.grid-form {
+  padding: 16px;
+}
+.grid-row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 8px 16px;
+}
+.dynamic-table-stub {
+  padding: 16px;
+  border: 1px dashed var(--oa-border);
+  border-radius: 8px;
+  text-align: center;
+  color: var(--oa-text-tertiary);
+  font-size: 14px;
+}
+</style>
