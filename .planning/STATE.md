@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: 模板管理优化
-status: executing
-last_updated: "2026-04-21T03:48:55.859Z"
+status: verifying
+last_updated: "2026-04-21T03:52:48.619Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 Phase: 10 (schema) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-21
 
 Progress: [░░░░░░░░░░] 0%
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10-schema P01 | 5min | 2 tasks | 5 files |
 | Phase 10-schema P02 | 6min | 3 tasks | 4 files |
 | Phase 10-schema P03 | 4min | 2 tasks | 4 files |
+| Phase 10-schema P04 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 10-schema]: SchemaItem discriminated union on type field for TypeBox validation
 - [Phase 10-schema]: Single FieldRenderer with mode prop over separate designer/fill/print components
 - [Phase 10-schema]: Field drop creates new SchemaRow wrapping single field; multi-field rows deferred to Phase 11
+- [Phase 10-schema]: Added validateFields/saveSignatures expose on GridFormRenderer for form validation
+- [Phase 10-schema]: Used isV2Schema computed for v1/v2 schema detection in SubmissionDetail
 
 ### Blockers/Concerns
 
