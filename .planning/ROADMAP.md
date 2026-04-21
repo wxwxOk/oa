@@ -35,7 +35,7 @@
 
 - [x] **Phase 10: Schema 与核心渲染器** - 新 schema 类型定义 + 统一 GridFormRenderer + 版本分发 (completed 2026-04-21)
 - [x] **Phase 11: 设计器栅格编辑** - DesignerCanvas 重写为 12 列栅格编辑器 + 拖拽/调整跨列 (completed 2026-04-21)
-- [ ] **Phase 12: 分组与动态行表格** - 分组区块 + 动态行表格的设计器/填写/打印三模式
+- [x] **Phase 12: 分组与动态行表格** - 分组区块 + 动态行表格的设计器/填写/打印三模式 (completed 2026-04-21)
 - [ ] **Phase 13: PDF 保真输出** - PrintableForm 表格化渲染 + 中文字体 + 分页控制
 - [ ] **Phase 14: 响应式填写页** - PC 端栅格还原 + 移动端自动单列 + 动态表格卡片布局
 
@@ -82,12 +82,12 @@ Plans:
   2. 用户可在设计器中添加动态行表格，定义列结构（列名/列类型/列宽）
   3. 填写者在填写页可对动态行表格增删行，每行按列结构渲染输入控件
   4. 动态行表格数据正确存储为数组格式，提交详情页可查看表格数据
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 12-01-PLAN.md — Schema ID 修复 + store 选中泛化 + fieldRegistry 结构项
 - [x] 12-02-PLAN.md — DesignerRowEditor 抽取 + DesignerCanvas 重写 + FieldPalette 结构组
 - [x] 12-03-PLAN.md — PropertyEditor 分组/动态表格属性编辑分支
-- [ ] 12-04-PLAN.md — DynamicTableFill/Print + GridFormRenderer 集成 + 填写页数据初始化
+- [x] 12-04-PLAN.md — DynamicTableFill/Print + GridFormRenderer 集成 + 填写页数据初始化
 **UI hint**: yes
 
 ### Phase 13: PDF 保真输出
@@ -121,6 +121,6 @@ Plans:
 | 9. 数据查看 + 打印 + 统计 | v1.1 | 4/4 | Complete | 2026-04-20 |
 | 10. Schema 与核心渲染器 | v1.2 | 4/4 | Complete    | 2026-04-21 |
 | 11. 设计器栅格编辑 | v1.2 | 3/3 | Complete   | 2026-04-21 |
-| 12. 分组与动态行表格 | v1.2 | 3/4 | In Progress|  |
+| 12. 分组与动态行表格 | v1.2 | 4/4 | Complete   | 2026-04-21 |
 | 13. PDF 保真输出 | v1.2 | 0/? | Not started | - |
 | 14. 响应式填写页 | v1.2 | 0/? | Not started | - |
