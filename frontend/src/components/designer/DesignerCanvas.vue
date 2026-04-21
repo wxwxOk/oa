@@ -1,72 +1,88 @@
 <template>
   <div class="grid-canvas" @click.self="store.selectField(null)" @keydown="onKeydown" tabindex="0">
-    <div ref="rowsRef" class="canvas-rows">
-      <div
-        v-for="(row, rowIdx) in rows"
-        :key="rowIdx"
-        class="grid-canvas-row"
-        :aria-label="`第 ${rowIdx + 1} 行, ${row.fields.length} 个字段`"
-      >
-        <!-- Row drag handle (D-06) -->
-        <div class="row-handle row-drag-handle" aria-label="拖拽排序">
-          <q-icon name="drag_indicator" size="16px" color="grey-5" />
+    <VueDraggable
+      v-model="itemsList"
+      handle=".item-drag-handle"
+      :group="{ name: 'items', pull: false, put: true }"
+      :animation="150"
+      ghost-class="item-ghost"
+      class="canvas-items"
+    >
+      <template v-for="(item, idx) in schema.items" :key="itemKey(item, idx)">
+        <!-- 行项目 -->
+        <div v-if="item.type === 'row'" class="canvas-item-wrapper">
+          <div class="item-drag-handle" aria-label="拖拽排序">
+            <q-icon name="drag_indicator" size="16px" color="grey-5" />
+          </div>
+          <div class="item-content" style="flex:1">
+            <DesignerRowEditor
+              :rows="[item]"
+              @update:rows="(newRows) => updateSingleRow(idx, newRows)"
+              @select-field="store.selectField($event)"
+            />
+          </div>
         </div>
 
-        <!-- Fields grid container -->
-        <VueDraggable
-          :ref="(el: any) => setRowFieldsRef(rowIdx, el)"
-          :model-value="row.fields"
-          @update:model-value="(val: SchemaField[]) => updateRowFields(rowIdx, val)"
-          :group="{ name: 'fields', pull: true, put: true }"
-          handle=".field-drag-handle"
-          :animation="150"
-          :empty-insert-threshold="20"
-          :fallback-on-body="true"
-          :swap-threshold="0.65"
-          filter=".row-remainder"
-          class="row-fields-grid"
-          @add="(evt: any) => onFieldAdd(rowIdx, evt)"
-          @remove="() => onFieldRemove(rowIdx)"
-        >
-          <div
-            v-for="field in row.fields"
-            :key="field.id"
-            class="grid-canvas-field"
-            :class="{ 'is-selected': store.selectedFieldId === field.id }"
-            :style="{ gridColumn: `span ${field.colSpan}` }"
-            @click.stop="store.selectField(field.id)"
-          >
-            <div class="field-drag-handle" aria-label="拖拽排序">
-              <q-icon name="drag_indicator" size="14px" color="grey-5" />
-            </div>
-            <div class="field-preview">
-              <FieldRenderer :field="field" mode="designer" />
-            </div>
-            <q-btn flat dense round icon="close" size="xs" class="field-delete-btn"
-                   @click.stop="removeField(field.id)" />
-            <div v-if="store.selectedFieldId === field.id"
-                 class="resize-handle resize-handle-right"
-                 @pointerdown="startResize($event, field, rowIdx)" />
+        <!-- 分组项目 -->
+        <div v-else-if="item.type === 'group'" class="canvas-item-wrapper">
+          <div class="item-drag-handle" aria-label="拖拽排序">
+            <q-icon name="drag_indicator" size="16px" color="grey-5" />
           </div>
-          <div v-if="remainingCols(row.fields) > 0"
-               class="row-remainder drop-placeholder"
-               :style="{ gridColumn: `span ${remainingCols(row.fields)}` }">
+          <q-card flat bordered class="item-content group-card"
+                  :class="{ 'is-selected': store.selectedFieldId === item.id }"
+                  @click.stop="store.selectField(item.id)">
+            <div class="group-header">{{ item.title }}</div>
+            <div class="group-body">
+              <DesignerRowEditor
+                v-if="item.rows.length > 0"
+                :rows="item.rows"
+                @update:rows="(newRows) => updateGroupRows(idx, newRows)"
+                @select-field="store.selectField($event)"
+              />
+              <VueDraggable
+                v-else
+                :model-value="getGroupEmptyList(idx)"
+                @update:model-value="(val: SchemaField[]) => onGroupEmptyUpdate(idx, val)"
+                :group="{ name: 'fields', pull: false, put: true }"
+                class="group-empty-state"
+                @add="() => onGroupEmptyDrop(idx)"
+              >
+                <span>拖入字段到分组</span>
+              </VueDraggable>
+            </div>
+          </q-card>
+        </div>
+
+        <!-- 动态表格项目 -->
+        <div v-else-if="item.type === 'dynamic-table'" class="canvas-item-wrapper">
+          <div class="item-drag-handle" aria-label="拖拽排序">
+            <q-icon name="drag_indicator" size="16px" color="grey-5" />
           </div>
-        </VueDraggable>
+          <q-card flat bordered class="item-content table-card"
+                  :class="{ 'is-selected': store.selectedFieldId === item.id }"
+                  @click.stop="store.selectField(item.id)">
+            <div class="table-header">{{ item.label }}</div>
+            <div class="table-body">
+              <div class="column-preview">
+                <div v-for="col in item.columns" :key="col.key"
+                     class="column-preview-cell"
+                     :style="{ flex: col.width ?? 1 }">
+                  {{ col.label }}
+                </div>
+              </div>
+            </div>
+          </q-card>
+        </div>
+      </template>
+    </VueDraggable>
 
-        <!-- Row delete button (D-11) -->
-        <q-btn flat dense round icon="delete_outline" size="xs"
-               class="row-delete-btn" @click="deleteRow(rowIdx)" />
-      </div>
-    </div>
-
-    <!-- Bottom drop zone (D-05) -->
+    <!-- 底部放置区 -->
     <div ref="bottomDropRef" class="canvas-drop-zone">
       <span>拖入字段创建新行</span>
     </div>
 
-    <!-- Empty state -->
-    <div v-if="rows.length === 0 && !hasNonRowItems" class="empty-state">
+    <!-- 空状态 -->
+    <div v-if="schema.items.length === 0" class="empty-state">
       <span>从左侧拖入字段开始设计表单</span>
     </div>
   </div>
@@ -76,20 +92,13 @@
 import { ref, computed } from 'vue';
 import { useDraggable, VueDraggable } from 'vue-draggable-plus';
 import { useTemplateStore } from 'src/stores/template';
-import type { SchemaV2, SchemaRow, SchemaField } from 'src/types/schema';
+import type { SchemaV2, SchemaRow, SchemaField, SchemaItem } from 'src/types/schema';
 import { createEmptySchema } from 'src/types/schema';
 import { remainingCols, compressColSpan } from './composables/gridUtils';
-import FieldRenderer from 'src/components/renderer/FieldRenderer.vue';
+import DesignerRowEditor from './DesignerRowEditor.vue';
 
 const store = useTemplateStore();
-const rowsRef = ref<HTMLElement | null>(null);
 const bottomDropRef = ref<HTMLElement | null>(null);
-const resizingFieldId = ref<string | null>(null);
-const rowFieldsRefs: Record<number, HTMLElement | null> = {};
-
-function setRowFieldsRef(idx: number, el: any) {
-  rowFieldsRefs[idx] = el?.$el ?? el;
-}
 
 function ensureSchema(): SchemaV2 {
   if (!store.current) return createEmptySchema();
@@ -101,70 +110,71 @@ function ensureSchema(): SchemaV2 {
 
 const schema = computed(() => ensureSchema());
 
-const rows = computed(() =>
-  schema.value.items.filter((item): item is SchemaRow => item.type === 'row')
-);
-
-const hasNonRowItems = computed(() =>
-  schema.value.items.some(item => item.type !== 'row')
-);
-
-// Row-level drag (D-06)
-const rowList = computed({
-  get: () => rows.value,
-  set: (newRows: SchemaRow[]) => {
+// 项目级别拖拽排序
+const itemsList = computed({
+  get: () => schema.value.items,
+  set: (newItems: SchemaItem[]) => {
     const s = ensureSchema();
-    // Rebuild items preserving non-row items at their relative positions
-    const nonRows = s.items.filter(item => item.type !== 'row');
-    // Simple approach: rows first, then non-rows (groups/tables come after)
-    s.items = [...newRows, ...nonRows];
+    s.items = newItems;
   },
 });
 
-useDraggable(rowsRef, rowList, {
-  group: { name: 'rows', pull: false, put: false },
-  handle: '.row-drag-handle',
-  animation: 150,
-  ghostClass: 'row-ghost',
-});
+function itemKey(item: SchemaItem, idx: number): string {
+  if (item.type === 'group' || item.type === 'dynamic-table') return item.id;
+  return 'row-' + idx;
+}
 
-// Field-level callbacks
-function updateRowFields(rowIdx: number, newFields: SchemaField[]) {
+// 更新单行（从 DesignerRowEditor 回调）
+function updateSingleRow(itemIdx: number, newRows: SchemaRow[]) {
   const s = ensureSchema();
-  let rowCount = 0;
-  for (let i = 0; i < s.items.length; i++) {
-    if (s.items[i].type === 'row') {
-      if (rowCount === rowIdx) {
-        (s.items[i] as SchemaRow).fields = newFields;
-        return;
-      }
-      rowCount++;
-    }
+  if (newRows.length > 0 && newRows[0].fields.length > 0) {
+    s.items[itemIdx] = newRows[0];
+  } else {
+    s.items.splice(itemIdx, 1);
   }
 }
 
-function onFieldAdd(rowIdx: number, _evt: any) {
-  const row = rows.value[rowIdx];
-  if (!row) return;
-  // Compress colSpan for all fields that might overflow (D-08)
-  for (const field of row.fields) {
-    compressColSpan(field, row.fields);
+// 更新分组内的行
+function updateGroupRows(itemIdx: number, newRows: SchemaRow[]) {
+  const s = ensureSchema();
+  const group = s.items[itemIdx];
+  if (group.type === 'group') {
+    group.rows = newRows;
   }
 }
 
-function onFieldRemove(rowIdx: number) {
-  const row = rows.value[rowIdx];
-  if (row && row.fields.length === 0) {
-    deleteRowByRef(row);
+// 分组空状态放置区 — 使用 VueDraggable 组件
+const groupEmptyLists: Record<number, SchemaField[]> = {};
+
+function getGroupEmptyList(idx: number): SchemaField[] {
+  if (!groupEmptyLists[idx]) groupEmptyLists[idx] = [];
+  return groupEmptyLists[idx];
+}
+
+function onGroupEmptyUpdate(idx: number, val: SchemaField[]) {
+  groupEmptyLists[idx] = val;
+}
+
+function onGroupEmptyDrop(idx: number) {
+  const list = groupEmptyLists[idx];
+  if (!list || list.length === 0) return;
+  const field = list.splice(0, list.length)[0];
+  if (!field) return;
+  const s = ensureSchema();
+  const group = s.items[idx];
+  if (group.type === 'group') {
+    const newRow: SchemaRow = { type: 'row', fields: [field] };
+    compressColSpan(field, newRow.fields);
+    group.rows.push(newRow);
   }
 }
 
-// Bottom drop zone (D-05)
+// 底部放置区（创建新行）
 const bottomDropList = ref<SchemaField[]>([]);
 useDraggable(bottomDropRef, bottomDropList, {
   group: { name: 'fields', pull: false, put: true },
   animation: 150,
-  onAdd: (evt: any) => {
+  onAdd: () => {
     const field = bottomDropList.value.splice(0, bottomDropList.value.length)[0];
     if (!field) return;
     const s = ensureSchema();
@@ -174,32 +184,7 @@ useDraggable(bottomDropRef, bottomDropList, {
   },
 });
 
-// Resize (D-09, D-10)
-function startResize(e: PointerEvent, field: SchemaField, rowIdx: number) {
-  e.preventDefault();
-  e.stopPropagation();
-  const el = rowFieldsRefs[rowIdx];
-  if (!el) return;
-  const colWidth = el.clientWidth / 12;
-  const startX = e.clientX;
-  const startSpan = field.colSpan;
-  const max = remainingCols(rows.value[rowIdx].fields) + field.colSpan;
-  resizingFieldId.value = field.id;
-
-  function onMove(ev: PointerEvent) {
-    const delta = Math.round((ev.clientX - startX) / colWidth);
-    field.colSpan = Math.max(1, Math.min(max, startSpan + delta));
-  }
-  function onUp() {
-    resizingFieldId.value = null;
-    document.removeEventListener('pointermove', onMove);
-    document.removeEventListener('pointerup', onUp);
-  }
-  document.addEventListener('pointermove', onMove);
-  document.addEventListener('pointerup', onUp);
-}
-
-// Field removal (D-13)
+// 字段删除（支持搜索分组内部）
 function removeField(id: string) {
   if (!store.current) return;
   const s = ensureSchema();
@@ -213,59 +198,59 @@ function removeField(id: string) {
         break;
       }
     } else if (item.type === 'group') {
+      let found = false;
       for (let r = item.rows.length - 1; r >= 0; r--) {
         const ridx = item.rows[r].fields.findIndex(f => f.id === id);
         if (ridx !== -1) {
           item.rows[r].fields.splice(ridx, 1);
           if (item.rows[r].fields.length === 0) item.rows.splice(r, 1);
-          if (item.rows.length === 0) s.items.splice(i, 1);
+          found = true;
           break;
         }
       }
+      if (found) break;
     }
   }
   if (store.selectedFieldId === id) store.selectField(null);
 }
 
-// Row deletion (D-11)
-function deleteRow(rowIdx: number) {
+// 获取所有行（包括分组内的行）
+function getAllRows(): SchemaRow[] {
   const s = ensureSchema();
-  let rowCount = 0;
-  for (let i = 0; i < s.items.length; i++) {
-    if (s.items[i].type === 'row') {
-      if (rowCount === rowIdx) {
-        const row = s.items[i] as SchemaRow;
-        if (store.selectedFieldId && row.fields.some(f => f.id === store.selectedFieldId)) {
-          store.selectField(null);
-        }
-        s.items.splice(i, 1);
-        return;
-      }
-      rowCount++;
-    }
+  const rows: SchemaRow[] = [];
+  for (const item of s.items) {
+    if (item.type === 'row') rows.push(item);
+    else if (item.type === 'group') rows.push(...item.rows);
   }
+  return rows;
 }
 
-function deleteRowByRef(row: SchemaRow) {
-  const s = ensureSchema();
-  const idx = s.items.indexOf(row);
-  if (idx !== -1) {
-    if (store.selectedFieldId && row.fields.some(f => f.id === store.selectedFieldId)) {
-      store.selectField(null);
-    }
-    s.items.splice(idx, 1);
-  }
-}
-
-// Keyboard support
+// 键盘支持（扩展支持分组/动态表格删除）
 function onKeydown(e: KeyboardEvent) {
   if (!store.selectedFieldId) return;
+
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault();
+    const s = ensureSchema();
+    // 检查是否选中了分组或动态表格
+    const itemIdx = s.items.findIndex(
+      item => (item.type === 'group' || item.type === 'dynamic-table') && item.id === store.selectedFieldId
+    );
+    if (itemIdx !== -1) {
+      s.items.splice(itemIdx, 1);
+      store.selectField(null);
+      return;
+    }
+    removeField(store.selectedFieldId);
+    return;
+  }
+
+  // 箭头键调整 colSpan（仅对字段有效）
   const field = store.selectedField;
   if (!field) return;
-
   if (e.key === 'ArrowRight') {
     e.preventDefault();
-    const row = rows.value.find(r => r.fields.some(f => f.id === field.id));
+    const row = getAllRows().find(r => r.fields.some(f => f.id === field.id));
     if (row) {
       const max = remainingCols(row.fields) + field.colSpan;
       field.colSpan = Math.min(max, field.colSpan + 1);
@@ -273,9 +258,6 @@ function onKeydown(e: KeyboardEvent) {
   } else if (e.key === 'ArrowLeft') {
     e.preventDefault();
     field.colSpan = Math.max(1, field.colSpan - 1);
-  } else if (e.key === 'Delete' || e.key === 'Backspace') {
-    e.preventDefault();
-    removeField(field.id);
   }
 }
 
@@ -292,94 +274,58 @@ defineExpose({ removeField });
   padding: 16px;
   outline: none;
 }
-.grid-canvas-row {
+.canvas-items {
+  min-height: 0;
+}
+.canvas-item-wrapper {
   display: flex;
   align-items: stretch;
   margin-bottom: 8px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  transition: border-color 150ms;
-  position: relative;
 }
-.grid-canvas-row:hover {
-  border-color: var(--oa-border);
-}
-.grid-canvas-row:hover .row-delete-btn {
-  opacity: 1;
-}
-.row-handle {
+.item-drag-handle {
   display: flex;
   align-items: center;
   padding: 0 4px;
   cursor: grab;
   opacity: 0.5;
 }
-.row-handle:hover { opacity: 1; }
-.row-fields-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 8px 16px;
-}
-.grid-canvas-field {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border: 1px solid var(--oa-border);
-  border-radius: 6px;
-  background: var(--oa-surface);
-  cursor: pointer;
+.item-drag-handle:hover { opacity: 1; }
+.item-content { flex: 1; min-width: 0; }
+.group-card, .table-card {
   transition: border-color 150ms, box-shadow 150ms;
 }
-.grid-canvas-field:hover {
-  border-color: var(--oa-focus-ring);
-}
-.grid-canvas-field.is-selected {
+.group-card.is-selected, .table-card.is-selected {
   border: 2px solid var(--oa-focus-ring);
   box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
 }
-.field-drag-handle {
-  cursor: grab;
-  opacity: 0.5;
-  flex-shrink: 0;
+.group-header, .table-header {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 16px 16px 8px;
+  border-bottom: 1px solid var(--oa-border);
 }
-.field-drag-handle:active { cursor: grabbing; }
-.field-preview { flex: 1; min-width: 0; pointer-events: none; }
-.field-delete-btn { flex-shrink: 0; }
-.row-remainder {
+.group-body, .table-body { padding: 16px; }
+.group-empty-state {
+  min-height: 64px;
+  border: 2px dashed var(--oa-border);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  border: 2px dashed var(--oa-border);
-  border-radius: 6px;
   color: var(--oa-text-tertiary);
   font-size: 13px;
 }
-.row-delete-btn {
-  opacity: 0;
-  transition: opacity 150ms;
-  flex-shrink: 0;
-  align-self: center;
+.column-preview {
+  display: flex;
+  border-bottom: 1px solid var(--oa-border);
 }
-.resize-handle-right {
-  position: absolute;
-  right: -4px;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  cursor: col-resize;
-  z-index: 10;
-  border-radius: 2px;
-  background: var(--oa-focus-ring);
-  opacity: 0.5;
-  transition: opacity 150ms;
+.column-preview-cell {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--oa-text-secondary);
+  padding: 8px;
 }
-.resize-handle-right:hover {
-  opacity: 1;
-}
+.item-ghost { opacity: 0.4; }
 .canvas-drop-zone {
   display: flex;
   align-items: center;
@@ -400,5 +346,4 @@ defineExpose({ removeField });
   color: var(--oa-text-tertiary);
   font-size: 14px;
 }
-.row-ghost { opacity: 0.4; }
 </style>
