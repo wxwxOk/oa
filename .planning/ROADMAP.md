@@ -34,7 +34,7 @@
 **Milestone Goal:** 升级表单设计器为 12 列栅格布局引擎，支持分组标题、动态行表格、PDF 保真输出、响应式填写页
 
 - [x] **Phase 10: Schema 与核心渲染器** - 新 schema 类型定义 + 统一 GridFormRenderer + 版本分发 (completed 2026-04-21)
-- [ ] **Phase 11: 设计器栅格编辑** - DesignerCanvas 重写为 12 列栅格编辑器 + 拖拽/调整跨列
+- [x] **Phase 11: 设计器栅格编辑** - DesignerCanvas 重写为 12 列栅格编辑器 + 拖拽/调整跨列 (completed 2026-04-21)
 - [ ] **Phase 12: 分组与动态行表格** - 分组区块 + 动态行表格的设计器/填写/打印三模式
 - [ ] **Phase 13: PDF 保真输出** - PrintableForm 表格化渲染 + 中文字体 + 分页控制
 - [ ] **Phase 14: 响应式填写页** - PC 端栅格还原 + 移动端自动单列 + 动态表格卡片布局
@@ -66,7 +66,7 @@ Plans:
   2. 用户可通过属性面板调整字段跨列数（1-12），画布实时反映宽度变化
   3. 用户可拖拽调整行顺序，添加/删除行
   4. 设计器预览区域按栅格布局渲染，与最终填写页一致（所见即所得）
-**Plans:** 3/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 11-01-PLAN.md — Grid 工具函数 + useColResize 组合式函数（TDD）
 - [x] 11-02-PLAN.md — DesignerCanvas 重写为 12 列栅格编辑器 + FieldPalette 组名同步
@@ -115,7 +115,7 @@ Plans:
 | 8. 分享链接 + 公开填写 | v1.1 | 4/4 | Complete | 2026-04-20 |
 | 9. 数据查看 + 打印 + 统计 | v1.1 | 4/4 | Complete | 2026-04-20 |
 | 10. Schema 与核心渲染器 | v1.2 | 4/4 | Complete    | 2026-04-21 |
-| 11. 设计器栅格编辑 | v1.2 | 3/3 | Verify |  |
+| 11. 设计器栅格编辑 | v1.2 | 3/3 | Complete   | 2026-04-21 |
 | 12. 分组与动态行表格 | v1.2 | 0/? | Not started | - |
 | 13. PDF 保真输出 | v1.2 | 0/? | Not started | - |
 | 14. 响应式填写页 | v1.2 | 0/? | Not started | - |
