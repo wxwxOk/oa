@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 11
-Plan: Not started
-Status: Phase complete — ready for verification
+Plan: 1 of 3
+Status: Plan 01 complete — gridUtils + useColResize composables
 Last activity: 2026-04-21
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10-schema P02 | 6min | 3 tasks | 4 files |
 | Phase 10-schema P03 | 4min | 2 tasks | 4 files |
 | Phase 10-schema P04 | 5min | 2 tasks | 5 files |
+| Phase 11-designer-grid P01 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 10-schema]: Field drop creates new SchemaRow wrapping single field; multi-field rows deferred to Phase 11
 - [Phase 10-schema]: Added validateFields/saveSignatures expose on GridFormRenderer for form validation
 - [Phase 10-schema]: Used isV2Schema computed for v1/v2 schema detection in SubmissionDetail
+- [Phase 11-designer-grid]: Exported calcNewSpan from useColResize for unit testability without DOM mocking
+- [Phase 11-designer-grid]: GRID_COLS=12 constant in gridUtils for single source of truth
 
 ### Blockers/Concerns
 
