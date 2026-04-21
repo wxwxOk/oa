@@ -125,19 +125,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { DynamicTableColumnType } from 'src/types/schema';
-
-interface Column {
-  key: string;
-  label: string;
-  type: DynamicTableColumnType;
-  width?: number;
-  options?: string[];
-}
+import { createEmptyRow, type TableColumn } from './dynamicTableUtils';
 
 const props = defineProps<{
   label: string;
-  columns: Column[];
+  columns: TableColumn[];
   modelValue?: Record<string, any>[];
 }>();
 
@@ -147,25 +139,17 @@ const emit = defineEmits<{
 
 const rows = ref<Record<string, any>[]>([]);
 
-function createEmptyRow(): Record<string, any> {
-  const row: Record<string, any> = {};
-  for (const col of props.columns) {
-    row[col.key] = col.type === 'checkbox' ? [] : '';
-  }
-  return row;
-}
-
 onMounted(() => {
   if (props.modelValue && props.modelValue.length > 0) {
     rows.value = props.modelValue.map(r => ({ ...r }));
   } else {
     // D-14: 初始渲染 1 行空值
-    rows.value = [createEmptyRow()];
+    rows.value = [createEmptyRow(props.columns)];
   }
 });
 
 function addRow() {
-  rows.value.push(createEmptyRow());
+  rows.value.push(createEmptyRow(props.columns));
   emitUpdate();
 }
 
@@ -173,7 +157,7 @@ function removeRow(idx: number) {
   rows.value.splice(idx, 1);
   // 删除最后一行时自动创建空行
   if (rows.value.length === 0) {
-    rows.value.push(createEmptyRow());
+    rows.value.push(createEmptyRow(props.columns));
   }
   emitUpdate();
 }

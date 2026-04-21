@@ -33,38 +33,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { DynamicTableColumnType } from 'src/types/schema';
-
-interface Column {
-  key: string;
-  label: string;
-  type: DynamicTableColumnType;
-  width?: number;
-  options?: string[];
-}
+import { formatCell, calcColWidth, type TableColumn } from './dynamicTableUtils';
 
 const props = defineProps<{
   label: string;
-  columns: Column[];
+  columns: TableColumn[];
   rows: Record<string, any>[];
 }>();
 
-const totalRatio = computed(() =>
-  props.columns.reduce((sum, col) => sum + (col.width ?? 1), 0)
-);
-
-function colWidth(col: Column): string {
-  const ratio = col.width ?? 1;
-  return (ratio / totalRatio.value * 100).toFixed(2) + '%';
-}
-
-function formatCell(value: any, type: DynamicTableColumnType): string {
-  if (value == null || value === '') return '—';
-  if (type === 'checkbox' && Array.isArray(value)) {
-    return value.length ? value.join('、') : '—';
-  }
-  return String(value);
+function colWidth(col: TableColumn): string {
+  return calcColWidth(col, props.columns);
 }
 </script>
 
