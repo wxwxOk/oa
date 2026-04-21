@@ -50,7 +50,12 @@
   2. v1.1 旧模板的已有提交数据仍可正常查看（版本分发路由到旧渲染路径）
   3. GridFormRenderer 在 fill 模式下按 col-{span} 渲染字段行，布局与 schema 定义一致
   4. FieldRenderer 在 designer/fill/print 三种模式下正确渲染所有 7 种字段类型
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 10-01-PLAN.md — v2 schema 类型定义 + TypeBox 后端校验
+- [ ] 10-02-PLAN.md — GridFormRenderer/FieldRenderer/GroupRenderer + store 重构
+- [ ] 10-03-PLAN.md — 设计器组件链重构（fieldRegistry/FieldPalette/PropertyEditor/DesignerCanvas）
+- [ ] 10-04-PLAN.md — 填写页/提交详情重构 + FormFieldRenderer 清理
 
 ### Phase 11: 设计器栅格编辑
 **Goal**: 用户可在设计器中通过拖拽创建多列布局，实时预览栅格效果
@@ -105,7 +110,7 @@
 | 7. 模板管理 + 表单设计器 | v1.1 | 5/5 | Complete | 2026-04-20 |
 | 8. 分享链接 + 公开填写 | v1.1 | 4/4 | Complete | 2026-04-20 |
 | 9. 数据查看 + 打印 + 统计 | v1.1 | 4/4 | Complete | 2026-04-20 |
-| 10. Schema 与核心渲染器 | v1.2 | 0/? | Not started | - |
+| 10. Schema 与核心渲染器 | v1.2 | 0/4 | Planning | - |
 | 11. 设计器栅格编辑 | v1.2 | 0/? | Not started | - |
 | 12. 分组与动态行表格 | v1.2 | 0/? | Not started | - |
 | 13. PDF 保真输出 | v1.2 | 0/? | Not started | - |
