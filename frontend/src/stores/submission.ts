@@ -17,7 +17,7 @@ export interface SubmissionRow {
 export interface SubmissionDetail extends SubmissionRow {
   template: {
     name: string;
-    schema: any[];
+    schema: any;
     schemaVersion: number;
   };
 }

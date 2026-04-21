@@ -22,19 +22,28 @@
         </div>
       </div>
 
-      <!-- 字段表格 -->
-      <table class="detail-table" style="width: 100%; border-collapse: collapse">
-        <tr v-for="field in displayFields" :key="field.id">
-          <th>{{ field.label }}</th>
-          <td>{{ formatFieldValue(field) }}</td>
-        </tr>
-      </table>
+      <!-- v2 schema: GridFormRenderer print 模式 -->
+      <template v-if="isV2Schema && v2Schema">
+        <GridFormRenderer
+          :schema="v2Schema"
+          mode="print"
+          :model-value="submission.data as Record<string, any>"
+        />
+      </template>
 
-      <!-- 签名区域 -->
-      <div v-if="signatureField" class="signature-section" style="margin-top: 16px">
-        <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px">签名</div>
-        <img :src="signatureField.value" style="max-width: 300px; max-height: 150px; border: 1px solid var(--oa-border)" alt="手写签名" />
-      </div>
+      <!-- v1 schema fallback: 保留现有 table 渲染 -->
+      <template v-else>
+        <table class="detail-table" style="width: 100%; border-collapse: collapse">
+          <tr v-for="field in displayFields" :key="field.id">
+            <th>{{ field.label }}</th>
+            <td>{{ formatFieldValue(field) }}</td>
+          </tr>
+        </table>
+        <div v-if="signatureField" class="signature-section" style="margin-top: 16px">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px">签名</div>
+          <img :src="signatureField.value" style="max-width: 300px; max-height: 150px; border: 1px solid var(--oa-border)" alt="手写签名" />
+        </div>
+      </template>
 
       <!-- 版本不一致提示 -->
       <q-banner v-if="versionMismatch" class="q-mt-md" type="warning" dense>
@@ -47,6 +56,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { SubmissionDetail } from 'src/stores/submission';
+import GridFormRenderer from 'src/components/renderer/GridFormRenderer.vue';
+import type { SchemaV2 } from 'src/types/schema';
 
 const props = defineProps<{
   submission: SubmissionDetail;
@@ -58,6 +69,16 @@ const emit = defineEmits<{
   exportPdf: [];
   close: [];
 }>();
+
+// v2 schema 检测
+const isV2Schema = computed(() => {
+  const schema = props.submission.template.schema;
+  return schema && typeof schema === 'object' && !Array.isArray(schema) && (schema as any).version === 2;
+});
+
+const v2Schema = computed(() =>
+  isV2Schema.value ? (props.submission.template.schema as unknown as SchemaV2) : null
+);
 
 // 版本是否一致
 const versionMismatch = computed(() =>
