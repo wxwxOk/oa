@@ -6,6 +6,7 @@
         <FieldRenderer
           v-for="field in item.fields"
           :key="field.id"
+          :ref="(el: any) => { if (el) fieldRefMap[field.id] = el }"
           :field="field"
           :mode="mode"
           :style="{ gridColumn: `span ${field.colSpan}` }"
@@ -17,6 +18,7 @@
       <!-- Group -->
       <GroupRenderer
         v-else-if="item.type === 'group'"
+        :ref="(el: any) => { if (el) groupRefs.push(el) }"
         :group="item"
         :mode="mode"
         :model-value="modelValue"
@@ -32,7 +34,8 @@
 </template>
 
 <script setup lang="ts">
-import type { SchemaV2 } from 'src/types/schema';
+import { reactive } from 'vue';
+import { flattenFields, type SchemaV2 } from 'src/types/schema';
 import FieldRenderer from './FieldRenderer.vue';
 import GroupRenderer from './GroupRenderer.vue';
 
@@ -46,9 +49,49 @@ const emit = defineEmits<{
   'update:modelValue': [value: Record<string, any>];
 }>();
 
+const fieldRefMap = reactive<Record<string, InstanceType<typeof FieldRenderer>>>();
+const groupRefs: InstanceType<typeof GroupRenderer>[] = [];
+
+function getAllFieldRefs(): Record<string, InstanceType<typeof FieldRenderer>> {
+  const merged = { ...fieldRefMap };
+  for (const g of groupRefs) {
+    if (g?.fieldRefMap) Object.assign(merged, g.fieldRefMap);
+  }
+  return merged;
+}
+
 function emitField(fieldId: string, value: any) {
   emit('update:modelValue', { ...props.modelValue, [fieldId]: value });
 }
+
+function validateFields(): boolean {
+  const allRefs = getAllFieldRefs();
+  const fields = flattenFields(props.schema);
+  let valid = true;
+  for (const f of fields) {
+    const renderer = allRefs[f.id];
+    if (renderer?.validate) {
+      if (!renderer.validate(props.modelValue?.[f.id], f)) valid = false;
+    }
+  }
+  return valid;
+}
+
+function saveSignatures(): Record<string, string> {
+  const allRefs = getAllFieldRefs();
+  const result: Record<string, string> = {};
+  const fields = flattenFields(props.schema);
+  for (const f of fields) {
+    if (f.type === 'signature') {
+      const renderer = allRefs[f.id];
+      const data = renderer?.saveSignature?.();
+      if (data) result[f.id] = data;
+    }
+  }
+  return result;
+}
+
+defineExpose({ validateFields, saveSignatures, fieldRefMap });
 </script>
 
 <style scoped>

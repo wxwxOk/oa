@@ -6,6 +6,7 @@
         <FieldRenderer
           v-for="field in row.fields"
           :key="field.id"
+          :ref="(el: any) => { if (el) fieldRefMap[field.id] = el }"
           :field="field"
           :mode="mode"
           :style="{ gridColumn: `span ${field.colSpan}` }"
@@ -18,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import { reactive } from 'vue';
 import type { SchemaGroup } from 'src/types/schema';
 import FieldRenderer from './FieldRenderer.vue';
 
@@ -31,9 +33,13 @@ const emit = defineEmits<{
   'update:modelValue': [value: Record<string, any>];
 }>();
 
+const fieldRefMap = reactive<Record<string, InstanceType<typeof FieldRenderer>>>();
+
 function emitField(fieldId: string, value: any) {
   emit('update:modelValue', { ...props.modelValue, [fieldId]: value });
 }
+
+defineExpose({ fieldRefMap });
 </script>
 
 <style scoped>

@@ -63,13 +63,13 @@
                 </div>
 
                 <!-- 动态表单字段 -->
-                <FormFieldRenderer
-                  v-for="field in schema"
-                  :key="field.id"
-                  ref="fieldRefs"
-                  :field="field"
-                  :model-value="formData[field.id]"
-                  @update:model-value="formData[field.id] = $event"
+                <GridFormRenderer
+                  v-if="schema"
+                  ref="gridRef"
+                  :schema="schema"
+                  mode="fill"
+                  :model-value="formData"
+                  @update:model-value="Object.assign(formData, $event)"
                 />
               </q-form>
             </q-card-section>
@@ -99,8 +99,9 @@ import type { QForm } from 'quasar';
 import { Notify } from 'quasar';
 import axios from 'axios';
 import { useResponsive } from 'src/composables/useResponsive';
-import FormFieldRenderer from 'src/components/public-fill/FormFieldRenderer.vue';
-import type { FormField } from 'src/stores/template';
+import GridFormRenderer from 'src/components/renderer/GridFormRenderer.vue';
+import type { SchemaV2 } from 'src/types/schema';
+import { flattenFields } from 'src/types/schema';
 
 // 独立 axios 实例，无 token 拦截器
 const publicApi = axios.create({ baseURL: '/api', timeout: 15000 });
@@ -114,14 +115,14 @@ const errorTitle = ref('');
 const errorBody = ref('');
 const submitting = ref(false);
 const formRef = ref<QForm | null>(null);
-const fieldRefs = ref<InstanceType<typeof FormFieldRenderer>[]>([]);
+const gridRef = ref<InstanceType<typeof GridFormRenderer> | null>(null);
 
 const templateData = reactive({
   templateName: '',
   description: '' as string | null,
   requireIdentity: false,
 });
-const schema = ref<FormField[]>([]);
+const schema = ref<SchemaV2 | null>(null);
 const formData = reactive<Record<string, any>>({});
 const identity = reactive({ name: '', phone: '' });
 
@@ -137,9 +138,9 @@ onMounted(async () => {
     templateData.templateName = data.templateName;
     templateData.description = data.description;
     templateData.requireIdentity = data.requireIdentity;
-    schema.value = (data.schema as FormField[]).sort((a, b) => a.sort - b.sort);
-    // 初始化 formData
-    for (const f of schema.value) {
+    schema.value = data.schema as SchemaV2;
+    // 初始化 formData（使用 flattenFields 遍历嵌套结构）
+    for (const f of flattenFields(schema.value)) {
       formData[f.id] = f.type === 'checkbox' ? [] : (f.type === 'signature' ? '' : '');
     }
     pageState.value = 'form';
@@ -164,28 +165,14 @@ async function handleSubmit() {
   // QForm 验证（QInput rules）
   const formValid = await formRef.value?.validate();
 
-  // 手动验证 radio/checkbox/signature 字段
-  let customValid = true;
-  for (let i = 0; i < schema.value.length; i++) {
-    const field = schema.value[i];
-    const renderer = fieldRefs.value[i];
-    if (renderer?.validate) {
-      const ok = renderer.validate(formData[field.id], field);
-      if (!ok) customValid = false;
-    }
-  }
+  // 通过 GridFormRenderer 验证 radio/checkbox/signature 字段
+  const customValid = gridRef.value?.validateFields() ?? true;
 
   if (!formValid || !customValid) return;
 
   // 保存签名字段数据
-  for (let i = 0; i < schema.value.length; i++) {
-    const field = schema.value[i];
-    if (field.type === 'signature') {
-      const renderer = fieldRefs.value[i];
-      const sigData = renderer?.saveSignature?.();
-      if (sigData) formData[field.id] = sigData;
-    }
-  }
+  const sigData = gridRef.value?.saveSignatures() ?? {};
+  Object.assign(formData, sigData);
 
   submitting.value = true;
   try {
