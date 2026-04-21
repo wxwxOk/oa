@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import { prisma } from '../../plugins/prisma';
 import { authGuard } from '../../middlewares/auth';
 import { BizError, notFound } from '../../utils/errors';
+import { SchemaV2Body } from './schema.validation';
 
 export const formTemplateModule = new Elysia({ prefix: '/templates' })
   .use(authGuard('form:template:list'))
@@ -72,19 +73,7 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
         body: t.Object({
           name: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
           description: t.Optional(t.String()),
-          schema: t.Optional(
-            t.Array(
-              t.Object({
-                id: t.String(),
-                type: t.String(),
-                label: t.String(),
-                required: t.Boolean(),
-                placeholder: t.Optional(t.String()),
-                options: t.Optional(t.Array(t.String())),
-                sort: t.Number(),
-              }),
-            ),
-          ),
+          schema: t.Optional(SchemaV2Body),
           requireIdentity: t.Optional(t.Boolean()),
         }),
       },
