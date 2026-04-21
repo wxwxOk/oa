@@ -25,10 +25,26 @@
         @update:model-value="$emit('update:modelValue', $event)"
       />
 
-      <!-- Dynamic Table placeholder (Phase 12) -->
-      <div v-else-if="item.type === 'dynamic-table'" class="dynamic-table-stub">
-        {{ item.label }} — 动态表格 (Phase 12)
-      </div>
+      <!-- 动态表格 -->
+      <template v-else-if="item.type === 'dynamic-table'">
+        <div v-if="mode === 'designer'" class="dynamic-table-stub"
+             :style="{ gridColumn: `span ${item.colSpan}` }">
+          {{ item.label }} — 动态表格
+        </div>
+        <DynamicTableFill
+          v-else-if="mode === 'fill'"
+          :label="item.label"
+          :columns="item.columns"
+          :model-value="modelValue?.[item.id]"
+          @update:model-value="emitField(item.id, $event)"
+        />
+        <DynamicTablePrint
+          v-else-if="mode === 'print'"
+          :label="item.label"
+          :columns="item.columns"
+          :rows="modelValue?.[item.id] ?? []"
+        />
+      </template>
     </template>
   </div>
 </template>
@@ -38,6 +54,8 @@ import { reactive } from 'vue';
 import { flattenFields, type SchemaV2 } from 'src/types/schema';
 import FieldRenderer from './FieldRenderer.vue';
 import GroupRenderer from './GroupRenderer.vue';
+import DynamicTableFill from './DynamicTableFill.vue';
+import DynamicTablePrint from './DynamicTablePrint.vue';
 
 const props = defineProps<{
   schema: SchemaV2;

@@ -143,6 +143,16 @@ onMounted(async () => {
     for (const f of flattenFields(schema.value)) {
       formData[f.id] = f.type === 'checkbox' ? [] : (f.type === 'signature' ? '' : '');
     }
+    // 初始化动态表格数据（D-14: 1 行空值）
+    for (const item of schema.value.items) {
+      if (item.type === 'dynamic-table') {
+        const emptyRow: Record<string, any> = {};
+        for (const col of item.columns) {
+          emptyRow[col.key] = col.type === 'checkbox' ? [] : '';
+        }
+        formData[item.id] = [emptyRow];
+      }
+    }
     pageState.value = 'form';
   } catch (err: any) {
     const status = err.response?.status;
