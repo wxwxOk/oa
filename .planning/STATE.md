@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 11
-Plan: 1 of 3
-Status: Plan 01 complete — gridUtils + useColResize composables
+Plan: 2 of 3
+Status: Plan 02 complete — DesignerCanvas grid editor + FieldPalette group sync
 Last activity: 2026-04-21
 
-Progress: [███░░░░░░░] 33%
+Progress: [██████░░░░] 67%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 10-schema P03 | 4min | 2 tasks | 4 files |
 | Phase 10-schema P04 | 5min | 2 tasks | 5 files |
 | Phase 11-designer-grid P01 | 5min | 2 tasks | 4 files |
+| Phase 11-designer-grid P02 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,9 @@ Progress: [███░░░░░░░] 33%
 - [Phase 10-schema]: Used isV2Schema computed for v1/v2 schema detection in SubmissionDetail
 - [Phase 11-designer-grid]: Exported calcNewSpan from useColResize for unit testability without DOM mocking
 - [Phase 11-designer-grid]: GRID_COLS=12 constant in gridUtils for single source of truth
+- [Phase 11-designer-grid]: VueDraggable component for field-level drag (handles v-for lifecycle), useDraggable composable for row-level drag
+- [Phase 11-designer-grid]: Inline pointer resize logic instead of useColResize composable for simpler single-use integration
+- [Phase 11-designer-grid]: SortableJS filter '.row-remainder' excludes placeholder from sorting
 
 ### Blockers/Concerns
 
