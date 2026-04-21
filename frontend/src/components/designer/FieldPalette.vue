@@ -25,22 +25,37 @@
         </div>
       </div>
     </q-expansion-item>
+
+    <q-expansion-item label="结构" default-opened header-class="text-weight-medium">
+      <div ref="structureRef" class="palette-group">
+        <div
+          v-for="si in structureList"
+          :key="si.type"
+          class="palette-item"
+        >
+          <q-icon :name="si.icon" size="20px" style="color: var(--oa-text-secondary)" />
+          <span class="palette-label">{{ si.label }}</span>
+        </div>
+      </div>
+    </q-expansion-item>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useDraggable } from 'vue-draggable-plus';
-import { FIELD_GROUPS, type FieldTypeDef } from './fieldRegistry';
+import { FIELD_GROUPS, structureItems, type FieldTypeDef, type StructureItemDef } from './fieldRegistry';
 import type { SchemaField } from 'src/types/schema';
 
 const GROUP_NAME = 'fields';
 
 const basicRef = ref<HTMLElement | null>(null);
 const specialRef = ref<HTMLElement | null>(null);
+const structureRef = ref<HTMLElement | null>(null);
 
 const basicFields = ref([...FIELD_GROUPS.basic.types]);
 const specialFields = ref([...FIELD_GROUPS.special.types]);
+const structureList = ref([...structureItems]);
 
 function cloneField(item: FieldTypeDef): SchemaField {
   return {
@@ -64,6 +79,16 @@ useDraggable(specialRef, specialFields, {
   group: { name: GROUP_NAME, pull: 'clone', put: false },
   sort: false,
   clone: cloneField,
+});
+
+function cloneStructure(item: StructureItemDef) {
+  return structureItems.find(s => s.type === item.type)?.create() ?? item;
+}
+
+useDraggable(structureRef, structureList, {
+  group: { name: 'items', pull: 'clone', put: false },
+  sort: false,
+  clone: cloneStructure,
 });
 </script>
 
