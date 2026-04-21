@@ -7,6 +7,7 @@ import {
   type SchemaRow,
   type SchemaGroup,
   type SchemaDynamicTable,
+  type DynamicTableColumnType,
 } from '../schema';
 
 describe('createEmptySchema', () => {
@@ -42,6 +43,7 @@ describe('flattenFields', () => {
     const f2: SchemaField = { id: 'f2', type: 'date', label: 'B', required: false, colSpan: 6 };
     const group: SchemaGroup = {
       type: 'group',
+      id: 'g1',
       title: 'Section',
       rows: [
         { type: 'row', fields: [f1] },
@@ -55,6 +57,7 @@ describe('flattenFields', () => {
   it('skips dynamic-table items', () => {
     const dt: SchemaDynamicTable = {
       type: 'dynamic-table',
+      id: 'dt1',
       label: 'Table',
       colSpan: 12,
       columns: [{ key: 'c1', label: 'Col', type: 'text' }],
@@ -75,8 +78,8 @@ describe('flattenFields', () => {
       version: 2,
       items: [
         { type: 'row', fields: [f1] },
-        { type: 'group', title: 'G', rows: [{ type: 'row', fields: [f2, f3] }] },
-        { type: 'dynamic-table', label: 'T', colSpan: 12, columns: [] },
+        { type: 'group', id: 'g2', title: 'G', rows: [{ type: 'row', fields: [f2, f3] }] },
+        { type: 'dynamic-table', id: 'dt2', label: 'T', colSpan: 12, columns: [] },
       ],
     };
     expect(flattenFields(schema)).toEqual([f1, f2, f3]);
@@ -85,5 +88,56 @@ describe('flattenFields', () => {
   it('SchemaField colSpan defaults to 12 conceptually', () => {
     const field: SchemaField = { id: 'f1', type: 'text', label: 'X', required: true, colSpan: 12 };
     expect(field.colSpan).toBe(12);
+  });
+});
+
+describe('SchemaGroup id field', () => {
+  it('SchemaGroup has id field', () => {
+    const group: SchemaGroup = {
+      type: 'group',
+      id: 'g-test',
+      title: '测试分组',
+      rows: [],
+    };
+    expect(group.id).toBe('g-test');
+    expect(group.type).toBe('group');
+  });
+});
+
+describe('SchemaDynamicTable id field', () => {
+  it('SchemaDynamicTable has id field', () => {
+    const dt: SchemaDynamicTable = {
+      type: 'dynamic-table',
+      id: 'dt-test',
+      label: '测试表格',
+      colSpan: 12,
+      columns: [{ key: 'c1', label: '列1', type: 'text' }],
+    };
+    expect(dt.id).toBe('dt-test');
+    expect(dt.type).toBe('dynamic-table');
+  });
+
+  it('SchemaDynamicTable columns use DynamicTableColumnType', () => {
+    const validTypes: DynamicTableColumnType[] = ['text', 'radio', 'checkbox', 'date', 'phone'];
+    const dt: SchemaDynamicTable = {
+      type: 'dynamic-table',
+      id: 'dt-col',
+      label: '表格',
+      colSpan: 12,
+      columns: validTypes.map((t, i) => ({ key: `c${i}`, label: `Col ${i}`, type: t })),
+    };
+    expect(dt.columns).toHaveLength(5);
+    expect(dt.columns.map(c => c.type)).toEqual(validTypes);
+  });
+
+  it('SchemaDynamicTable columns support options', () => {
+    const dt: SchemaDynamicTable = {
+      type: 'dynamic-table',
+      id: 'dt-opts',
+      label: '表格',
+      colSpan: 12,
+      columns: [{ key: 'c1', label: '选择', type: 'radio', options: ['A', 'B', 'C'] }],
+    };
+    expect(dt.columns[0].options).toEqual(['A', 'B', 'C']);
   });
 });

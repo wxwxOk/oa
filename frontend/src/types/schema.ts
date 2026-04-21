@@ -1,5 +1,8 @@
 export type FieldType = 'text' | 'textarea' | 'radio' | 'checkbox' | 'date' | 'phone' | 'signature';
 
+// 动态表格列支持的字段类型（排除 textarea/signature）
+export type DynamicTableColumnType = 'text' | 'radio' | 'checkbox' | 'date' | 'phone';
+
 export interface SchemaField {
   id: string;
   type: FieldType;
@@ -17,15 +20,17 @@ export interface SchemaRow {
 
 export interface SchemaGroup {
   type: 'group';
+  id: string;
   title: string;
   rows: SchemaRow[];
 }
 
 export interface SchemaDynamicTable {
   type: 'dynamic-table';
+  id: string;
   label: string;
   colSpan: number;
-  columns: Array<{ key: string; label: string; type: FieldType; width?: number }>;
+  columns: Array<{ key: string; label: string; type: DynamicTableColumnType; width?: number; options?: string[] }>;
 }
 
 export type SchemaItem = SchemaRow | SchemaGroup | SchemaDynamicTable;

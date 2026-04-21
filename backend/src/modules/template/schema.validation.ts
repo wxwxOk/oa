@@ -25,22 +25,34 @@ const SchemaRow = t.Object({
   fields: t.Array(SchemaField, { minItems: 1 }),
 });
 
+// 动态表格列支持的字段类型（排除 textarea/signature）
+const DynamicTableColumnType = t.Union([
+  t.Literal('text'),
+  t.Literal('radio'),
+  t.Literal('checkbox'),
+  t.Literal('date'),
+  t.Literal('phone'),
+]);
+
 const SchemaGroup = t.Object({
   type: t.Literal('group'),
+  id: t.String(),
   title: t.String(),
   rows: t.Array(SchemaRow),
 });
 
 const SchemaDynamicTable = t.Object({
   type: t.Literal('dynamic-table'),
+  id: t.String(),
   label: t.String(),
   colSpan: t.Integer({ minimum: 1, maximum: 12 }),
   columns: t.Array(
     t.Object({
       key: t.String(),
       label: t.String(),
-      type: FieldType,
+      type: DynamicTableColumnType,
       width: t.Optional(t.Integer({ minimum: 1 })),
+      options: t.Optional(t.Array(t.String())),
     }),
   ),
 });
