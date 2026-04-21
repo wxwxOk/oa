@@ -26,7 +26,7 @@
         <q-slider
           v-model="field.colSpan"
           :min="1"
-          :max="12"
+          :max="maxColSpan"
           :step="1"
           label
           :label-value="field.colSpan + ' / 12'"
@@ -65,6 +65,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useTemplateStore } from 'src/stores/template';
+import type { SchemaV2 } from 'src/types/schema';
+import { remainingCols } from './composables/gridUtils';
 import { FIELD_TYPES } from './fieldRegistry';
 
 const store = useTemplateStore();
@@ -74,6 +76,23 @@ const field = computed(() => store.selectedField);
 const fieldMeta = computed(() =>
   field.value ? FIELD_TYPES.find(ft => ft.type === field.value!.type) : null,
 );
+
+const maxColSpan = computed(() => {
+  if (!field.value || !store.current?.schema) return 12;
+  const schema = store.current.schema as SchemaV2;
+  for (const item of schema.items) {
+    if (item.type === 'row') {
+      const idx = item.fields.findIndex(f => f.id === field.value!.id);
+      if (idx !== -1) return remainingCols(item.fields.filter(f => f.id !== field.value!.id));
+    } else if (item.type === 'group') {
+      for (const row of item.rows) {
+        const idx = row.fields.findIndex(f => f.id === field.value!.id);
+        if (idx !== -1) return remainingCols(row.fields.filter(f => f.id !== field.value!.id));
+      }
+    }
+  }
+  return 12;
+});
 
 function updateOption(idx: number, val: string) {
   if (field.value?.options) field.value.options[idx] = val;
