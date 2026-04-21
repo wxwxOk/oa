@@ -56,6 +56,7 @@ Windows (PowerShell):
 ```bash
 cp .env.example .env
 # 编辑 .env，修改 JWT_SECRET（>=32 字符）和 POSTGRES_PASSWORD
+# Compose 会自动使用 postgres 服务名连接数据库
 docker compose up -d --build
 # 访问 http://localhost:9000
 ```
@@ -97,7 +98,7 @@ bun run dev        # http://localhost:9000
 | `POSTGRES_DB` | `oa_db` | 数据库名 | |
 | `POSTGRES_PORT` | `5432` | 数据库端口 | |
 | `BACKEND_PORT` | `3000` | 后端端口 | |
-| `DATABASE_URL` | `postgresql://oa:...@postgres:5432/oa_db?schema=public` | Prisma 连接串 | 随密码同步 |
+| `DATABASE_URL` | `postgresql://oa:...@127.0.0.1:5432/oa_db?schema=public` | 本地开发用 Prisma 连接串 | 随密码同步 |
 | `JWT_SECRET` | `please-change-this-to-a-long-random-string` | JWT 签名密钥（>=32 字符） | **是** |
 | `JWT_EXPIRES_IN` | `2h` | Access Token 有效期 | |
 | `JWT_REFRESH_EXPIRES_IN` | `7d` | Refresh Token 有效期 | |
@@ -198,8 +199,9 @@ docker compose logs backend
 **Q: 数据库连接失败**
 
 1. 确认 postgres 容器运行中: `docker compose ps postgres`
-2. 检查 `.env` 中 `DATABASE_URL` 的用户名、密码、端口与 `POSTGRES_*` 变量一致
-3. 确认 postgres healthcheck 通过: `docker inspect oa-postgres | grep -A5 Health`
+2. 本地开发时，检查 `.env` 中 `DATABASE_URL` 的用户名、密码、端口与 `POSTGRES_*` 变量一致
+3. Docker Compose 场景下，backend 容器会自动使用 `postgres` 服务名连接数据库，不读取 `.env` 中的主机名
+4. 确认 postgres healthcheck 通过: `docker inspect oa-postgres | grep -A5 Health`
 
 **Q: 前端白屏 / API 请求 404**
 

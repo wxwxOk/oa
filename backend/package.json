@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bun run --watch src/index.ts",
-    "start": "bun run src/index.ts",
+    "dev": "bun --env-file=../.env run --watch src/index.ts",
+    "start": "bun --env-file=../.env run src/index.ts",
     "build": "bun build src/index.ts --target bun --outdir dist",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy",
-    "seed": "bun run prisma/seed.ts"
+    "prisma:generate": "bun --env-file=../.env prisma generate",
+    "prisma:migrate": "bun --env-file=../.env prisma migrate dev",
+    "prisma:deploy": "bun --env-file=../.env prisma migrate deploy",
+    "seed": "bun --env-file=../.env run prisma/seed.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.1.1",

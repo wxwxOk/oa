@@ -24,38 +24,34 @@
           :fallback-on-body="true"
           :swap-threshold="0.65"
           filter=".row-remainder"
-          item-key="id"
           class="row-fields-grid"
           @add="(evt: any) => onFieldAdd(rowIdx, evt)"
           @remove="() => onFieldRemove(rowIdx)"
         >
-          <template #item="{ element: field }">
-            <div
-              class="grid-canvas-field"
-              :class="{ 'is-selected': store.selectedFieldId === field.id }"
-              :style="{ gridColumn: `span ${field.colSpan}` }"
-              @click.stop="store.selectField(field.id)"
-            >
-              <div class="field-drag-handle" aria-label="拖拽排序">
-                <q-icon name="drag_indicator" size="14px" color="grey-5" />
-              </div>
-              <div class="field-preview">
-                <FieldRenderer :field="field" mode="designer" />
-              </div>
-              <q-btn flat dense round icon="close" size="xs" class="field-delete-btn"
-                     @click.stop="removeField(field.id)" />
-              <div v-if="store.selectedFieldId === field.id"
-                   class="resize-handle resize-handle-right"
-                   @pointerdown="startResize($event, field, rowIdx)" />
+          <div
+            v-for="field in row.fields"
+            :key="field.id"
+            class="grid-canvas-field"
+            :class="{ 'is-selected': store.selectedFieldId === field.id }"
+            :style="{ gridColumn: `span ${field.colSpan}` }"
+            @click.stop="store.selectField(field.id)"
+          >
+            <div class="field-drag-handle" aria-label="拖拽排序">
+              <q-icon name="drag_indicator" size="14px" color="grey-5" />
             </div>
-          </template>
-
-          <template #footer>
-            <div v-if="remainingCols(row.fields) > 0"
-                 class="row-remainder drop-placeholder"
-                 :style="{ gridColumn: `span ${remainingCols(row.fields)}` }">
+            <div class="field-preview">
+              <FieldRenderer :field="field" mode="designer" />
             </div>
-          </template>
+            <q-btn flat dense round icon="close" size="xs" class="field-delete-btn"
+                   @click.stop="removeField(field.id)" />
+            <div v-if="store.selectedFieldId === field.id"
+                 class="resize-handle resize-handle-right"
+                 @pointerdown="startResize($event, field, rowIdx)" />
+          </div>
+          <div v-if="remainingCols(row.fields) > 0"
+               class="row-remainder drop-placeholder"
+               :style="{ gridColumn: `span ${remainingCols(row.fields)}` }">
+          </div>
         </VueDraggable>
 
         <!-- Row delete button (D-11) -->
@@ -338,11 +334,11 @@ defineExpose({ removeField });
   transition: border-color 150ms, box-shadow 150ms;
 }
 .grid-canvas-field:hover {
-  border-color: var(--q-primary);
+  border-color: var(--oa-focus-ring);
 }
 .grid-canvas-field.is-selected {
-  border: 2px solid var(--q-primary);
-  box-shadow: 0 0 0 2px rgba(var(--q-primary-rgb, 25, 118, 210), 0.15);
+  border: 2px solid var(--oa-focus-ring);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
 }
 .field-drag-handle {
   cursor: grab;
@@ -350,7 +346,7 @@ defineExpose({ removeField });
   flex-shrink: 0;
 }
 .field-drag-handle:active { cursor: grabbing; }
-.field-preview { flex: 1; min-width: 0; }
+.field-preview { flex: 1; min-width: 0; pointer-events: none; }
 .field-delete-btn { flex-shrink: 0; }
 .row-remainder {
   display: flex;
@@ -376,6 +372,13 @@ defineExpose({ removeField });
   width: 8px;
   cursor: col-resize;
   z-index: 10;
+  border-radius: 2px;
+  background: var(--oa-focus-ring);
+  opacity: 0.5;
+  transition: opacity 150ms;
+}
+.resize-handle-right:hover {
+  opacity: 1;
 }
 .canvas-drop-zone {
   display: flex;

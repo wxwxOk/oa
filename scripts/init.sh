@@ -11,7 +11,6 @@ if [ ! -f "$PROJECT_DIR/.env" ]; then
   PG_PASS=$(openssl rand -base64 16)
   sed -i "s|please-change-this-to-a-long-random-string|$JWT_SECRET|" "$PROJECT_DIR/.env"
   sed -i "s|oa_pass_change_me|$PG_PASS|g" "$PROJECT_DIR/.env"
-  sed -i "s|postgresql://oa:oa_pass_change_me@|postgresql://oa:$PG_PASS@|" "$PROJECT_DIR/.env"
   echo "Generated .env with random secrets"
 else
   echo ".env already exists, skipping generation"
