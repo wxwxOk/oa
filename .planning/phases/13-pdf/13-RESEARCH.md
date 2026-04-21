@@ -590,6 +590,142 @@ const footerY = A4_HEIGHT - MARGIN + 5; // 282mm（底部 margin 内 5mm 偏移�
 
 Step 2.6: SKIPPED (no external dependencies identified) — 本阶段完全在客户端完成，所有依赖（html2canvas, jsPDF）已在 package.json 中安装。
 
+## Validation Architecture
+
+### Test Framework
+| Property | Value |
+|----------|-------|
+| Framework | Vitest 3.x + happy-dom |
+| Config file | `frontend/vitest.config.ts` |
+| Quick run command | `cd frontend && npx vitest run src/composables/__tests__/usePdfExport.test.ts` |
+| Full suite command | `cd frontend && npx vitest run` |
+
+### Phase Requirements -> Test Map
+
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| PDF-01a | CSS Grid -> Table 转换：12 列 colSpan 正确映射为 HTML table colspan | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "table conversion"` | Wave 0 |
+| PDF-01b | print 模式 CSS 样式：边框 1px #000、padding 8px、分组背景 #f5f5f5 | manual-only | 目视检查 PDF 输出 | N/A |
+| PDF-01c | 字段对齐：不同 colSpan 组合（1+11, 4+4+4, 6+6, 3+3+3+3）在 PDF 中列宽正确 | manual-only | 导出含多种 colSpan 组合的测试表单 PDF，目视对比 | N/A |
+| PDF-02a | 智能切点算法：collectBreakpoints 正确收集 DOM 元素 Y 坐标 | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "breakpoints"` | Wave 0 |
+| PDF-02b | 智能切点算法：findBestBreak 选择不截断元素的最近切点 | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "findBestBreak"` | Wave 0 |
+| PDF-02c | 分页切片：computePageSlices 生成正确的页面切片数组 | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "pageSlices"` | Wave 0 |
+| PDF-02d | 极端情况：超高元素退化为像素强切 + console.warn | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "fallback"` | Wave 0 |
+| PDF-02e | 动态表格表头复出：切点在表格内部时标记 needsTableHeader | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "tableHeader"` | Wave 0 |
+| PDF-02f | 页眉页脚注入：injectHeaderFooter 在每页正确位置写入文本 | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "headerFooter"` | Wave 0 |
+| PDF-02g | 分组不截断：整组放不下时换页，超页高时降级行级切 | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "group break"` | Wave 0 |
+| PDF-03a | 中文字体栈 CSS 声明正确 | unit | `npx vitest run src/composables/__tests__/usePdfExport.test.ts -t "font-family"` | Wave 0 |
+| PDF-03b | 中文字符在 PDF 中无乱码 | manual-only | 导出含中文标签+中文值的表单 PDF，目视检查 | N/A |
+
+### Test Strategy
+
+**核心原则：** PDF 生成涉及 DOM 渲染 + Canvas 截图 + PDF 组装三个阶段。其中 html2canvas 和 jsPDF 是第三方库，不需要测试其内部逻辑。我们的测试重点是：
+
+1. **纯函数单元测试（可自动化）：** 智能分页算法的核心函数（collectBreakpoints、findBestBreak、computePageSlices、injectHeaderFooter）是纯逻辑或可 mock 的函数，适合单元测试
+2. **DOM 结构测试（可自动化）：** print 模式下 Vue 组件渲染出的 HTML 结构是否为 `<table>` + `<td colspan>`（而非 CSS Grid），可通过 happy-dom 环境测试
+3. **视觉保真测试（手动）：** PDF 最终输出的视觉效果（边框粗细、字体渲染、对齐精度）必须人工目视检查，无法自动化
+
+**Mock 策略：**
+- `html2canvas` -> mock 返回固定尺寸的 canvas 对象（`{ width, height, toDataURL: () => 'data:...' }`）
+- `jsPDF` -> mock 实例，验证 `addImage`/`addPage`/`text`/`save` 的调用参数和顺序
+- `getBoundingClientRect` -> mock 返回预设的元素坐标，测试切点算法
+
+### Sampling Rate
+- **Per task commit:** `cd frontend && npx vitest run src/composables/__tests__/usePdfExport.test.ts`
+- **Per wave merge:** `cd frontend && npx vitest run`
+- **Phase gate:** Full suite green before /gsd-verify-work
+
+### Wave 0 Gaps
+- [ ] `frontend/src/composables/__tests__/usePdfExport.test.ts` -- 覆盖 PDF-01a, PDF-02a~PDF-02g, PDF-03a
+- [ ] 测试 fixtures：预定义的 BreakCandidate[] 数组（模拟不同表单布局的元素坐标）
+- [ ] jsPDF mock factory：可复用的 jsPDF 实例 mock（记录 addImage/addPage/text 调用）
+- [ ] html2canvas mock factory：返回指定尺寸 canvas 的 mock 函数
+
+```typescript
+// 测试文件骨架示例：frontend/src/composables/__tests__/usePdfExport.test.ts
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock html2canvas
+vi.mock('html2canvas', () => ({
+  default: vi.fn().mockResolvedValue({
+    width: 1588,  // A4 宽度 794px * scale 2
+    height: 4000, // 模拟多页高度
+    toDataURL: vi.fn().mockReturnValue('data:image/jpeg;base64,mock'),
+    getContext: vi.fn().mockReturnValue({
+      drawImage: vi.fn(),
+    }),
+  }),
+}));
+
+// Mock jsPDF
+const mockPdf = {
+  internal: {
+    pageSize: { getWidth: () => 210, getHeight: () => 297 },
+    getNumberOfPages: vi.fn().mockReturnValue(2),
+  },
+  addImage: vi.fn(),
+  addPage: vi.fn(),
+  setPage: vi.fn(),
+  setFontSize: vi.fn(),
+  setTextColor: vi.fn(),
+  text: vi.fn(),
+  save: vi.fn(),
+};
+vi.mock('jspdf', () => ({
+  jsPDF: vi.fn().mockImplementation(() => mockPdf),
+}));
+
+describe('collectBreakpoints', () => {
+  it('收集所有顶层元素的 Y 坐标并排序', () => {
+    // 测试 DOM 坐标扫描逻辑
+  });
+
+  it('包含动态表格内部 tr 的切点', () => {
+    // 测试表格内部行的切点收集
+  });
+});
+
+describe('findBestBreak', () => {
+  it('返回 pageBottom 之前最近的候选切点', () => {
+    // 测试切点选择逻辑
+  });
+
+  it('没有合适切点时返回 null', () => {
+    // 测试极端情况
+  });
+});
+
+describe('computePageSlices', () => {
+  it('单页内容不分页', () => {
+    // totalHeight <= pageContentHeight
+  });
+
+  it('多页内容在安全切点处分页', () => {
+    // 验证切片边界对齐到 breakpoints
+  });
+
+  it('无安全切点时强制分页并输出警告', () => {
+    // D-07 极端情况
+    const warnSpy = vi.spyOn(console, 'warn');
+    // ... 调用 computePageSlices
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('无法找到安全切点')
+    );
+  });
+});
+
+describe('injectHeaderFooter', () => {
+  it('每页都注入页眉（表单名称居中）和页脚（时间+页码）', () => {
+    // 验证 pdf.text() 调用次数和参数
+  });
+
+  it('单页 PDF 也显示页眉页脚（D-11）', () => {
+    // getNumberOfPages 返回 1 时仍调用 text()
+  });
+});
+```
+
+
 ## Security Domain
 
 本阶段不涉及认证、会话、访问控制、加密或用户输入验证。PDF 生成完全在客户端浏览器中完成，不传输敏感数据到外部服务。
