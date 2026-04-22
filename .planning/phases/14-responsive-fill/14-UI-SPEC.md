@@ -84,6 +84,12 @@ CSS media query: `@media (max-width: 1023px)` aligns with JS breakpoint.
 
 ---
 
+## Visual Focal Point
+
+Focal point: submit CTA button (accent background, full-width) anchors the form bottom on both PC and mobile. On mobile, the sticky positioning with elevated shadow ensures the CTA remains the dominant visual anchor regardless of scroll position.
+
+---
+
 ## Component Inventory
 
 ### Modified Components (4 files)
@@ -132,7 +138,7 @@ None. Zero new files.
 | Wrapper | QCard flat bordered, same as existing |
 | Card per row | QExpansionItem, v-model bound to ref(true) per row |
 | Card title | "第 {N} 行" via `<template #header>` slot |
-| Delete button | QBtn flat dense round, icon="delete_outline", color="negative", size="xs", in header `<q-item-section side>`, @click.stop prevents expand toggle |
+| Delete button | QBtn flat dense round, icon="delete_outline", color="negative", size="xs", `aria-label="删除第 ${N} 行"`, in header `<q-item-section side>`, @click.stop prevents expand toggle |
 | Card body | QCardSection, fields stacked vertically: label div + input control |
 | Field label | 14px/600, color: var(--oa-text-secondary) |
 | Field input | Full width, min-height 44px |
@@ -159,7 +165,7 @@ None. Zero new files.
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | 提交 (existing, unchanged) |
+| Primary CTA | 提交 — Retained: standard Chinese form submission convention, consistent with existing production copy across all form pages in the application. In Chinese UI, "提交" is the universally expected single-verb CTA for form submission (equivalent specificity to English "Submit Form"), no verb+noun expansion needed. |
 | Empty state heading | N/A (form always has fields from schema) |
 | Empty state body | N/A |
 | Error: invalid link | 链接无效 / 该链接不存在或已失效，请联系分享者获取新链接 (existing) |
@@ -205,7 +211,7 @@ This phase uses only Quasar built-in components (QCard, QExpansionItem, QBtn, QI
 | Touch targets | min-height: 44px on all mobile inputs (iOS HIG, WCAG 2.2 SC 2.5.8) |
 | Expand/collapse | QExpansionItem provides aria-expanded, keyboard Enter/Space toggle |
 | Focus ring | Existing global `.q-field--outlined .q-field__control:focus-within` outline |
-| Delete button | color="negative" provides semantic color; icon-only button has implicit label from Quasar |
+| Delete button | color="negative" provides semantic color; explicit `aria-label="删除第 ${N} 行"` for screen reader context on icon-only button |
 | Safe area | env(safe-area-inset-bottom) on sticky submit for notch devices |
 
 ---
