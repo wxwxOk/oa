@@ -1,5 +1,5 @@
 <template>
-  <div class="dynamic-table-print">
+  <div class="dynamic-table-print" data-break="table">
     <div class="print-table-label">{{ label }}</div>
     <table class="print-table">
       <colgroup>
@@ -9,7 +9,7 @@
           :style="{ width: colWidth(col) }"
         />
       </colgroup>
-      <thead>
+      <thead data-thead>
         <tr>
           <th v-for="col in columns" :key="col.key" class="print-th">
             {{ col.label }}
@@ -17,7 +17,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(row, rowIdx) in rows" :key="rowIdx">
+        <tr v-for="(row, rowIdx) in rows" :key="rowIdx" data-break="table-row">
           <td v-for="col in columns" :key="col.key" class="print-td">
             {{ formatCell(row[col.key], col.type) }}
           </td>
