@@ -21,8 +21,8 @@
 
 ### 渲染与填写页
 
-- [ ] **RENDER-01**: PC 端填写页按设计稿栅格布局渲染，与设计器预览一致
-- [ ] **RENDER-02**: 移动端填写页自动降级为单列布局，保证触控体验
+- [x] **RENDER-01**: PC 端填写页按设计稿栅格布局渲染，与设计器预览一致
+- [x] **RENDER-02**: 移动端填写页自动降级为单列布局，保证触控体验
 - [ ] **RENDER-03**: 动态行表格在填写页支持增删行操作，每行按列结构渲染输入控件
 
 ### PDF 输出
@@ -66,8 +66,8 @@
 | DESIGN-02 | Phase 12 | Pending |
 | DESIGN-03 | Phase 12 | Pending |
 | DESIGN-04 | Phase 11 | Complete |
-| RENDER-01 | Phase 14 | Pending |
-| RENDER-02 | Phase 14 | Pending |
+| RENDER-01 | Phase 14 | Complete |
+| RENDER-02 | Phase 14 | Complete |
 | RENDER-03 | Phase 12 | Pending |
 | PDF-01 | Phase 13 | Complete |
 | PDF-02 | Phase 13 | Complete |
