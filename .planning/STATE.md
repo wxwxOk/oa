@@ -60,6 +60,7 @@ Progress: [██████████] 100%
 | Phase 11-designer-grid P02 | 5min | 2 tasks | 2 files |
 | Phase 11-designer-grid P03 | 3min | 1 task | 1 file |
 | Phase 13-pdf P01 | 8min | 2 tasks | 6 files |
+| Phase 13-pdf P02 | 3min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,7 @@ Progress: [██████████] 100%
 - [Phase 11-designer-grid]: Reused remainingCols from gridUtils for PropertyEditor maxColSpan (DRY over inline reduce)
 - [Phase 13-pdf]: printSegments computed groups consecutive rows into single table, non-row items break into separate segments
 - [Phase 13-pdf]: data-break attribute convention: row, group, table, table-row for PDF engine hooks
+- [Phase 13-pdf]: Followed useDarkMode.test.ts mock pattern for html2canvas/jsPDF mocking in TDD tests
 
 ### Blockers/Concerns
 

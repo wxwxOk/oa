@@ -28,7 +28,7 @@
 ### PDF 输出
 
 - [ ] **PDF-01**: PDF 导出 1:1 还原栅格布局（表格线/边框/分组标题/字段对齐）
-- [ ] **PDF-02**: PDF 正确处理分页，避免行/分组被截断（break-inside: avoid）
+- [x] **PDF-02**: PDF 正确处理分页，避免行/分组被截断（break-inside: avoid）
 - [ ] **PDF-03**: PDF 支持中文字体嵌入，避免乱码
 
 ## v2 Requirements
@@ -70,7 +70,7 @@
 | RENDER-02 | Phase 14 | Pending |
 | RENDER-03 | Phase 12 | Pending |
 | PDF-01 | Phase 13 | Pending |
-| PDF-02 | Phase 13 | Pending |
+| PDF-02 | Phase 13 | Complete |
 | PDF-03 | Phase 13 | Pending |
 
 **Coverage:**
