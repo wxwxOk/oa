@@ -90,4 +90,13 @@ defineExpose({ fieldRefMap });
   grid-template-columns: repeat(12, 1fr);
   gap: 8px 16px;
 }
+@media (max-width: 1023px) {
+  .grid-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px 0;
+  }
+  .group-body .grid-row :deep(.q-field__control) {
+    min-height: 44px;
+  }
+}
 </style>

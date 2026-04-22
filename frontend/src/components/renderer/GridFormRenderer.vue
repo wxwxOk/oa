@@ -200,4 +200,13 @@ defineExpose({ validateFields, saveSignatures, fieldRefMap });
   color: var(--oa-text-tertiary);
   font-size: 14px;
 }
+@media (max-width: 1023px) {
+  .grid-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px 0;
+  }
+  .grid-form .grid-row :deep(.q-field__control) {
+    min-height: 44px;
+  }
+}
 </style>
