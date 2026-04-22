@@ -6,6 +6,7 @@ ENV VITE_API_BASE=${VITE_API_BASE}
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 COPY . .
+ENV NODE_OPTIONS="--max-old-space-size=1024"
 RUN bun run build
 
 FROM nginx:1.27-alpine
