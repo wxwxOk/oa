@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.2 模板管理优化 (Shipped: 2026-04-22)
+
+**Phases:** 5 | **Plans:** 16 | **Commits:** ~50 | **LOC:** +17,172 / -1,200
+**Timeline:** 2026-04-21 → 2026-04-22 (2 days)
+**Stack additions:** grid-layout-plus, jspdf-autotable
+
+**Key accomplishments:**
+
+1. v2 schema 类型体系（Group/Row/Column 层级 + 12 列栅格 colSpan）+ 统一 GridFormRenderer 三模式渲染引擎
+2. 12 列栅格设计器画布（拖拽定位 + 指针调整跨列 + 实时预览 WYSIWYG）
+3. 分组区块（可编辑标题栏）+ 动态行表格（增删行 + 列结构定义 + 三模式渲染）
+4. PDF 保真输出（table 转换 + 智能分页 + 页眉页脚 + 表头复出 + CJK 字体栈）
+5. 响应式填写页（PC 960px 栅格还原 + 移动端单列 + 动态表格卡片布局 + sticky 提交）
+
+**Archive:** [v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md) | [v1.2-REQUIREMENTS.md](milestones/v1.2-REQUIREMENTS.md)
+
+---
+
 ## v1.0 MVP (Shipped: 2026-04-20)
 
 **Phases:** 6 | **Plans:** 25 | **Commits:** 113 | **LOC:** 2,404 TS/Vue

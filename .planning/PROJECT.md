@@ -1,7 +1,7 @@
 # Project: OA 管理系统
 
 ## What This Is
-轻量开源 OA 平台，面向中小企业。v1.1 交付完整的组织架构管理 + 自定义表单收集系统（模板设计、链接分享、外部填写、数据查看打印统计），含 PC/Mobile 双布局响应式界面和 Docker 一键部署。
+轻量开源 OA 平台，面向中小企业。v1.2 交付完整的组织架构管理 + 自定义表单收集系统，含 12 列栅格布局设计器（分组标题 + 动态行表格）、PDF 保真输出、PC/Mobile 响应式填写页和 Docker 一键部署。
 
 ## Core Value
 开箱即用的组织架构管理 + 表单收集 — `docker compose up -d` 即可运行。
@@ -9,18 +9,10 @@
 ## Current State
 ✅ v1.0 MVP shipped (2026-04-20)
 ✅ v1.1 自定义表单收集 shipped (2026-04-20)
-🔧 v1.2 模板管理优化 — in progress (Phase 10 complete — schema 类型体系 + 渲染器引擎就绪)
+✅ v1.2 模板管理优化 shipped (2026-04-22)
 
-## Current Milestone: v1.2 模板管理优化
-
-**Goal:** 升级表单设计器为 12 列栅格布局引擎，支持分组标题、复杂排版、动态行表格，PDF 保真输出，填写页 PC 端还原布局 + 移动端自动单列。
-
-**Target features:**
-- 字段分组 + 分组标题（如"教育经历"、"工作经验"），每组带可视标题栏
-- 12 列栅格布局引擎，字段可跨列放置，支持行/列组合
-- 动态行表格（可重复填写的子表，支持增删行）
-- PDF 保真输出，1:1 还原设计稿布局
-- 填写页响应式：PC 端按设计稿布局渲染，移动端自动单列
+## Next Milestone Goals
+待规划 — 使用 `/gsd:new-milestone` 启动下一个里程碑
 
 ## Requirements
 
@@ -43,13 +35,14 @@
 - ✓ FR-12 数据归档：收集数据存储，有权限用户可查看全部数据 — v1.1
 - ✓ FR-13 打印导出：浏览器打印 + PDF 导出 — v1.1
 - ✓ FR-14 基础统计：员工分享次数、收集数量统计 — v1.1
+- ✓ FR-15 字段分组 + 分组标题 — v1.2
+- ✓ FR-16 12 列栅格布局引擎 — v1.2
+- ✓ FR-17 动态行表格 — v1.2
+- ✓ FR-18 PDF 保真输出 — v1.2
+- ✓ FR-19 填写页响应式布局还原 — v1.2
 
 ### Active
-- FR-15 字段分组 + 分组标题 — v1.2
-- FR-16 12 列栅格布局引擎 — v1.2
-- FR-17 动态行表格 — v1.2
-- FR-18 PDF 保真输出 — v1.2
-- FR-19 填写页响应式布局还原 — v1.2
+(待下一里程碑定义)
 
 ### Out of Scope
 - 考勤打卡、请假审批、工作流引擎 — v2.0+ 考虑
@@ -72,7 +65,8 @@ Vue3 + Quasar + TS / Bun + Elysia + Prisma / PostgreSQL 16 / JWT / Docker Compos
 ## Context
 v1.0 以 2,404 LOC (TS/Vue) 在 3 天内完成，113 commits。
 v1.1 新增 15,228 LOC，73 commits，1 天内完成（3 phases, 13 plans）。
-技术亮点：Bun 全链路构建、Quasar 双布局响应式、Prisma ORM、vue-draggable-plus 表单设计器、signature_pad 手写签名、html2canvas PDF 导出、vue-chartjs 统计图表。
+v1.2 新增 17,172 LOC，~50 commits，2 天内完成（5 phases, 16 plans）。
+技术亮点：Bun 全链路构建、Quasar 双布局响应式、Prisma ORM、vue-draggable-plus 表单设计器、signature_pad 手写签名、html2canvas PDF 导出、vue-chartjs 统计图表、12 列栅格布局引擎、智能分页 PDF、QExpansionItem 移动端卡片。
 
 ## Key Decisions
 
@@ -91,10 +85,15 @@ v1.1 新增 15,228 LOC，73 commits，1 天内完成（3 phases, 13 plans）。
 
 | 12 列栅格布局引擎 | ✓ 类 Bootstrap 栅格，兼顾复杂排版与响应式 |
 | 不兼容 v1.1 旧模板 schema | ✓ 全新设计器替换，简化维护 |
+| Row-based 层级 schema（非 x/y/w/h 坐标） | ✓ 序列化简单，行顺序即位置 |
+| grid-layout-plus 设计器画布 | ✓ 拖拽 + 调整跨列，Vue3 兼容 |
+| PrintableForm table HTML 绕过 CSS Grid | ✓ html2canvas 不支持 CSS Grid，table 方案稳定 |
+| DOM 坐标分页算法 | ✓ 精确分页，避免截断分组/表格行 |
+| QExpansionItem 移动端卡片布局 | ✓ 动态表格触控友好，折叠/展开自然 |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-21 after v1.2 milestone started*
+*Last updated: 2026-04-22 after v1.2 milestone completed*
