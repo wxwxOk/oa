@@ -98,9 +98,9 @@ Plans:
   1. PDF 导出的栅格布局与填写页一致（字段对齐、跨列宽度、分组标题、表格边框）
   2. PDF 正确处理分页，分组和表格行不被截断
   3. PDF 中文字体正常显示，无乱码或方块字
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
-- [ ] 13-01-PLAN.md — print 模式 table 转换 + 纸质表格 CSS + 中文字体栈
+- [x] 13-01-PLAN.md — print 模式 table 转换 + 纸质表格 CSS + 中文字体栈
 - [ ] 13-02-PLAN.md — 分页算法纯函数 TDD 测试（Wave 0）
 - [ ] 13-03-PLAN.md — usePdfExport.ts 重写（智能分页 + 页眉页脚 + 表头复出）+ 视觉验收
 
@@ -126,5 +126,5 @@ Plans:
 | 10. Schema 与核心渲染器 | v1.2 | 4/4 | Complete    | 2026-04-21 |
 | 11. 设计器栅格编辑 | v1.2 | 3/3 | Complete   | 2026-04-21 |
 | 12. 分组与动态行表格 | v1.2 | 4/4 | Complete   | 2026-04-21 |
-| 13. PDF 保真输出 | v1.2 | 0/3 | Planning complete | - |
+| 13. PDF 保真输出 | v1.2 | 1/3 | In Progress|  |
 | 14. 响应式填写页 | v1.2 | 0/? | Not started | - |
