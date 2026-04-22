@@ -1,71 +1,292 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
+// --- Types ---
+
+export interface BreakCandidate {
+  y: number;
+  type: 'row' | 'group-start' | 'group-row' | 'table-start' | 'table-row';
+  isTableInternal: boolean;
+  tableHeaderRect?: { y: number; height: number };
+}
+
+export interface PageSlice {
+  startY: number;
+  endY: number;
+  needsTableHeader: boolean;
+  tableHeaderRect?: { y: number; height: number };
+}
+
+// --- Constants ---
+
+const A4_HEIGHT = 297;
+const MARGIN = 15;
+const HEADER_HEIGHT = 10;
+const FOOTER_HEIGHT = 10;
+const CONTENT_TOP = MARGIN + HEADER_HEIGHT;
+const CONTENT_BOTTOM = A4_HEIGHT - MARGIN - FOOTER_HEIGHT;
+const MAX_CONTENT_HEIGHT = CONTENT_BOTTOM - CONTENT_TOP;
+const HEADER_Y = 8;
+const FOOTER_Y = A4_HEIGHT - 8;
+
+// --- Pure functions (exported for testing) ---
+
 /**
- * 将 DOM 元素导出为 PDF 文件
- * @param element 要截图的 DOM 元素（#print-area）
- * @param filename 输出文件名（含 .pdf 后缀）
+ * Scan container for all [data-break] elements, collect Y coordinates.
  */
+export function collectBreakpoints(container: HTMLElement): BreakCandidate[] {
+  const containerRect = container.getBoundingClientRect();
+  const candidates: BreakCandidate[] = [];
+
+  const breakEls = container.querySelectorAll('[data-break]');
+  for (const el of breakEls) {
+    const rect = el.getBoundingClientRect();
+    const y = rect.top - containerRect.top;
+    const breakType = el.getAttribute('data-break') as string;
+
+    let type: BreakCandidate['type'];
+    let isTableInternal = false;
+    let tableHeaderRect: { y: number; height: number } | undefined;
+
+    switch (breakType) {
+      case 'row':
+        type = 'row';
+        break;
+      case 'group':
+        type = 'group-start';
+        break;
+      case 'table':
+        type = 'table-start';
+        break;
+      case 'table-row': {
+        type = 'table-row';
+        isTableInternal = true;
+        const thead = el.closest('table')?.querySelector('[data-thead]');
+        if (thead) {
+          const theadRect = thead.getBoundingClientRect();
+          tableHeaderRect = {
+            y: theadRect.top - containerRect.top,
+            height: theadRect.height,
+          };
+        }
+        break;
+      }
+      default:
+        type = 'row';
+    }
+
+    candidates.push({ y, type, isTableInternal, tableHeaderRect });
+  }
+
+  return candidates.sort((a, b) => a.y - b.y);
+}
+
+/**
+ * Find the best break candidate at or before pageBottom.
+ */
+export function findBestBreak(
+  candidates: BreakCandidate[],
+  pageBottom: number,
+): BreakCandidate | null {
+  let best: BreakCandidate | null = null;
+  for (const c of candidates) {
+    if (c.y <= pageBottom) best = c;
+    else break;
+  }
+  return best;
+}
+
+/**
+ * Compute page slices from breakpoints.
+ */
+export function computePageSlices(
+  breakpoints: BreakCandidate[],
+  totalHeight: number,
+  pageContentHeight: number,
+  scale: number,
+): PageSlice[] {
+  const slices: PageSlice[] = [];
+  let currentY = 0;
+
+  while (currentY < totalHeight) {
+    const pageBottom = currentY + pageContentHeight;
+
+    if (pageBottom >= totalHeight) {
+      slices.push({ startY: currentY, endY: totalHeight, needsTableHeader: false });
+      break;
+    }
+
+    const best = findBestBreak(breakpoints, pageBottom / scale);
+
+    if (best && best.y * scale > currentY) {
+      const cutY = best.y * scale;
+      const remaining = totalHeight - cutY;
+
+      // If remaining content fits in one page, extend this slice to the end
+      if (remaining > 0 && remaining <= pageContentHeight) {
+        slices.push({ startY: currentY, endY: totalHeight, needsTableHeader: false });
+        break;
+      }
+
+      const needsTableHeader = best.isTableInternal;
+      slices.push({
+        startY: currentY,
+        endY: cutY,
+        needsTableHeader: false,
+      });
+      currentY = cutY;
+    } else {
+      console.warn('[PDF] 无法找到安全切点，强制分页');
+      slices.push({ startY: currentY, endY: pageBottom, needsTableHeader: false });
+      currentY = pageBottom;
+    }
+  }
+
+  // Post-process: mark slices that need table header
+  // A slice needs table header if the previous slice's cut was inside a table
+  for (let i = 1; i < slices.length; i++) {
+    const prevEndY = slices[i - 1].endY;
+    // Find the breakpoint at prevEndY
+    const cutBreak = breakpoints.find(
+      (b) => Math.abs(b.y * scale - prevEndY) < 1,
+    );
+    if (cutBreak && cutBreak.isTableInternal && cutBreak.tableHeaderRect) {
+      slices[i].needsTableHeader = true;
+      slices[i].tableHeaderRect = cutBreak.tableHeaderRect;
+    }
+  }
+
+  return slices;
+}
+
+/**
+ * Inject header (form title) and footer (submit time + page number) on every page.
+ */
+export function injectHeaderFooter(
+  pdf: jsPDF,
+  formTitle: string,
+  submitTime: string,
+): void {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const totalPages = pdf.internal.getNumberOfPages();
+
+  for (let i = 1; i <= totalPages; i++) {
+    pdf.setPage(i);
+    pdf.setFontSize(10);
+    pdf.setTextColor(102, 102, 102);
+
+    // Header: centered form title
+    pdf.text(formTitle, pageWidth / 2, HEADER_Y, { align: 'center' });
+
+    // Footer left: submit time
+    pdf.text(submitTime, MARGIN, FOOTER_Y);
+
+    // Footer right: page number
+    pdf.text(`${i} / ${totalPages}`, pageWidth - MARGIN, FOOTER_Y, { align: 'right' });
+  }
+}
+
+// --- Internal helpers ---
+
+const MM_TO_PX = 96 / 25.4;
+
+function renderPageSlice(
+  pdf: jsPDF,
+  canvas: HTMLCanvasElement,
+  slice: PageSlice,
+  contentWidth: number,
+  scale: number,
+  quality: number,
+  isFirstPage: boolean,
+): void {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const slicePixelHeight = slice.endY - slice.startY;
+  if (slicePixelHeight <= 0) return;
+
+  const sliceCanvas = document.createElement('canvas');
+  sliceCanvas.width = canvas.width;
+
+  let headerPixelHeight = 0;
+  if (slice.needsTableHeader && slice.tableHeaderRect) {
+    headerPixelHeight = slice.tableHeaderRect.height * scale;
+  }
+
+  sliceCanvas.height = Math.ceil(slicePixelHeight + headerPixelHeight);
+  const ctx = sliceCanvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D context unavailable');
+
+  let drawY = 0;
+
+  // Draw table header at top if needed
+  if (slice.needsTableHeader && slice.tableHeaderRect) {
+    const thY = slice.tableHeaderRect.y * scale;
+    const thH = slice.tableHeaderRect.height * scale;
+    ctx.drawImage(canvas, 0, thY, canvas.width, thH, 0, 0, canvas.width, thH);
+    drawY = thH;
+  }
+
+  // Draw content slice
+  ctx.drawImage(
+    canvas,
+    0, slice.startY, canvas.width, slicePixelHeight,
+    0, drawY, canvas.width, slicePixelHeight,
+  );
+
+  const sliceData = sliceCanvas.toDataURL('image/jpeg', quality);
+  const sliceMmHeight = (sliceCanvas.height * contentWidth) / canvas.width;
+
+  if (!isFirstPage) pdf.addPage();
+  pdf.addImage(sliceData, 'JPEG', MARGIN, CONTENT_TOP, contentWidth, sliceMmHeight);
+}
+
+// --- Public API (signatures unchanged per D-03) ---
+
 export async function exportToPdf(
   element: HTMLElement,
   filename: string,
 ): Promise<void> {
+  const formTitle = element.getAttribute('data-form-title') || '';
+  const submitTime = element.getAttribute('data-submit-time') || '';
+
+  const breakpoints = collectBreakpoints(element);
+
+  // Canvas safety check
+  const elementHeight = element.scrollHeight || element.offsetHeight;
+  const scale = 2;
+  if (elementHeight * scale > 16000) {
+    console.warn('[PDF] Canvas height exceeds safe threshold:', elementHeight * scale);
+  }
+
   const canvas = await html2canvas(element, {
-    scale: 2,
+    scale,
     useCORS: true,
     logging: false,
     backgroundColor: '#ffffff',
   });
 
-  const imgData = canvas.toDataURL('image/jpeg', 0.95);
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 15; // mm
-  const contentWidth = pageWidth - margin * 2;
+  const contentWidth = pageWidth - MARGIN * 2;
   const imgHeight = (canvas.height * contentWidth) / canvas.width;
-  const maxContentHeight = pageHeight - margin * 2;
 
-  if (imgHeight <= maxContentHeight) {
-    pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imgHeight);
+  if (imgHeight <= MAX_CONTENT_HEIGHT) {
+    // Single page
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    pdf.addImage(imgData, 'JPEG', MARGIN, CONTENT_TOP, contentWidth, imgHeight);
   } else {
-    // 分页处理
-    let remainingHeight = imgHeight;
-    let sourceY = 0;
-    while (remainingHeight > 0) {
-      const sliceHeight = Math.min(remainingHeight, maxContentHeight);
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = (sliceHeight / contentWidth) * canvas.width;
-      const ctx = sliceCanvas.getContext('2d');
-      if (!ctx) {
-        throw new Error('Canvas 2D context unavailable — browser resource limit reached');
-      }
-      ctx.drawImage(
-        canvas,
-        0, sourceY, canvas.width, sliceCanvas.height,
-        0, 0, sliceCanvas.width, sliceCanvas.height,
-      );
-      const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.95);
-      if (sourceY > 0) pdf.addPage();
-      pdf.addImage(sliceData, 'JPEG', margin, margin, contentWidth, sliceHeight);
-      sourceY += sliceCanvas.height;
-      remainingHeight -= sliceHeight;
+    // Multi-page with smart pagination
+    const pageContentHeightPx = MAX_CONTENT_HEIGHT * MM_TO_PX * scale;
+    const slices = computePageSlices(breakpoints, canvas.height, pageContentHeightPx, scale);
+
+    for (let i = 0; i < slices.length; i++) {
+      renderPageSlice(pdf, canvas, slices[i], contentWidth, scale, 0.95, i === 0);
     }
   }
 
+  injectHeaderFooter(pdf, formTitle, submitTime);
   pdf.save(filename);
 }
 
-/**
- * 批量导出多个提交为单个 PDF
- * @param renderFn 渲染函数，接收 index 返回要截图的 DOM 元素
- * @param total 总条数
- * @param filename 输出文件名
- * @param onProgress 进度回调 (current, total)
- * @param cancelRef 取消引用
- * @returns 是否完成（false 表示被取消）
- */
 export async function exportBatchToPdf(
   renderFn: (index: number) => Promise<HTMLElement>,
   total: number,
@@ -75,57 +296,56 @@ export async function exportBatchToPdf(
 ): Promise<boolean> {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 15;
-  const contentWidth = pageWidth - margin * 2;
-  const maxContentHeight = pageHeight - margin * 2;
+  const contentWidth = pageWidth - MARGIN * 2;
+  const scale = 1.5;
+  const quality = 0.9;
+  let isFirstSubmission = true;
 
   for (let i = 0; i < total; i++) {
     if (cancelRef?.value) return false;
     onProgress?.(i + 1, total);
 
     const element = await renderFn(i);
+    const formTitle = element.getAttribute('data-form-title') || '';
+    const submitTime = element.getAttribute('data-submit-time') || '';
+
+    const breakpoints = collectBreakpoints(element);
+
     const canvas = await html2canvas(element, {
-      scale: 1.5, // 批量时降低 scale 节省内存
+      scale,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
     });
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.9);
     const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
-    if (i > 0) pdf.addPage();
+    if (!isFirstSubmission) pdf.addPage();
 
-    if (imgHeight <= maxContentHeight) {
-      pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imgHeight);
+    if (imgHeight <= MAX_CONTENT_HEIGHT) {
+      const imgData = canvas.toDataURL('image/jpeg', quality);
+      pdf.addImage(imgData, 'JPEG', MARGIN, CONTENT_TOP, contentWidth, imgHeight);
     } else {
-      let remainingHeight = imgHeight;
-      let sourceY = 0;
-      let firstSlice = true;
-      while (remainingHeight > 0) {
-        const sliceHeight = Math.min(remainingHeight, maxContentHeight);
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = canvas.width;
-        sliceCanvas.height = (sliceHeight / contentWidth) * canvas.width;
-        const ctx = sliceCanvas.getContext('2d');
-        if (!ctx) {
-          throw new Error('Canvas 2D context unavailable — browser resource limit reached');
-        }
-        ctx.drawImage(
-          canvas,
-          0, sourceY, canvas.width, sliceCanvas.height,
-          0, 0, sliceCanvas.width, sliceCanvas.height,
+      const pageContentHeightPx = MAX_CONTENT_HEIGHT * MM_TO_PX * scale;
+      const slices = computePageSlices(breakpoints, canvas.height, pageContentHeightPx, scale);
+
+      for (let j = 0; j < slices.length; j++) {
+        renderPageSlice(
+          pdf, canvas, slices[j], contentWidth, scale, quality,
+          j === 0 && isFirstSubmission,
         );
-        const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.9);
-        if (!firstSlice) pdf.addPage();
-        firstSlice = false;
-        pdf.addImage(sliceData, 'JPEG', margin, margin, contentWidth, sliceHeight);
-        sourceY += sliceCanvas.height;
-        remainingHeight -= sliceHeight;
       }
     }
+
+    isFirstSubmission = false;
   }
+
+  // Inject header/footer across all pages for all submissions
+  // Use the last submission's metadata as fallback (batch mode)
+  const lastElement = await renderFn(total - 1);
+  const batchTitle = lastElement.getAttribute('data-form-title') || '';
+  const batchTime = lastElement.getAttribute('data-submit-time') || '';
+  injectHeaderFooter(pdf, batchTitle, batchTime);
 
   pdf.save(filename);
   return true;
