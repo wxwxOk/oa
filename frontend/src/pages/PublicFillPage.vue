@@ -73,7 +73,7 @@
                 />
               </q-form>
             </q-card-section>
-            <q-card-section>
+            <q-card-section class="submit-section">
               <q-btn
                 color="primary"
                 label="提交"
@@ -127,7 +127,7 @@ const formData = reactive<Record<string, any>>({});
 const identity = reactive({ name: '', phone: '' });
 
 const wrapperStyle = computed(() => ({
-  maxWidth: '640px',
+  maxWidth: isMobile.value ? '100%' : '960px',
   width: '100%',
   padding: isMobile.value ? '16px' : '64px 0',
 }));
@@ -229,6 +229,18 @@ async function handleSubmit() {
 @media (min-width: 1024px) {
   .form-card {
     padding: 32px;
+  }
+}
+@media (max-width: 1023px) {
+  .submit-section {
+    position: sticky;
+    bottom: 0;
+    background: var(--oa-surface, #FFFFFF);
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    border-radius: 0 0 8px 8px;
   }
 }
 </style>
