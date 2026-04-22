@@ -1,5 +1,82 @@
 <template>
-  <q-card flat bordered class="dynamic-table-fill q-mb-sm">
+  <!-- Mobile: card layout -->
+  <template v-if="isMobile">
+    <q-card flat bordered class="dynamic-table-fill q-mb-sm">
+      <div class="table-label">{{ label }}</div>
+      <div v-for="(row, rowIdx) in rows" :key="rowIdx" class="card-row">
+        <q-expansion-item
+          v-model="expandedStates[rowIdx]"
+          expand-separator
+          dense
+        >
+          <template #header>
+            <q-item-section>第 {{ rowIdx + 1 }} 行</q-item-section>
+            <q-item-section side>
+              <q-btn
+                flat dense round
+                icon="delete_outline"
+                size="xs"
+                color="negative"
+                :aria-label="`删除第 ${rowIdx + 1} 行`"
+                @click.stop="removeRow(rowIdx)"
+              />
+            </q-item-section>
+          </template>
+          <q-card-section class="card-fields">
+            <div v-for="col in columns" :key="col.key" class="card-field">
+              <div class="card-field-label">{{ col.label }}</div>
+              <!-- text -->
+              <q-input v-if="col.type === 'text'"
+                :model-value="row[col.key]"
+                @update:model-value="updateCell(rowIdx, col.key, $event)"
+                outlined dense hide-bottom-space />
+              <!-- phone -->
+              <q-input v-else-if="col.type === 'phone'"
+                :model-value="row[col.key]"
+                @update:model-value="updateCell(rowIdx, col.key, $event)"
+                outlined dense type="tel" mask="###########"
+                hide-bottom-space />
+              <!-- date -->
+              <q-input v-else-if="col.type === 'date'"
+                :model-value="row[col.key]"
+                @update:model-value="updateCell(rowIdx, col.key, $event)"
+                outlined dense readonly placeholder="选择日期"
+                hide-bottom-space>
+                <template #append>
+                  <q-icon name="calendar_today" class="cursor-pointer" size="xs">
+                    <q-popup-proxy cover transition-show="scale"
+                      transition-hide="scale">
+                      <q-date :model-value="row[col.key]"
+                        @update:model-value="updateCell(rowIdx, col.key, $event)"
+                        mask="YYYY-MM-DD" />
+                    </q-popup-proxy>
+                  </q-icon>
+                </template>
+              </q-input>
+              <!-- radio -->
+              <q-select v-else-if="col.type === 'radio'"
+                :model-value="row[col.key]"
+                @update:model-value="updateCell(rowIdx, col.key, $event)"
+                :options="col.options ?? []"
+                outlined dense emit-value map-options hide-bottom-space />
+              <!-- checkbox -->
+              <q-select v-else-if="col.type === 'checkbox'"
+                :model-value="row[col.key] ?? []"
+                @update:model-value="updateCell(rowIdx, col.key, $event)"
+                :options="col.options ?? []"
+                outlined dense multiple emit-value map-options
+                hide-bottom-space />
+            </div>
+          </q-card-section>
+        </q-expansion-item>
+      </div>
+      <q-btn flat dense icon="add" label="添加行" color="primary"
+        class="add-row-btn" @click="addRow" />
+    </q-card>
+  </template>
+  <!-- Desktop: table layout -->
+  <template v-else>
+    <q-card flat bordered class="dynamic-table-fill q-mb-sm">
     <div class="table-label">{{ label }}</div>
     <div class="table-wrapper">
       <table class="fill-table">
@@ -121,11 +198,13 @@
       @click="addRow"
     />
   </q-card>
+  </template>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { createEmptyRow, type TableColumn } from './dynamicTableUtils';
+import { useResponsive } from 'src/composables/useResponsive';
 
 const props = defineProps<{
   label: string;
@@ -138,6 +217,16 @@ const emit = defineEmits<{
 }>();
 
 const rows = ref<Record<string, any>[]>([]);
+
+const { isMobile } = useResponsive();
+
+const expandedStates = ref<boolean[]>([]);
+watch(() => rows.value.length, (newLen) => {
+  while (expandedStates.value.length < newLen) {
+    expandedStates.value.push(true);
+  }
+  expandedStates.value.length = newLen;
+}, { immediate: true });
 
 onMounted(() => {
   if (props.modelValue && props.modelValue.length > 0) {
@@ -228,5 +317,27 @@ function emitUpdate() {
   width: 100%;
   padding: 8px;
   border-top: 1px solid var(--oa-border);
+}
+.card-row {
+  border-bottom: 1px solid var(--oa-border);
+}
+.card-row:last-of-type {
+  border-bottom: none;
+}
+.card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.card-field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--oa-text-secondary);
+  margin-bottom: 4px;
+}
+@media (max-width: 1023px) {
+  .card-fields :deep(.q-field__control) {
+    min-height: 44px;
+  }
 }
 </style>
