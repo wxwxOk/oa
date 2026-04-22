@@ -13,7 +13,12 @@
     </div>
 
     <!-- 打印区域 -->
-    <div id="print-area" class="detail-body">
+    <div
+      id="print-area"
+      class="detail-body"
+      :data-form-title="templateName"
+      :data-submit-time="formatDate(submission.createdAt)"
+    >
       <!-- 打印表头 -->
       <div class="print-header" style="text-align: center; margin-bottom: 16px">
         <div style="font-size: 16pt; font-weight: 600">{{ templateName }}</div>

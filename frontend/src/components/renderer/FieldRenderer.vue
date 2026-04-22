@@ -8,7 +8,7 @@
     <!-- Print mode: plain text -->
     <template v-if="mode === 'print'">
       <template v-if="field.type === 'signature'">
-        <img v-if="modelValue" :src="modelValue" style="max-height: 80px; object-fit: contain" />
+        <img v-if="modelValue" :src="modelValue" style="max-height: 80px; object-fit: contain; border: 1px solid #000" />
         <span v-else class="print-value empty">—</span>
       </template>
       <template v-else-if="field.type === 'checkbox'">

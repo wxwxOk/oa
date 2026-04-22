@@ -1,3 +1,91 @@
+/* ===== v2 grid form print styles (PDF export + browser print shared) ===== */
+
+#print-area {
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Heiti SC', 'Source Han Sans SC', sans-serif;
+}
+
+.print-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.print-cell {
+  border: 1px solid #000;
+  padding: 8px;
+  vertical-align: top;
+}
+
+.print-cell.empty-cell {
+  /* preserve border for empty cells */
+}
+
+.group-print {
+  margin-bottom: 0;
+}
+
+.group-print .group-header {
+  background: #f5f5f5;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border: 1px solid #000;
+}
+
+.group-print .group-body {
+  border: 1px solid #000;
+  border-top: none;
+  padding: 0;
+}
+
+.group-print .print-grid-table {
+  border: none;
+}
+.group-print .print-grid-table .print-cell:first-child {
+  border-left: none;
+}
+.group-print .print-grid-table .print-cell:last-child {
+  border-right: none;
+}
+.group-print .print-grid-table tr:last-child .print-cell {
+  border-bottom: none;
+}
+
+#print-area .print-cell .field-label {
+  font-size: 12px;
+  color: #333;
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+#print-area .print-cell .print-value {
+  font-size: 14px;
+  color: #000;
+}
+#print-area .print-cell .print-value.empty {
+  color: #999;
+}
+
+#print-area .print-cell img {
+  max-height: 80px;
+  border: 1px solid #000;
+  object-fit: contain;
+}
+
+#print-area .q-card {
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+#print-area .q-card--bordered {
+  border: none !important;
+}
+#print-area .q-separator {
+  display: none !important;
+}
+
+.dynamic-table-print-wrapper {
+  margin: 0;
+}
+
 @media print {
   /* 打印克隆区域 */
   #print-clone {
@@ -56,6 +144,37 @@
   .print-table th {
     font-weight: 600;
     background: #f5f5f5;
+  }
+
+  /* v2 grid table */
+  .print-grid-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .print-cell {
+    border: 1px solid #000;
+    padding: 8px;
+    vertical-align: top;
+  }
+
+  /* group print */
+  .group-print .group-header {
+    background: #f5f5f5;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border: 1px solid #000;
+  }
+  .group-print .group-body {
+    border: 1px solid #000;
+    border-top: none;
+  }
+
+  /* Quasar reset */
+  #print-area .q-card {
+    box-shadow: none !important;
+    border-radius: 0 !important;
   }
 
   /* 页面设置 */
