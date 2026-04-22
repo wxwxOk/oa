@@ -135,6 +135,7 @@ import { useTemplateStore } from 'src/stores/template';
 import type { SchemaV2, SchemaGroup, SchemaDynamicTable, DynamicTableColumnType } from 'src/types/schema';
 import { remainingCols } from './composables/gridUtils';
 import { FIELD_TYPES } from './fieldRegistry';
+import { uuid } from 'src/utils/uuid';
 
 const store = useTemplateStore();
 
@@ -208,7 +209,7 @@ function addColumn() {
   if (!table) return;
   const n = table.columns.length + 1;
   table.columns.push({
-    key: crypto.randomUUID(),
+    key: uuid(),
     label: `列 ${n}`,
     type: 'text' as DynamicTableColumnType,
   });

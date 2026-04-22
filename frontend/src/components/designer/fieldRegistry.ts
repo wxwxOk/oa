@@ -1,4 +1,5 @@
 import type { FieldType, SchemaField, SchemaGroup, SchemaDynamicTable, DynamicTableColumnType } from 'src/types/schema';
+import { uuid } from 'src/utils/uuid';
 
 export interface FieldTypeDef {
   type: FieldType;
@@ -38,7 +39,7 @@ export const structureItems: StructureItemDef[] = [
     icon: 'folder_open',
     create: (): SchemaGroup => ({
       type: 'group',
-      id: crypto.randomUUID(),
+      id: uuid(),
       title: '分组标题',
       rows: [],
     }),
@@ -49,12 +50,12 @@ export const structureItems: StructureItemDef[] = [
     icon: 'table_chart',
     create: (): SchemaDynamicTable => ({
       type: 'dynamic-table',
-      id: crypto.randomUUID(),
+      id: uuid(),
       label: '动态表格',
       colSpan: 12,
       columns: [
-        { key: crypto.randomUUID(), label: '列 1', type: 'text' as DynamicTableColumnType },
-        { key: crypto.randomUUID(), label: '列 2', type: 'text' as DynamicTableColumnType },
+        { key: uuid(), label: '列 1', type: 'text' as DynamicTableColumnType },
+        { key: uuid(), label: '列 2', type: 'text' as DynamicTableColumnType },
       ],
     }),
   },

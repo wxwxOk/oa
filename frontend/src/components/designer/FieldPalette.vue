@@ -46,6 +46,7 @@ import { ref } from 'vue';
 import { useDraggable } from 'vue-draggable-plus';
 import { FIELD_GROUPS, structureItems, type FieldTypeDef, type StructureItemDef } from './fieldRegistry';
 import type { SchemaField } from 'src/types/schema';
+import { uuid } from 'src/utils/uuid';
 
 const GROUP_NAME = 'fields';
 
@@ -59,7 +60,7 @@ const structureList = ref([...structureItems]);
 
 function cloneField(item: FieldTypeDef): SchemaField {
   return {
-    id: crypto.randomUUID(),
+    id: uuid(),
     type: item.type,
     label: item.label,
     required: false,
