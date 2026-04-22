@@ -120,15 +120,13 @@ export function computePageSlices(
 
     if (best && best.y * scale > currentY) {
       const cutY = best.y * scale;
-      const remaining = totalHeight - cutY;
 
-      // If remaining content fits in one page, extend this slice to the end
-      if (remaining > 0 && remaining <= pageContentHeight) {
+      // If ALL remaining content from currentY fits in one page, no need to break
+      if (totalHeight - currentY <= pageContentHeight) {
         slices.push({ startY: currentY, endY: totalHeight, needsTableHeader: false });
         break;
       }
 
-      const needsTableHeader = best.isTableInternal;
       slices.push({
         startY: currentY,
         endY: cutY,
@@ -160,6 +158,32 @@ export function computePageSlices(
 }
 
 /**
+ * Render text to a canvas image (supports CJK via browser font engine).
+ */
+function textToImageData(
+  text: string,
+  fontSize: number,
+  color: string,
+  align: CanvasTextAlign,
+  widthPx: number,
+): string {
+  const dpr = 3;
+  const h = fontSize + 6;
+  const c = document.createElement('canvas');
+  c.width = widthPx * dpr;
+  c.height = h * dpr;
+  const ctx = c.getContext('2d')!;
+  ctx.scale(dpr, dpr);
+  ctx.font = `${fontSize}px "PingFang SC","Microsoft YaHei","Heiti SC",sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = align;
+  const x = align === 'center' ? widthPx / 2 : align === 'right' ? widthPx : 0;
+  ctx.fillText(text, x, h / 2);
+  return c.toDataURL('image/png');
+}
+
+/**
  * Inject header (form title) and footer (submit time + page number) on every page.
  */
 export function injectHeaderFooter(
@@ -168,21 +192,30 @@ export function injectHeaderFooter(
   submitTime: string,
 ): void {
   const pageWidth = pdf.internal.pageSize.getWidth();
+  const contentWidth = pageWidth - MARGIN * 2;
   const totalPages = pdf.internal.getNumberOfPages();
+  const textWidthPx = contentWidth * MM_TO_PX;
+  const textH = 4; // mm height for text image
 
   for (let i = 1; i <= totalPages; i++) {
     pdf.setPage(i);
-    pdf.setFontSize(10);
-    pdf.setTextColor(102, 102, 102);
 
     // Header: centered form title
-    pdf.text(formTitle, pageWidth / 2, HEADER_Y, { align: 'center' });
+    if (formTitle) {
+      const headerImg = textToImageData(formTitle, 10, '#666666', 'center', textWidthPx);
+      pdf.addImage(headerImg, 'PNG', MARGIN, HEADER_Y - 1, contentWidth, textH);
+    }
 
     // Footer left: submit time
-    pdf.text(submitTime, MARGIN, FOOTER_Y);
+    if (submitTime) {
+      const footerLeftImg = textToImageData(submitTime, 9, '#666666', 'left', textWidthPx);
+      pdf.addImage(footerLeftImg, 'PNG', MARGIN, FOOTER_Y - 2, contentWidth, textH);
+    }
 
     // Footer right: page number
-    pdf.text(`${i} / ${totalPages}`, pageWidth - MARGIN, FOOTER_Y, { align: 'right' });
+    const pageText = `${i} / ${totalPages}`;
+    const footerRightImg = textToImageData(pageText, 9, '#666666', 'right', textWidthPx);
+    pdf.addImage(footerRightImg, 'PNG', MARGIN, FOOTER_Y - 2, contentWidth, textH);
   }
 }
 
@@ -241,12 +274,23 @@ function renderPageSlice(
 
 // --- Public API (signatures unchanged per D-03) ---
 
+const A4_CONTENT_WIDTH_PX = Math.round((210 - MARGIN * 2) * MM_TO_PX); // ~680px
+
 export async function exportToPdf(
   element: HTMLElement,
   filename: string,
 ): Promise<void> {
   const formTitle = element.getAttribute('data-form-title') || '';
   const submitTime = element.getAttribute('data-submit-time') || '';
+
+  // Lock element width to A4 content width to prevent scaling distortion
+  const origWidth = element.style.width;
+  const origMaxWidth = element.style.maxWidth;
+  element.style.width = `${A4_CONTENT_WIDTH_PX}px`;
+  element.style.maxWidth = `${A4_CONTENT_WIDTH_PX}px`;
+
+  // Wait for reflow
+  await new Promise(r => setTimeout(r, 50));
 
   const breakpoints = collectBreakpoints(element);
 
@@ -263,6 +307,10 @@ export async function exportToPdf(
     logging: false,
     backgroundColor: '#ffffff',
   });
+
+  // Restore original width
+  element.style.width = origWidth;
+  element.style.maxWidth = origMaxWidth;
 
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -309,6 +357,13 @@ export async function exportBatchToPdf(
     const formTitle = element.getAttribute('data-form-title') || '';
     const submitTime = element.getAttribute('data-submit-time') || '';
 
+    // Lock width for consistent A4 rendering
+    const origW = element.style.width;
+    const origMW = element.style.maxWidth;
+    element.style.width = `${A4_CONTENT_WIDTH_PX}px`;
+    element.style.maxWidth = `${A4_CONTENT_WIDTH_PX}px`;
+    await new Promise(r => setTimeout(r, 50));
+
     const breakpoints = collectBreakpoints(element);
 
     const canvas = await html2canvas(element, {
@@ -317,6 +372,9 @@ export async function exportBatchToPdf(
       logging: false,
       backgroundColor: '#ffffff',
     });
+
+    element.style.width = origW;
+    element.style.maxWidth = origMW;
 
     const imgHeight = (canvas.height * contentWidth) / canvas.width;
 

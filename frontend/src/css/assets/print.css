@@ -1,4 +1,6 @@
 /* 打印样式 */
+@import '../../assets/print.css';
+
 @media print {
   .q-header,
   .q-drawer,

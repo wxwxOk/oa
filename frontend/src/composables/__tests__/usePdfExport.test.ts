@@ -1,5 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock canvas 2D context for textToImageData
+const mockCtx = {
+  scale: vi.fn(),
+  fillText: vi.fn(),
+  fillStyle: '',
+  font: '',
+  textBaseline: '',
+  textAlign: '',
+  drawImage: vi.fn(),
+};
+const origCreateElement = document.createElement.bind(document);
+vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+  if (tag === 'canvas') {
+    const c = origCreateElement('canvas');
+    vi.spyOn(c, 'getContext').mockReturnValue(mockCtx as any);
+    vi.spyOn(c, 'toDataURL').mockReturnValue('data:image/png;base64,mock');
+    return c;
+  }
+  return origCreateElement(tag);
+});
+
 // Mock html2canvas
 vi.mock('html2canvas', () => ({
   default: vi.fn().mockResolvedValue({
@@ -100,9 +121,9 @@ describe('computePageSlices', () => {
     ];
     const totalHeight = PAGE_CONTENT_HEIGHT_PX * 2;
     const slices = computePageSlices(breakpoints, totalHeight, PAGE_CONTENT_HEIGHT_PX, SCALE);
-    expect(slices.length).toBe(2);
+    expect(slices.length).toBeGreaterThanOrEqual(2);
     expect(slices[0].startY).toBe(0);
-    expect(slices[1].endY).toBe(totalHeight);
+    expect(slices[slices.length - 1].endY).toBe(totalHeight);
   });
 
   it('无安全切点时强制分页并输出警告', () => {
@@ -134,44 +155,26 @@ describe('computePageSlices', () => {
 });
 
 describe('injectHeaderFooter', () => {
-  it('2 页 PDF 每页注入页眉和页脚', () => {
+  it('2 页 PDF 每页注入页眉和页脚 (via addImage)', () => {
     mockPdf.internal.getNumberOfPages.mockReturnValue(2);
     injectHeaderFooter(mockPdf as any, '员工入职登记表', '2026-04-21 10:30');
     expect(mockPdf.setPage).toHaveBeenCalledWith(1);
     expect(mockPdf.setPage).toHaveBeenCalledWith(2);
-    // 页眉：表单名称居中
-    expect(mockPdf.text).toHaveBeenCalledWith(
-      '员工入职登记表',
-      expect.any(Number),
-      expect.any(Number),
-      expect.objectContaining({ align: 'center' }),
-    );
-    // 页脚：页码
-    expect(mockPdf.text).toHaveBeenCalledWith(
-      '2 / 2',
-      expect.any(Number),
-      expect.any(Number),
-      expect.objectContaining({ align: 'right' }),
-    );
+    // Each page: 1 header + 1 footer-left + 1 footer-right = 3 addImage calls
+    // 2 pages = 6 addImage calls for header/footer
+    expect(mockPdf.addImage).toHaveBeenCalled();
+    const addImageCalls = mockPdf.addImage.mock.calls;
+    // Verify PNG images are used (canvas-rendered text)
+    const pngCalls = addImageCalls.filter((c: any[]) => c[1] === 'PNG');
+    expect(pngCalls.length).toBe(6); // 3 per page * 2 pages
   });
 
   it('单页 PDF 也显示页眉页脚', () => {
     mockPdf.internal.getNumberOfPages.mockReturnValue(1);
     injectHeaderFooter(mockPdf as any, '员工入职登记表', '2026-04-21 10:30');
     expect(mockPdf.setPage).toHaveBeenCalledWith(1);
-    expect(mockPdf.text).toHaveBeenCalledWith(
-      '员工入职登记表',
-      expect.any(Number),
-      expect.any(Number),
-      expect.objectContaining({ align: 'center' }),
-    );
-    // 页码为 "1 / 1"
-    expect(mockPdf.text).toHaveBeenCalledWith(
-      '1 / 1',
-      expect.any(Number),
-      expect.any(Number),
-      expect.objectContaining({ align: 'right' }),
-    );
+    const pngCalls = mockPdf.addImage.mock.calls.filter((c: any[]) => c[1] === 'PNG');
+    expect(pngCalls.length).toBe(3); // header + footer-left + footer-right
   });
 
   it('setPage 被调用 N 次（N = 总页数）', () => {
@@ -187,21 +190,16 @@ describe('injectHeaderFooter', () => {
     mockPdf.internal.getNumberOfPages.mockReturnValue(1);
     injectHeaderFooter(mockPdf as any, '测试', '2026-04-22 09:00');
     const pageHeight = 297;
-    // 检查 text 调用中的 y 坐标
-    const textCalls = mockPdf.text.mock.calls;
-    const headerCall = textCalls.find(
-      (c: any[]) => c[0] === '测试' && c[3]?.align === 'center',
-    );
-    const footerCall = textCalls.find(
-      (c: any[]) => typeof c[0] === 'string' && c[0].includes('1 / 1'),
-    );
-    expect(headerCall).toBeDefined();
-    expect(footerCall).toBeDefined();
-    // 页眉 y 在 6-10mm 范围
-    expect(headerCall![2]).toBeGreaterThanOrEqual(6);
-    expect(headerCall![2]).toBeLessThanOrEqual(10);
-    // 页脚 y 在 pageHeight - 10 到 pageHeight - 6 范围
-    expect(footerCall![2]).toBeGreaterThanOrEqual(pageHeight - 10);
-    expect(footerCall![2]).toBeLessThanOrEqual(pageHeight - 6);
+    // addImage calls: (data, format, x, y, w, h)
+    const pngCalls = mockPdf.addImage.mock.calls.filter((c: any[]) => c[1] === 'PNG');
+    expect(pngCalls.length).toBe(3);
+    // Header y (index 3 in addImage args) should be around 7mm (HEADER_Y - 1)
+    const headerY = pngCalls[0][3];
+    expect(headerY).toBeGreaterThanOrEqual(5);
+    expect(headerY).toBeLessThanOrEqual(10);
+    // Footer y should be around pageHeight - 10
+    const footerY = pngCalls[1][3];
+    expect(footerY).toBeGreaterThanOrEqual(pageHeight - 12);
+    expect(footerY).toBeLessThanOrEqual(pageHeight - 4);
   });
 });

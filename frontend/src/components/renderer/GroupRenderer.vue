@@ -61,7 +61,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: Record<string, any>];
 }>();
 
-const fieldRefMap = reactive<Record<string, InstanceType<typeof FieldRenderer>>>();
+const fieldRefMap = reactive<Record<string, InstanceType<typeof FieldRenderer>>>({});
 
 function rowRemainder(row: SchemaRow): number {
   const used = row.fields.reduce((sum, f) => sum + f.colSpan, 0);

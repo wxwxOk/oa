@@ -43,7 +43,7 @@
                 v-else
                 :model-value="getGroupEmptyList(idx)"
                 @update:model-value="(val: SchemaField[]) => onGroupEmptyUpdate(idx, val)"
-                :group="{ name: 'fields', pull: false, put: true }"
+                :group="{ name: 'fields', pull: false, put: ['fields'] }"
                 class="group-empty-state"
                 @add="() => onGroupEmptyDrop(idx)"
               >
@@ -179,7 +179,7 @@ function onGroupEmptyDrop(idx: number) {
 // 底部放置区（创建新行）
 const bottomDropList = ref<SchemaField[]>([]);
 useDraggable(bottomDropRef, bottomDropList, {
-  group: { name: 'fields', pull: false, put: true },
+  group: { name: 'fields', pull: false, put: ['fields'] },
   animation: 150,
   onAdd: () => {
     const field = bottomDropList.value.splice(0, bottomDropList.value.length)[0];

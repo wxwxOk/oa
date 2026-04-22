@@ -138,7 +138,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: Record<string, any>];
 }>();
 
-const fieldRefMap = reactive<Record<string, InstanceType<typeof FieldRenderer>>>();
+const fieldRefMap = reactive<Record<string, InstanceType<typeof FieldRenderer>>>({});
 const groupRefs: InstanceType<typeof GroupRenderer>[] = [];
 
 function getAllFieldRefs(): Record<string, InstanceType<typeof FieldRenderer>> {
