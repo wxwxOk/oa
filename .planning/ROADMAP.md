@@ -36,7 +36,7 @@
 - [x] **Phase 10: Schema 与核心渲染器** - 新 schema 类型定义 + 统一 GridFormRenderer + 版本分发 (completed 2026-04-21)
 - [x] **Phase 11: 设计器栅格编辑** - DesignerCanvas 重写为 12 列栅格编辑器 + 拖拽/调整跨列 (completed 2026-04-21)
 - [x] **Phase 12: 分组与动态行表格** - 分组区块 + 动态行表格的设计器/填写/打印三模式 (completed 2026-04-21)
-- [ ] **Phase 13: PDF 保真输出** - print 模式 table 转换 + 智能分页 + 页眉页脚 + 中文字体栈
+- [x] **Phase 13: PDF 保真输出** - print 模式 table 转换 + 智能分页 + 页眉页脚 + 中文字体栈 (completed 2026-04-22)
 - [ ] **Phase 14: 响应式填写页** - PC 端栅格还原 + 移动端自动单列 + 动态表格卡片布局
 
 ## Phase Details
@@ -98,7 +98,7 @@ Plans:
   1. PDF 导出的栅格布局与填写页一致（字段对齐、跨列宽度、分组标题、表格边框）
   2. PDF 正确处理分页，分组和表格行不被截断
   3. PDF 中文字体正常显示，无乱码或方块字
-**Plans:** 3/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 13-01-PLAN.md — print 模式 table 转换 + 纸质表格 CSS + 中文字体栈
 - [x] 13-02-PLAN.md — 分页算法纯函数 TDD 测试（Wave 0）
@@ -126,5 +126,5 @@ Plans:
 | 10. Schema 与核心渲染器 | v1.2 | 4/4 | Complete    | 2026-04-21 |
 | 11. 设计器栅格编辑 | v1.2 | 3/3 | Complete   | 2026-04-21 |
 | 12. 分组与动态行表格 | v1.2 | 4/4 | Complete   | 2026-04-21 |
-| 13. PDF 保真输出 | v1.2 | 3/3 | In Progress|  |
+| 13. PDF 保真输出 | v1.2 | 3/3 | Complete    | 2026-04-22 |
 | 14. 响应式填写页 | v1.2 | 0/? | Not started | - |
