@@ -30,17 +30,26 @@
     <q-drawer v-if="isDesktop" v-model="drawerOpen" show-if-above bordered :width="220">
       <q-list>
         <q-item-label header>导航</q-item-label>
-        <q-item
-          v-for="m in visibleMenus"
-          :key="m.path"
-          clickable
-          v-ripple
-          :to="m.path"
-          active-class="text-primary"
-        >
-          <q-item-section avatar><q-icon :name="m.icon" /></q-item-section>
-          <q-item-section>{{ m.title }}</q-item-section>
-        </q-item>
+        <template v-for="m in visibleMenus" :key="m.path ?? m.title">
+          <q-expansion-item v-if="m.children" :icon="m.icon" :label="m.title" default-opened>
+            <q-item
+              v-for="child in m.children"
+              :key="child.path"
+              clickable
+              v-ripple
+              :to="child.path"
+              active-class="text-primary"
+              class="q-pl-xl"
+            >
+              <q-item-section avatar><q-icon :name="child.icon" /></q-item-section>
+              <q-item-section>{{ child.title }}</q-item-section>
+            </q-item>
+          </q-expansion-item>
+          <q-item v-else clickable v-ripple :to="m.path" active-class="text-primary">
+            <q-item-section avatar><q-icon :name="m.icon" /></q-item-section>
+            <q-item-section>{{ m.title }}</q-item-section>
+          </q-item>
+        </template>
       </q-list>
     </q-drawer>
 
@@ -48,18 +57,34 @@
     <q-drawer v-if="isMobile" v-model="mobileDrawerOpen" overlay bordered :width="280">
       <q-list>
         <q-item-label header>导航</q-item-label>
-        <q-item
-          v-for="m in visibleMenus"
-          :key="m.path"
-          clickable
-          v-ripple
-          :to="m.path"
-          active-class="text-primary"
-          @click="mobileDrawerOpen = false"
-        >
-          <q-item-section avatar><q-icon :name="m.icon" /></q-item-section>
-          <q-item-section>{{ m.title }}</q-item-section>
-        </q-item>
+        <template v-for="m in visibleMenus" :key="m.path ?? m.title">
+          <q-expansion-item v-if="m.children" :icon="m.icon" :label="m.title" default-opened>
+            <q-item
+              v-for="child in m.children"
+              :key="child.path"
+              clickable
+              v-ripple
+              :to="child.path"
+              active-class="text-primary"
+              class="q-pl-xl"
+              @click="mobileDrawerOpen = false"
+            >
+              <q-item-section avatar><q-icon :name="child.icon" /></q-item-section>
+              <q-item-section>{{ child.title }}</q-item-section>
+            </q-item>
+          </q-expansion-item>
+          <q-item
+            v-else
+            clickable
+            v-ripple
+            :to="m.path"
+            active-class="text-primary"
+            @click="mobileDrawerOpen = false"
+          >
+            <q-item-section avatar><q-icon :name="m.icon" /></q-item-section>
+            <q-item-section>{{ m.title }}</q-item-section>
+          </q-item>
+        </template>
       </q-list>
       <q-space />
       <div style="border-top: 1px solid var(--oa-border)" class="q-pa-md">
@@ -99,7 +124,7 @@
         align="justify"
         @update:model-value="onTab"
       >
-        <q-tab v-for="m in visibleMenus" :key="m.path" :name="m.path" :icon="m.icon" :label="m.title" />
+        <q-tab v-for="m in flattenedVisibleMenus" :key="m.path" :name="m.path" :icon="m.icon" :label="m.title" />
       </q-tabs>
     </q-footer>
   </q-layout>
@@ -120,15 +145,51 @@ const router = useRouter();
 const route = useRoute();
 const auth = useAuthStore();
 
-const allMenus = [
+interface MenuConfig {
+  path?: string;
+  title: string;
+  icon: string;
+  perm?: string;
+  children?: MenuConfig[];
+}
+
+const allMenus: MenuConfig[] = [
   { path: '/dashboard', title: '首页', icon: 'dashboard', perm: '' },
   { path: '/departments', title: '部门', icon: 'account_tree', perm: 'department:list' },
   { path: '/users', title: '用户', icon: 'people', perm: 'user:list' },
   { path: '/roles', title: '角色', icon: 'security', perm: 'role:list' },
-  { path: '/templates', title: '模板管理', icon: 'description', perm: 'form:template:list' },
+  {
+    title: '收集统计表', icon: 'assessment',
+    children: [
+      { path: '/templates', title: '模板管理', icon: 'description', perm: 'form:template:list' },
+      { path: '/share-link-stats', title: '统计表', icon: 'bar_chart', perm: 'form:link-stats:view' },
+    ],
+  },
 ];
 
-const visibleMenus = computed(() => allMenus.filter((m) => !m.perm || auth.hasPerm(m.perm)));
+function filterMenus(menus: MenuConfig[]): MenuConfig[] {
+  return menus.reduce<MenuConfig[]>((acc, m) => {
+    if (m.children) {
+      const children = filterMenus(m.children);
+      if (children.length > 0) acc.push({ ...m, children });
+    } else if (!m.perm || auth.hasPerm(m.perm)) {
+      acc.push(m);
+    }
+    return acc;
+  }, []);
+}
+
+const visibleMenus = computed(() => filterMenus(allMenus));
+
+function flattenMenus(menus: MenuConfig[]): MenuConfig[] {
+  return menus.reduce<MenuConfig[]>((acc, m) => {
+    if (m.children) acc.push(...flattenMenus(m.children));
+    else if (m.path) acc.push(m);
+    return acc;
+  }, []);
+}
+
+const flattenedVisibleMenus = computed(() => flattenMenus(visibleMenus.value));
 
 const activeTab = ref(route.path);
 watch(() => route.path, (p) => (activeTab.value = p));

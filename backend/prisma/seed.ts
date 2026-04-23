@@ -32,6 +32,7 @@ const PERMISSIONS = [
   { code: 'form:template:share', name: '分享模板', module: 'form' },
   { code: 'form:submission:list', name: '查看提交数据', module: 'form' },
   { code: 'form:stats:view', name: '查看表单统计', module: 'form' },
+  { code: 'form:link-stats:view', name: '查看分享链接统计', module: 'form' },
 ];
 
 async function main() {
