@@ -1,18 +1,18 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 
-export interface ShareLinkStatsRow {
+export interface SubmissionStatsRow {
   id: number;
-  code: string;
+  submitterName: string | null;
+  submitterPhone: string | null;
   createdAt: string;
   template: { id: number; name: string };
-  creator: { id: number; realName: string };
-  submissionCount: number;
+  shareLink: { id: number; code: string; creator: { id: number; realName: string } };
 }
 
 export const useShareLinkStatsStore = defineStore('shareLinkStats', {
   state: () => ({
-    rows: [] as ShareLinkStatsRow[],
+    rows: [] as SubmissionStatsRow[],
     total: 0,
     loading: false,
     page: 1,

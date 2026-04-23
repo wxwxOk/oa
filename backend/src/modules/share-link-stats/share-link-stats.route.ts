@@ -10,6 +10,7 @@ export const shareLinkStatsModule = new Elysia({ prefix: '/share-link-stats' })
     const size = Math.min(100, Math.max(1, Number(query.size) || 20));
     const templateName = query.templateName?.trim() || undefined;
     const sharerName = query.sharerName?.trim() || undefined;
+    const submitterName = query.submitterName?.trim() || undefined;
     const dateFrom = query.dateFrom ? new Date(query.dateFrom) : undefined;
     const dateTo = query.dateTo ? new Date(query.dateTo + 'T23:59:59.999Z') : undefined;
 
@@ -19,7 +20,8 @@ export const shareLinkStatsModule = new Elysia({ prefix: '/share-link-stats' })
 
     const where: any = {};
     if (templateName) where.template = { name: { contains: templateName, mode: 'insensitive' } };
-    if (sharerName) where.creator = { realName: { contains: sharerName, mode: 'insensitive' } };
+    if (sharerName) where.shareLink = { creator: { realName: { contains: sharerName, mode: 'insensitive' } } };
+    if (submitterName) where.submitterName = { contains: submitterName, mode: 'insensitive' };
     if (dateFrom || dateTo) {
       where.createdAt = {
         ...(dateFrom && { gte: dateFrom }),
@@ -28,27 +30,24 @@ export const shareLinkStatsModule = new Elysia({ prefix: '/share-link-stats' })
     }
 
     const [rows, total] = await Promise.all([
-      prisma.shareLink.findMany({
+      prisma.submission.findMany({
         where,
         include: {
           template: { select: { id: true, name: true } },
-          creator: { select: { id: true, realName: true } },
-          _count: { select: { submissions: true } },
+          shareLink: {
+            select: {
+              id: true,
+              code: true,
+              creator: { select: { id: true, realName: true } },
+            },
+          },
         },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: (page - 1) * size,
         take: size,
       }),
-      prisma.shareLink.count({ where }),
+      prisma.submission.count({ where }),
     ]);
 
-    return {
-      rows: rows.map(({ _count, ...rest }) => ({
-        ...rest,
-        submissionCount: _count.submissions,
-      })),
-      total,
-      page,
-      size,
-    };
+    return { rows, total, page, size };
   });

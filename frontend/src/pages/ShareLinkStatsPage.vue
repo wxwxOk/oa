@@ -7,7 +7,8 @@
     <!-- 筛选栏（PC） -->
     <div v-if="isDesktop" class="row items-center q-mb-md q-gutter-sm">
       <q-input v-model="filters.templateName" outlined dense label="模板名称" style="width: 160px" @keyup.enter="load(1)" clearable />
-      <q-input v-model="filters.sharerName" outlined dense label="分享人" style="width: 160px" @keyup.enter="load(1)" clearable />
+      <q-input v-model="filters.submitterName" outlined dense label="提交人" style="width: 140px" @keyup.enter="load(1)" clearable />
+      <q-input v-model="filters.sharerName" outlined dense label="分享人" style="width: 140px" @keyup.enter="load(1)" clearable />
       <q-input v-model="filters.dateFrom" outlined dense label="开始日期" style="width: 150px">
         <template #append>
           <q-icon name="event" class="cursor-pointer">
@@ -33,7 +34,7 @@
     </div>
 
     <!-- 空状态 -->
-    <EmptyState v-else-if="store.rows.length === 0 && !store.loading" icon="bar_chart" title="暂无统计数据" description="还没有分享链接记录" />
+    <EmptyState v-else-if="store.rows.length === 0 && !store.loading" icon="bar_chart" title="暂无提交数据" description="还没有收到任何表单提交" />
 
     <!-- QTable（PC） -->
     <q-table
@@ -53,11 +54,14 @@
       <template #body-cell-templateName="props">
         <q-td :props="props">{{ props.row.template?.name || '—' }}</q-td>
       </template>
-      <template #body-cell-code="props">
-        <q-td :props="props"><code>{{ props.row.code }}</code></q-td>
+      <template #body-cell-submitterName="props">
+        <q-td :props="props">{{ props.row.submitterName || '匿名' }}</q-td>
       </template>
       <template #body-cell-sharerName="props">
-        <q-td :props="props">{{ props.row.creator?.realName || '—' }}</q-td>
+        <q-td :props="props">{{ props.row.shareLink?.creator?.realName || '—' }}</q-td>
+      </template>
+      <template #body-cell-shareCode="props">
+        <q-td :props="props"><code>{{ props.row.shareLink?.code || '—' }}</code></q-td>
       </template>
       <template #body-cell-createdAt="props">
         <q-td :props="props">{{ formatDate(props.row.createdAt) }}</q-td>
@@ -68,17 +72,13 @@
     <div v-else-if="!firstLoading && store.rows.length > 0" class="q-gutter-sm">
       <q-card v-for="row in store.rows" :key="row.id" flat bordered>
         <q-card-section>
-          <div class="row items-center">
-            <div class="text-subtitle1">{{ row.template?.name || '—' }}</div>
-            <q-space />
-            <q-badge color="primary">{{ row.submissionCount }} 条提交</q-badge>
-          </div>
-          <div class="text-caption q-mt-xs">分享人：{{ row.creator?.realName || '—' }}</div>
-          <div class="text-caption">分享码：{{ row.code }}</div>
+          <div class="text-subtitle1">{{ row.template?.name || '—' }}</div>
+          <div class="text-caption q-mt-xs">提交人：{{ row.submitterName || '匿名' }}</div>
+          <div class="text-caption">分享人：{{ row.shareLink?.creator?.realName || '—' }}</div>
+          <div class="text-caption">分享码：{{ row.shareLink?.code || '—' }}</div>
           <div class="text-caption">{{ formatDate(row.createdAt) }}</div>
         </q-card-section>
       </q-card>
-      <!-- 移动端加载更多 -->
       <div v-if="store.rows.length < store.total" class="row justify-center q-mt-md">
         <q-btn flat label="加载更多" :loading="store.loading" @click="loadMore" />
       </div>
@@ -96,17 +96,27 @@ const store = useShareLinkStatsStore();
 const { isDesktop } = useResponsive();
 
 const firstLoading = ref(true);
-const filters = reactive({ templateName: '', sharerName: '', dateFrom: '', dateTo: '' });
+const filters = reactive({ templateName: '', submitterName: '', sharerName: '', dateFrom: '', dateTo: '' });
 const pagination = ref({ page: 1, rowsPerPage: 20, rowsNumber: 0 });
 
 const columns = [
   { name: 'index', label: '序号', field: 'id', align: 'center' as const, style: 'width:60px' },
   { name: 'templateName', label: '模板名称', field: 'id', align: 'left' as const },
-  { name: 'code', label: '分享码', field: 'code', align: 'left' as const },
+  { name: 'submitterName', label: '提交人', field: 'submitterName', align: 'left' as const },
   { name: 'sharerName', label: '分享人', field: 'id', align: 'left' as const },
-  { name: 'submissionCount', label: '提交数量', field: 'submissionCount', align: 'center' as const },
-  { name: 'createdAt', label: '分享时间', field: 'createdAt', align: 'left' as const },
+  { name: 'shareCode', label: '分享码', field: 'id', align: 'left' as const },
+  { name: 'createdAt', label: '提交时间', field: 'createdAt', align: 'left' as const },
 ];
+
+function getFilterParams() {
+  const params: Record<string, any> = {};
+  if (filters.templateName) params.templateName = filters.templateName;
+  if (filters.submitterName) params.submitterName = filters.submitterName;
+  if (filters.sharerName) params.sharerName = filters.sharerName;
+  if (filters.dateFrom) params.dateFrom = filters.dateFrom;
+  if (filters.dateTo) params.dateTo = filters.dateTo;
+  return params;
+}
 
 async function load(page?: number) {
   if (page !== undefined) {
@@ -114,15 +124,8 @@ async function load(page?: number) {
     store.page = page;
   }
   store.size = pagination.value.rowsPerPage;
-
-  const params: Record<string, any> = {};
-  if (filters.templateName) params.templateName = filters.templateName;
-  if (filters.sharerName) params.sharerName = filters.sharerName;
-  if (filters.dateFrom) params.dateFrom = filters.dateFrom;
-  if (filters.dateTo) params.dateTo = filters.dateTo;
-
   try {
-    await store.fetchList(params);
+    await store.fetchList(getFilterParams());
     pagination.value.rowsNumber = store.total;
   } finally {
     firstLoading.value = false;
@@ -138,22 +141,14 @@ function onReq(props: any) {
 }
 
 function resetFilters() {
-  filters.templateName = '';
-  filters.sharerName = '';
-  filters.dateFrom = '';
-  filters.dateTo = '';
+  Object.assign(filters, { templateName: '', submitterName: '', sharerName: '', dateFrom: '', dateTo: '' });
   load(1);
 }
 
 function loadMore() {
   pagination.value.page++;
   store.page = pagination.value.page;
-  store.fetchList({
-    ...(filters.templateName && { templateName: filters.templateName }),
-    ...(filters.sharerName && { sharerName: filters.sharerName }),
-    ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
-    ...(filters.dateTo && { dateTo: filters.dateTo }),
-  });
+  store.fetchList(getFilterParams());
 }
 
 function formatDate(dateStr: string) {
