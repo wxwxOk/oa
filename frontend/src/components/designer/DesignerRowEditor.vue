@@ -218,7 +218,12 @@ function deleteRow(rowIdx: number) {
   flex-shrink: 0;
 }
 .field-drag-handle:active { cursor: grabbing; }
-.field-preview { flex: 1; min-width: 0; pointer-events: none; }
+.field-preview { flex: 1; min-width: 0; }
+.field-preview :deep(.q-field),
+.field-preview :deep(.q-option-group),
+.field-preview :deep(.signature-placeholder) {
+  pointer-events: none;
+}
 .field-delete-btn { flex-shrink: 0; }
 .row-remainder {
   display: flex;

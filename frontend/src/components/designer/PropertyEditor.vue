@@ -107,6 +107,16 @@
           dense
         />
 
+        <q-input
+          :model-value="field.remark ?? ''"
+          @update:model-value="updateRemark"
+          label="备注"
+          type="textarea"
+          outlined
+          dense
+          autogrow
+        />
+
         <template v-if="field.type === 'radio' || field.type === 'checkbox'">
           <div style="font-size: 14px; color: var(--oa-text-secondary)" class="q-mt-sm">选项</div>
           <div v-for="(opt, idx) in field.options" :key="idx" class="row items-center no-wrap q-gutter-xs">
@@ -244,6 +254,16 @@ function removeOption(idx: number) {
 function addOption() {
   if (field.value?.options) {
     field.value.options.push(`选项${field.value.options.length + 1}`);
+  }
+}
+
+function updateRemark(v: string | number | null) {
+  if (!field.value) return;
+  const raw = String(v ?? '');
+  if (raw.trim()) {
+    field.value.remark = raw;
+  } else {
+    delete field.value.remark;
   }
 }
 </script>

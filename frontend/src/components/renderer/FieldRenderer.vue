@@ -3,6 +3,20 @@
     <div class="field-label">
       {{ field.label }}
       <span v-if="field.required && mode !== 'print'" class="required-mark">*</span>
+      <q-btn
+        v-if="field.remark?.trim() && mode !== 'print'"
+        flat dense round
+        size="xs"
+        icon="help_outline"
+        class="remark-btn"
+        @click.stop
+      >
+        <q-popup-proxy>
+          <q-card class="remark-card">
+            <q-card-section class="remark-content">{{ field.remark }}</q-card-section>
+          </q-card>
+        </q-popup-proxy>
+      </q-btn>
     </div>
 
     <!-- Print mode: plain text -->
@@ -32,7 +46,7 @@
       <q-input v-else-if="field.type === 'date'" outlined dense disabled placeholder="请选择日期">
         <template #append><q-icon name="calendar_today" /></template>
       </q-input>
-      <div v-else-if="field.type === 'signature'" class="signature-placeholder">签名区域</div>
+      <SignatureField v-else-if="field.type === 'signature'" :preview="true" />
     </template>
 
     <!-- Fill mode: interactive inputs -->
@@ -168,6 +182,9 @@ defineExpose({ validate, saveSignature, sigRef });
 
 <style scoped>
 .field-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
@@ -176,6 +193,17 @@ defineExpose({ validate, saveSignature, sigRef });
 .required-mark {
   color: #DC2626;
 }
+.remark-btn {
+  color: var(--oa-text-tertiary);
+}
+.remark-card {
+  max-width: min(320px, calc(100vw - 32px));
+}
+.remark-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+}
 .print-value {
   font-size: 14px;
   line-height: 1.5;
@@ -183,15 +211,5 @@ defineExpose({ validate, saveSignature, sigRef });
 }
 .print-value.empty {
   color: var(--oa-text-tertiary);
-}
-.signature-placeholder {
-  height: 80px;
-  border: 1px dashed var(--oa-border);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--oa-text-tertiary);
-  font-size: 14px;
 }
 </style>

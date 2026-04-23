@@ -11,6 +11,7 @@ export interface SchemaField {
   colSpan: number;
   placeholder?: string;
   options?: string[];
+  remark?: string;
 }
 
 export interface SchemaRow {

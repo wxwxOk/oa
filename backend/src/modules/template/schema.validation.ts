@@ -18,6 +18,7 @@ const SchemaField = t.Object({
   colSpan: t.Integer({ minimum: 1, maximum: 12 }),
   placeholder: t.Optional(t.String()),
   options: t.Optional(t.Array(t.String())),
+  remark: t.Optional(t.String()),
 });
 
 const SchemaRow = t.Object({
