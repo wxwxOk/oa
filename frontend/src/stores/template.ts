@@ -6,6 +6,14 @@ import { flattenFields } from 'src/types/schema';
 /** @deprecated Use SchemaField from 'src/types/schema' instead */
 export type { SchemaField as FormField } from 'src/types/schema';
 
+export type TemplateBusinessMode = 'COLLECTION_ONLY' | 'APPROVAL_REQUIRED';
+
+export interface TemplateApprovalProcessSummary {
+  id: number;
+  name: string;
+  isActive: boolean;
+}
+
 export interface Template {
   id: number;
   name: string;
@@ -14,10 +22,23 @@ export interface Template {
   schemaVersion: number;
   status: 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
   requireIdentity: boolean;
+  businessMode: TemplateBusinessMode;
+  approvalProcessId: number | null;
+  approvalProcess?: TemplateApprovalProcessSummary | null;
   creatorId: number;
   creator: { id: number; realName: string };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TemplateUpdatePayload {
+  name?: string;
+  description?: string;
+  schema?: SchemaV2;
+  requireIdentity?: boolean;
+  businessMode?: TemplateBusinessMode;
+  approvalProcessId?: number | null;
+  disconnectPublicCollection?: boolean;
 }
 
 export const useTemplateStore = defineStore('template', {
@@ -28,6 +49,7 @@ export const useTemplateStore = defineStore('template', {
     page: 1,
     size: 10,
     statusFilter: '' as string,
+    businessModeFilter: '' as '' | TemplateBusinessMode,
     current: null as Template | null,
     selectedFieldId: null as string | null,
   }),
@@ -56,6 +78,7 @@ export const useTemplateStore = defineStore('template', {
       try {
         const params: Record<string, unknown> = { page: this.page, size: this.size };
         if (this.statusFilter) params.status = this.statusFilter;
+        if (this.businessModeFilter) params.businessMode = this.businessModeFilter;
         const { data } = await api.get('/templates', { params });
         this.rows = data.rows;
         this.total = data.total;
@@ -72,7 +95,7 @@ export const useTemplateStore = defineStore('template', {
       const { data } = await api.post('/templates', { name, description });
       return data;
     },
-    async update(id: number, payload: { name?: string; description?: string; schema?: SchemaV2; requireIdentity?: boolean }) {
+    async update(id: number, payload: TemplateUpdatePayload) {
       const { data } = await api.put(`/templates/${id}`, payload);
       if (this.current?.id === id) this.current = data;
       return data;
