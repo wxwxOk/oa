@@ -54,26 +54,30 @@
       <q-input
         v-if="field.type === 'text'"
         :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
+        @update:model-value="onModelUpdate($event)"
         outlined
         :placeholder="field.placeholder"
         :rules="field.required ? [requiredRule] : []"
+        :error="!!imperativeError"
+        :error-message="imperativeError"
       />
       <q-input
         v-else-if="field.type === 'textarea'"
         :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
+        @update:model-value="onModelUpdate($event)"
         outlined
         type="textarea"
         rows="3"
         :placeholder="field.placeholder"
         :rules="field.required ? [requiredRule] : []"
+        :error="!!imperativeError"
+        :error-message="imperativeError"
       />
       <template v-else-if="field.type === 'radio'">
         <q-option-group
           type="radio"
           :model-value="modelValue"
-          @update:model-value="$emit('update:modelValue', $event)"
+          @update:model-value="onModelUpdate($event)"
           :options="mapOptions(field.options)"
         />
         <div v-if="field.required && radioError" class="text-negative text-caption q-mt-xs">请选择一项</div>
@@ -82,7 +86,7 @@
         <q-option-group
           type="checkbox"
           :model-value="modelValue || []"
-          @update:model-value="$emit('update:modelValue', $event)"
+          @update:model-value="onModelUpdate($event)"
           :options="mapOptions(field.options)"
         />
         <div v-if="field.required && checkboxError" class="text-negative text-caption q-mt-xs">请至少选择一项</div>
@@ -90,18 +94,20 @@
       <q-input
         v-else-if="field.type === 'date'"
         :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
+        @update:model-value="onModelUpdate($event)"
         outlined
         placeholder="请选择日期"
         readonly
         :rules="field.required ? [(v: string) => !!v || '请选择日期'] : []"
+        :error="!!imperativeError"
+        :error-message="imperativeError"
       >
         <template #append>
           <q-icon name="calendar_today" class="cursor-pointer">
             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
               <q-date
                 :model-value="modelValue"
-                @update:model-value="$emit('update:modelValue', $event)"
+                @update:model-value="onModelUpdate($event)"
                 mask="YYYY-MM-DD"
               />
             </q-popup-proxy>
@@ -111,19 +117,21 @@
       <q-input
         v-else-if="field.type === 'phone'"
         :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
+        @update:model-value="onModelUpdate($event)"
         outlined
         type="tel"
         mask="###########"
         :placeholder="field.placeholder || '请输入手机号'"
         :rules="field.required ? [(v: string) => /^1\d{10}$/.test(v) || '请输入有效手机号'] : []"
+        :error="!!imperativeError"
+        :error-message="imperativeError"
       />
       <template v-else-if="field.type === 'signature'">
         <SignatureField
           ref="sigRef"
           :preview="false"
           :model-value="modelValue"
-          @update:model-value="$emit('update:modelValue', $event)"
+          @update:model-value="onModelUpdate($event)"
         />
         <div v-if="field.required && sigError" class="text-negative text-caption q-mt-xs">请签名</div>
       </template>
@@ -136,18 +144,19 @@ import { ref } from 'vue';
 import type { SchemaField } from 'src/types/schema';
 import SignatureField from 'src/components/designer/fields/SignatureField.vue';
 
-defineProps<{
+const props = defineProps<{
   field: SchemaField;
   mode: 'designer' | 'fill' | 'print';
   modelValue?: any;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: any];
 }>();
 
 const sigRef = ref<InstanceType<typeof SignatureField> | null>(null);
 const requiredRule = (v: string) => !!v?.trim() || '此项为必填';
+const imperativeError = ref('');
 const radioError = ref(false);
 const checkboxError = ref(false);
 const sigError = ref(false);
@@ -156,20 +165,79 @@ function mapOptions(opts?: string[]) {
   return (opts ?? []).map(o => ({ label: o, value: o }));
 }
 
-function validate(value: any, field: SchemaField): boolean {
+function clearErrors() {
+  imperativeError.value = '';
+  radioError.value = false;
+  checkboxError.value = false;
+  sigError.value = false;
+}
+
+function hasTrimmedString(value: any): boolean {
+  return typeof value === 'string' && value.trim() !== '';
+}
+
+function hasNonEmptyValue(value: any): boolean {
+  return value !== null && value !== undefined && !(typeof value === 'string' && value.trim() === '');
+}
+
+function setInputError(message: string): boolean {
+  imperativeError.value = message;
+  return false;
+}
+
+function isFieldValueValid(value: any, field: SchemaField): boolean {
   if (!field.required) return true;
+
+  if (field.type === 'text' || field.type === 'textarea') return hasTrimmedString(value);
+  if (field.type === 'date') return hasNonEmptyValue(value);
+  if (field.type === 'phone') return typeof value === 'string' && /^1\d{10}$/.test(value);
+  if (field.type === 'radio') return hasNonEmptyValue(value);
+  if (field.type === 'checkbox') return Array.isArray(value) && value.length > 0;
+  if (field.type === 'signature') return hasTrimmedString(value);
+
+  return true;
+}
+
+function onModelUpdate(value: any) {
+  emit('update:modelValue', value);
+  if (isFieldValueValid(value, props.field)) clearErrors();
+}
+
+function validate(value: any, field: SchemaField): boolean {
+  clearErrors();
+  if (!field.required) return true;
+
+  if (field.type === 'text' || field.type === 'textarea') {
+    if (!hasTrimmedString(value)) return setInputError('此项为必填');
+    return true;
+  }
+
+  if (field.type === 'date') {
+    if (!hasNonEmptyValue(value)) return setInputError('请选择日期');
+    return true;
+  }
+
+  if (field.type === 'phone') {
+    if (typeof value !== 'string' || !/^1\d{10}$/.test(value)) return setInputError('请输入有效手机号');
+    return true;
+  }
+
   if (field.type === 'radio') {
-    radioError.value = value == null;
+    radioError.value = !hasNonEmptyValue(value);
     return !radioError.value;
   }
+
   if (field.type === 'checkbox') {
-    checkboxError.value = !value?.length;
+    checkboxError.value = !Array.isArray(value) || value.length === 0;
     return !checkboxError.value;
   }
+
   if (field.type === 'signature') {
-    sigError.value = !value;
+    const saved = saveSignature();
+    sigError.value = !hasTrimmedString(saved || value);
     return !sigError.value;
   }
+
   return true;
 }
 
