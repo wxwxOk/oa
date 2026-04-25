@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: ready
-last_updated: "2026-04-25T13:25:00.000Z"
-last_activity: 2026-04-25 -- Phase 16 completed; Phase 17 ready for discussion
+last_updated: "2026-04-25T13:29:25.836Z"
+last_activity: 2026-04-25 -- Phase 17 context gathered; ready for planning
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 
 ## Current Position
 
-Phase: 17 (我的申请与动态提交) — NOT STARTED
+Phase: 17 (我的申请与动态提交) — CONTEXT GATHERED
 Plan: Not planned
-Status: Ready for discuss-phase
-Last activity: 2026-04-25 -- Phase 16 completed and verified passed
+Status: Ready for plan-phase
+Last activity: 2026-04-25 -- Phase 17 context gathered; ready for planning
 
 Progress: [####------] 2/5 v2.0 phases complete
 
