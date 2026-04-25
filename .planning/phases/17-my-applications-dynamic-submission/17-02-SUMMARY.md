@@ -52,6 +52,7 @@ completed: 2026-04-25
 
 1. **Task 1: Add route contract tests** - `93a65a6` (test)
 2. **Tasks 2-3: Implement route module and register under `/api/v1`** - `b54599a` (feat)
+3. **Serializer hardening: mutation response cancel visibility** - `877c835` (fix)
 
 **Plan metadata:** pending docs commit
 
@@ -69,7 +70,20 @@ completed: 2026-04-25
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 2 - Missing Critical] Mutation responses needed server-computed `canCancel`**
+- **Found during:** Plan 17-05 visual/API contract review
+- **Issue:** Create/update/submit/cancel route handlers serialize raw application records, which do not carry the list-service `canCancel` property.
+- **Fix:** Route serializer now computes `canCancel` from mutation response status when the service row did not provide it.
+- **Files modified:** `backend/src/modules/approval/application.route.ts`
+- **Verification:** `cd backend && bun test src/modules/approval/__tests__/application.route.test.ts`
+- **Committed in:** `877c835`
+
+---
+
+**Total deviations:** 1 auto-fixed (1 missing critical)
+**Impact on plan:** Keeps frontend action visibility consistent without expanding API scope.
 
 ## Issues Encountered
 
