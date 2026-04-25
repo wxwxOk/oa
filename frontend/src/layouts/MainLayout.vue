@@ -165,6 +165,13 @@ const allMenus: MenuConfig[] = [
       { path: '/share-link-stats', title: '统计表', icon: 'bar_chart', perm: 'form:link-stats:view' },
     ],
   },
+  {
+    title: '审批管理',
+    icon: 'approval',
+    children: [
+      { path: '/approval/processes', title: '流程配置', icon: 'rule', perm: 'approval:process:list' },
+    ],
+  },
 ];
 
 function filterMenus(menus: MenuConfig[]): MenuConfig[] {

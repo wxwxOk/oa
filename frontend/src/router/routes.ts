@@ -29,6 +29,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'templates/:id/design', component: () => import('pages/FormDesignerPage.vue'), meta: { title: '表单设计', perm: 'form:template:edit' } },
       { path: 'templates/:id/submissions', component: () => import('pages/SubmissionPage.vue'), meta: { title: '提交数据', perm: 'form:submission:list' } },
       { path: 'share-link-stats', component: () => import('pages/ShareLinkStatsPage.vue'), meta: { title: '统计表', icon: 'bar_chart', perm: 'form:link-stats:view' } },
+      { path: 'approval/processes', component: () => import('pages/ApprovalProcessPage.vue'), meta: { title: '流程配置', icon: 'rule', perm: 'approval:process:list' } },
     ],
   },
   { path: '/:catchAll(.*)*', component: () => import('pages/NotFoundPage.vue'), meta: { public: true } },
