@@ -10,7 +10,7 @@
 ✅ v1.0 MVP shipped (2026-04-20)
 ✅ v1.1 自定义表单收集 shipped (2026-04-20)
 ✅ v1.2 模板管理优化 shipped (2026-04-22)
-🚧 v2.0 表单驱动 OA 审批中心 in progress: Phase 15 审批数据模型与状态机 complete; Phase 16 流程配置与模板绑定 next (2026-04-25)
+🚧 v2.0 表单驱动 OA 审批中心 in progress: Phase 15 审批数据模型与状态机 and Phase 16 流程配置与模板绑定 complete; Phase 17 我的申请与动态提交 next (2026-04-25)
 
 ## Current Milestone: v2.0 表单驱动 OA 审批中心
 
@@ -56,9 +56,15 @@
 - ✓ MODEL-02 表单 schema 与审批流程快照持久化 — v2.0 Phase 15
 - ✓ MODEL-03 审批实例合法状态机 — v2.0 Phase 15
 - ✓ MODEL-04 提交/分配/审批/驳回/撤销/编辑/标记/备注不可变业务事件 — v2.0 Phase 15
+- ✓ CFG-01 模板可切换“仅收集”和“需要审批”，并绑定可配置审批流程 — v2.0 Phase 16
+- ✓ CFG-02 单步审批流程配置，审批人来源支持固定用户、角色和提交人部门负责人 — v2.0 Phase 16
+- ✓ CFG-03 串行多步审批流程配置，节点包含名称、顺序、审批人来源和固定通过/驳回动作 — v2.0 Phase 16
+- ✓ CFG-04 部门负责人/默认审批人维护并可被流程配置引用 — v2.0 Phase 16
+- ✓ CFG-05 审批相关 RBAC 权限、后端校验和前端菜单/按钮控制 — v2.0 Phase 16
+- ✓ DYN-01 模板必填字段在 PC/Mobile 提交页一致校验 — v2.0 Phase 16
+- ✓ DYN-02 发布后字段变更形成新 schema 版本，提交保存版本快照 — v2.0 Phase 16
 
 ### Active
-- [ ] **CFG-01**: 模板可切换“仅收集”和“需要审批”，并绑定可配置审批流程
 - [ ] **APP-01**: 登录员工可通过 PC/Mobile 提交申请、保存草稿、查看“我的申请”
 - [ ] **APR-01**: 审批人可通过 PC/Mobile 处理待办，审批/驳回并填写意见
 - [ ] **OPS-01**: 授权人员可给申请或收集记录添加标签/标记
@@ -116,6 +122,8 @@ v2.0 scope 来自客户沟通整理：`.planning/research/CLIENT_CHAT_NEXT_FEATU
 | v2.0 先做显式状态机，不引入 BPMN 引擎 | ✓ Phase 15 建立集中状态机 |
 | 申请提交时快照表单 schema 与审批流程配置 | ✓ Phase 15 `ApprovalApplication` 保存 schema/process/template/applicant/department 快照 |
 | 原始提交、处理字段、备注/标签、审计事件分开建模 | ✓ Phase 15 建立 `ApprovalAction` + `ApprovalTimelineEvent` 追加事件基础 |
+| 审批流程配置采用单步/串行节点模型，先不引入 BPMN/并行/条件流 | ✓ Phase 16 流程配置 API 和 UI 完成 |
+| 发布中的需审批模板绑定流程后，流程停用/删除/完整编辑停用都必须被阻止 | ✓ Phase 16 16-09 gap closure 已回归覆盖 |
 | v2.0 MVP 外部通知集成和附件字段后置 | — Pending |
 
 ## Evolution
@@ -136,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-25 after Phase 15 completion*
+*Last updated: 2026-04-25 after Phase 16 completion*

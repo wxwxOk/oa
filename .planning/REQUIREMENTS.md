@@ -16,13 +16,13 @@
 
 ### 流程配置与模板绑定
 
-- [ ] **CFG-01**: 管理员可将表单模板设置为 `COLLECTION_ONLY` 或 `APPROVAL_REQUIRED`，保留既有公开收集行为
-- [ ] **CFG-02**: 管理员可配置单步审批流程，审批人来源支持固定用户、角色和提交人部门负责人
-- [ ] **CFG-03**: 管理员可配置串行多步审批流程，每个节点有名称、顺序、审批人来源和必需动作
-- [ ] **CFG-04**: 管理员可为部门配置负责人/默认审批人，用于“提交人部门负责人审批”规则
-- [ ] **CFG-05**: 系统提供审批相关 RBAC 权限：流程配置、模板绑定、提交申请、审批任务、查看本人/部门/全部申请、导出审批数据
-- [ ] **DYN-01**: 管理员可在模板设计器中配置必填字段，PC 和 Mobile 提交页都执行一致校验
-- [ ] **DYN-02**: 模板发布后新增或调整提交字段会形成新的 schema 版本，已有申请继续使用提交时的 schema 快照
+- [x] **CFG-01**: 管理员可将表单模板设置为 `COLLECTION_ONLY` 或 `APPROVAL_REQUIRED`，保留既有公开收集行为
+- [x] **CFG-02**: 管理员可配置单步审批流程，审批人来源支持固定用户、角色和提交人部门负责人
+- [x] **CFG-03**: 管理员可配置串行多步审批流程，每个节点有名称、顺序、审批人来源和必需动作
+- [x] **CFG-04**: 管理员可为部门配置负责人/默认审批人，用于“提交人部门负责人审批”规则
+- [x] **CFG-05**: 系统提供审批相关 RBAC 权限：流程配置、模板绑定、提交申请、审批任务、查看本人/部门/全部申请、导出审批数据
+- [x] **DYN-01**: 管理员可在模板设计器中配置必填字段，PC 和 Mobile 提交页都执行一致校验
+- [x] **DYN-02**: 模板发布后新增或调整提交字段会形成新的 schema 版本，已有申请继续使用提交时的 schema 快照
 
 ### 我的申请与动态提交
 
@@ -89,13 +89,13 @@
 | MODEL-02 | Phase 15 | Complete |
 | MODEL-03 | Phase 15 | Complete |
 | MODEL-04 | Phase 15 | Complete |
-| CFG-01 | Phase 16 | Pending |
-| CFG-02 | Phase 16 | Pending |
-| CFG-03 | Phase 16 | Pending |
-| CFG-04 | Phase 16 | Pending |
-| CFG-05 | Phase 16 | Pending |
-| DYN-01 | Phase 16 | Pending |
-| DYN-02 | Phase 16 | Pending |
+| CFG-01 | Phase 16 | Complete |
+| CFG-02 | Phase 16 | Complete |
+| CFG-03 | Phase 16 | Complete |
+| CFG-04 | Phase 16 | Complete |
+| CFG-05 | Phase 16 | Complete |
+| DYN-01 | Phase 16 | Complete |
+| DYN-02 | Phase 16 | Complete |
 | APP-01 | Phase 17 | Pending |
 | APP-02 | Phase 17 | Pending |
 | APP-03 | Phase 17 | Pending |
@@ -122,4 +122,4 @@
 
 ---
 *Requirements defined: 2026-04-25*
-*Last updated: 2026-04-25 after roadmap phase assignment*
+*Last updated: 2026-04-25 after Phase 16 completion*
