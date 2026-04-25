@@ -11,7 +11,7 @@
 
 - [x] **MODEL-01**: 系统可保存审批流程定义、流程节点、审批实例、审批任务、审批动作和时间线事件
 - [x] **MODEL-02**: 用户提交审批申请时，系统保存表单 schema 快照和审批流程快照，历史申请不受后续模板/流程修改影响
-- [ ] **MODEL-03**: 审批实例只允许在 draft、submitted、approving、approved、rejected、canceled 之间按合法状态流转
+- [x] **MODEL-03**: 审批实例只允许在 draft、submitted、approving、approved、rejected、canceled 之间按合法状态流转
 - [x] **MODEL-04**: 提交、分配、审批、驳回、撤销、编辑、标记和备注都会追加不可变业务事件，记录操作者、动作、节点、意见和时间
 
 ### 流程配置与模板绑定
@@ -87,7 +87,7 @@
 |-------------|-------|--------|
 | MODEL-01 | Phase 15 | Complete |
 | MODEL-02 | Phase 15 | Complete |
-| MODEL-03 | Phase 15 | Pending |
+| MODEL-03 | Phase 15 | Complete |
 | MODEL-04 | Phase 15 | Complete |
 | CFG-01 | Phase 16 | Pending |
 | CFG-02 | Phase 16 | Pending |
