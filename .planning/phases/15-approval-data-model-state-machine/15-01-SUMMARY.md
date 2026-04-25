@@ -19,7 +19,7 @@ key-files:
     - backend/prisma/schema.prisma
 key-decisions:
   - "ApprovalApplication remains separate from Submission to preserve public collection semantics."
-  - "Manual migration SQL was created after local PostgreSQL was unavailable for migrate dev."
+  - "Manual migration SQL was created after the default host-only Prisma command could not resolve the Docker service hostname."
 patterns-established:
   - "Approval applications persist schema/process/template/applicant/department snapshots at creation time."
   - "Approval actions and timeline events are modeled as paired append-only records."
@@ -71,23 +71,25 @@ None - plan executed exactly as written. The database connectivity failure was a
 
 ## Issues Encountered
 
-- `bun --env-file=../.env prisma migrate dev --name add_approval_models` failed with `P1001: Can't reach database server at postgres:5432`.
-- Resolution: created `backend/prisma/migrations/20260425090000_add_approval_models/migration.sql`, then ran `bun --env-file=../.env prisma generate` and `bun run build` successfully.
+- `bun --env-file=../.env prisma migrate dev --name add_approval_models` initially failed with `P1001: Can't reach database server at postgres:5432` because the host shell cannot resolve Docker Compose service names.
+- Resolution: created `backend/prisma/migrations/20260425090000_add_approval_models/migration.sql`, then applied it successfully against local compose PostgreSQL with `DATABASE_URL=postgresql://oa:...@127.0.0.1:5432/oa_db?schema=public`.
 
 ## Verification
 
 - `bun --env-file=../.env prisma format` - passed
 - `bun --env-file=../.env prisma validate` - passed
+- `DATABASE_URL=postgresql://oa:...@127.0.0.1:5432/oa_db?schema=public bun --env-file=../.env prisma migrate dev --name add_approval_models` - passed
 - `bun --env-file=../.env prisma generate` - passed
 - `bun run build` - passed
 - Migration SQL contains `ApprovalApplication`, `ApprovalTask`, `ApprovalAction`, and `ApprovalTimelineEvent`.
 
 ## User Setup Required
 
-Run the migration against a reachable project PostgreSQL instance before deploying Phase 15 database changes:
+The migration is applied to the local Docker Compose PostgreSQL instance. For host-side Prisma CLI work, use a `127.0.0.1` `DATABASE_URL` override because `.env` uses the Docker network hostname `postgres`.
 
 ```powershell
 cd backend
+$env:DATABASE_URL='postgresql://oa:HIvAS1KeB+Zf3KP8GSZy+g==@127.0.0.1:5432/oa_db?schema=public'
 bun --env-file=../.env prisma migrate dev --name add_approval_models
 ```
 
