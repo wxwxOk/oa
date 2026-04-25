@@ -402,6 +402,64 @@ describe('process config service', () => {
     expect(unchangedNodes[0].approverUserId).toBe(fixedApprover.id);
   });
 
+  it('full process update cannot deactivate a process bound by a published approval template', async () => {
+    const { applicant, fixedApprover } = await setupProcessConfigFixture();
+    const process = await createApprovalProcessConfig({
+      name: '已绑定流程',
+      description: '原描述',
+      creatorId: applicant.id,
+      nodes: [
+        {
+          name: '原审批',
+          order: 1,
+          approverSourceType: 'USER',
+          approverUserId: fixedApprover.id,
+        },
+      ],
+    });
+
+    await prisma.formTemplate.create({
+      data: {
+        name: '已发布需审批模板',
+        status: 'PUBLISHED',
+        businessMode: 'APPROVAL_REQUIRED',
+        approvalProcessId: process.id,
+        creatorId: applicant.id,
+      } as any,
+    });
+
+    await expect(
+      updateApprovalProcessConfig(process.id, {
+        name: '尝试停用流程',
+        description: '不应保存',
+        isActive: false,
+        nodes: [
+          {
+            name: '新审批',
+            order: 1,
+            approverSourceType: 'USER',
+            approverUserId: fixedApprover.id,
+          },
+        ],
+      }),
+    ).rejects.toThrow('已发布需审批模板正在引用该流程，不能停用');
+
+    const unchangedProcess = await prisma.approvalProcess.findUniqueOrThrow({
+      where: { id: process.id },
+    });
+    const unchangedNodes = await prisma.approvalProcessNode.findMany({
+      where: { processId: process.id },
+      orderBy: { order: 'asc' },
+    });
+
+    expect(unchangedProcess.name).toBe('已绑定流程');
+    expect(unchangedProcess.description).toBe('原描述');
+    expect(unchangedProcess.isActive).toBe(true);
+    expect(unchangedNodes).toHaveLength(1);
+    expect(unchangedNodes[0].name).toBe('原审批');
+    expect(unchangedNodes[0].approverUserId).toBe(fixedApprover.id);
+  });
+
   it('inactive structurally valid process can be saved but not used at runtime', async () => {
     const { applicant, fixedApprover } = await setupProcessConfigFixture();
     const process = await createApprovalProcessConfig({

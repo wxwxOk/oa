@@ -196,6 +196,10 @@ export async function updateApprovalProcessConfig(
       throw notFound('审批流程不存在');
     }
 
+    if (existing.isActive && input.isActive === false) {
+      await assertNotBoundByPublishedApprovalTemplate(processId);
+    }
+
     await tx.approvalProcess.update({
       where: { id: processId },
       data: {
