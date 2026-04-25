@@ -46,7 +46,7 @@
 **Milestone Goal:** 在既有模板、填写、PDF 和组织架构基础上，建立登录用户可用的 OA 审批闭环，让内部表单从“收集数据”升级为“提交申请、流转审批、跟进处理、归档统计”。
 
 - [x] **Phase 15: 审批数据模型与状态机** - 流程定义、审批实例、任务、动作、时间线、快照和合法状态流转 (completed 2026-04-25)
-- [ ] **Phase 16: 流程配置与模板绑定** - 审批模式、单步/串行流程配置、部门负责人、RBAC 和动态必填/schema 版本
+- [x] **Phase 16: 流程配置与模板绑定** - 审批模式、单步/串行流程配置、部门负责人、RBAC 和动态必填/schema 版本 (completed 2026-04-25)
 - [ ] **Phase 17: 我的申请与动态提交** - 登录提交、草稿、我的申请、申请详情、状态跟踪和撤销
 - [ ] **Phase 18: 待我审批与移动审批** - 待办列表、筛选、审批详情、通过/驳回/意见、已办历史和移动端操作
 - [ ] **Phase 19: 收集后处理、归档导出统计** - 标签/标记、备注、受控编辑、处理字段、站内通知、归档查询、Excel/PDF 导出和统计
@@ -75,7 +75,7 @@
   3. 部门负责人/默认审批人可在组织架构中维护，并可被流程配置引用
   4. 审批相关 RBAC 权限完成种子数据、后端校验和前端菜单/按钮控制
   5. 模板必填字段在 PC/Mobile 一致校验，发布后字段变更形成新的 schema 版本
-**Plans:** 7/8 plans executed
+**Plans:** 8/8 plans complete
 Plans:
 - [x] 16-01-PLAN.md — Wave 0 backend tests for process config, template mode, required validation, and approval RBAC
 - [x] 16-02-PLAN.md — Prisma schema, migration, and blocking generate/migrate gate
@@ -83,7 +83,7 @@ Plans:
 - [x] 16-04-PLAN.md — Department default approver API and approval permission seed data
 - [x] 16-05-PLAN.md — Template binding backend, public collection safeguards, and backend required-field validation
 - [x] 16-06-PLAN.md — Frontend approval process store, page, route, and navigation
-- [ ] 16-07-PLAN.md — Frontend template purpose badges, filters, designer binding, and disconnect confirmation
+- [x] 16-07-PLAN.md — Frontend template purpose badges, filters, designer binding, and disconnect confirmation
 - [x] 16-08-PLAN.md — Frontend department approver UI and shared required-field validation
 **UI hint**: yes
 
@@ -143,7 +143,7 @@ Plans:
 | 13. PDF 保真输出 | v1.2 | 3/3 | Complete | 2026-04-22 |
 | 14. 响应式填写页 | v1.2 | 2/2 | Complete | 2026-04-22 |
 | 15. 审批数据模型与状态机 | v2.0 | 3/3 | Complete    | 2026-04-25 |
-| 16. 流程配置与模板绑定 | v2.0 | 7/8 | In Progress|  |
+| 16. 流程配置与模板绑定 | v2.0 | 8/8 | Complete   | 2026-04-25 |
 | 17. 我的申请与动态提交 | v2.0 | 0/? | Pending |  |
 | 18. 待我审批与移动审批 | v2.0 | 0/? | Pending |  |
 | 19. 收集后处理、归档导出统计 | v2.0 | 0/? | Pending |  |
