@@ -16,7 +16,7 @@
         :ref="(el: any) => setRowFieldsRef(rowIdx, el)"
         :model-value="row.fields"
         @update:model-value="(val: SchemaField[]) => updateRowFields(rowIdx, val)"
-        :group="{ name: 'fields', pull: true, put: true }"
+        :group="{ name: 'fields', pull: true, put: ['fields'] }"
         handle=".field-drag-handle"
         :animation="150"
         :empty-insert-threshold="20"
