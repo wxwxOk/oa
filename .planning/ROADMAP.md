@@ -75,9 +75,9 @@
   3. 部门负责人/默认审批人可在组织架构中维护，并可被流程配置引用
   4. 审批相关 RBAC 权限完成种子数据、后端校验和前端菜单/按钮控制
   5. 模板必填字段在 PC/Mobile 一致校验，发布后字段变更形成新的 schema 版本
-**Plans:** 8 plans
+**Plans:** 1/8 plans executed
 Plans:
-- [ ] 16-01-PLAN.md — Wave 0 backend tests for process config, template mode, required validation, and approval RBAC
+- [x] 16-01-PLAN.md — Wave 0 backend tests for process config, template mode, required validation, and approval RBAC
 - [ ] 16-02-PLAN.md — Prisma schema, migration, and blocking generate/migrate gate
 - [ ] 16-03-PLAN.md — Backend approval process validation, snapshot resolution, and process routes
 - [ ] 16-04-PLAN.md — Department default approver API and approval permission seed data
@@ -143,7 +143,7 @@ Plans:
 | 13. PDF 保真输出 | v1.2 | 3/3 | Complete | 2026-04-22 |
 | 14. 响应式填写页 | v1.2 | 2/2 | Complete | 2026-04-22 |
 | 15. 审批数据模型与状态机 | v2.0 | 3/3 | Complete    | 2026-04-25 |
-| 16. 流程配置与模板绑定 | v2.0 | 0/8 | Pending |  |
+| 16. 流程配置与模板绑定 | v2.0 | 1/8 | In Progress|  |
 | 17. 我的申请与动态提交 | v2.0 | 0/? | Pending |  |
 | 18. 待我审批与移动审批 | v2.0 | 0/? | Pending |  |
 | 19. 收集后处理、归档导出统计 | v2.0 | 0/? | Pending |  |
