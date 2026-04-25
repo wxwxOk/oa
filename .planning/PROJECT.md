@@ -10,7 +10,7 @@
 ✅ v1.0 MVP shipped (2026-04-20)
 ✅ v1.1 自定义表单收集 shipped (2026-04-20)
 ✅ v1.2 模板管理优化 shipped (2026-04-22)
-🚧 v2.0 表单驱动 OA 审批中心 defining requirements (2026-04-25)
+🚧 v2.0 表单驱动 OA 审批中心 in progress: Phase 15 审批数据模型与状态机 complete; Phase 16 流程配置与模板绑定 next (2026-04-25)
 
 ## Current Milestone: v2.0 表单驱动 OA 审批中心
 
@@ -52,9 +52,12 @@
 - ✓ FR-17 动态行表格 — v1.2
 - ✓ FR-18 PDF 保真输出 — v1.2
 - ✓ FR-19 填写页响应式布局还原 — v1.2
+- ✓ MODEL-01 审批流程/节点/实例/任务/动作/时间线数据模型 — v2.0 Phase 15
+- ✓ MODEL-02 表单 schema 与审批流程快照持久化 — v2.0 Phase 15
+- ✓ MODEL-03 审批实例合法状态机 — v2.0 Phase 15
+- ✓ MODEL-04 提交/分配/审批/驳回/撤销/编辑/标记/备注不可变业务事件 — v2.0 Phase 15
 
 ### Active
-- [ ] **MODEL-01**: 系统提供显式审批流程、任务、动作、时间线和流程/表单快照
 - [ ] **CFG-01**: 模板可切换“仅收集”和“需要审批”，并绑定可配置审批流程
 - [ ] **APP-01**: 登录员工可通过 PC/Mobile 提交申请、保存草稿、查看“我的申请”
 - [ ] **APR-01**: 审批人可通过 PC/Mobile 处理待办，审批/驳回并填写意见
@@ -110,9 +113,9 @@ v2.0 scope 来自客户沟通整理：`.planning/research/CLIENT_CHAT_NEXT_FEATU
 | PrintableForm table HTML 绕过 CSS Grid | ✓ html2canvas 不支持 CSS Grid，table 方案稳定 |
 | DOM 坐标分页算法 | ✓ 精确分页，避免截断分组/表格行 |
 | QExpansionItem 移动端卡片布局 | ✓ 动态表格触控友好，折叠/展开自然 |
-| v2.0 先做显式状态机，不引入 BPMN 引擎 | — Pending |
-| 申请提交时快照表单 schema 与审批流程配置 | — Pending |
-| 原始提交、处理字段、备注/标签、审计事件分开建模 | — Pending |
+| v2.0 先做显式状态机，不引入 BPMN 引擎 | ✓ Phase 15 建立集中状态机 |
+| 申请提交时快照表单 schema 与审批流程配置 | ✓ Phase 15 `ApprovalApplication` 保存 schema/process/template/applicant/department 快照 |
+| 原始提交、处理字段、备注/标签、审计事件分开建模 | ✓ Phase 15 建立 `ApprovalAction` + `ApprovalTimelineEvent` 追加事件基础 |
 | v2.0 MVP 外部通知集成和附件字段后置 | — Pending |
 
 ## Evolution
@@ -133,4 +136,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-25 after v2.0 milestone started*
+*Last updated: 2026-04-25 after Phase 15 completion*
