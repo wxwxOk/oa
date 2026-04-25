@@ -13,6 +13,7 @@ import { submissionModule } from './modules/submission/submission.route';
 import { formStatsModule } from './modules/form-stats/form-stats.route';
 import { shareLinkStatsModule } from './modules/share-link-stats/share-link-stats.route';
 import { publicFillModule } from './modules/public/public.route';
+import { approvalProcessModule } from './modules/approval/process.route';
 
 // 启动前强制校验 JWT_SECRET：长度不足 32 字符直接拒绝启动，
 // 杜绝使用开发默认值或弱 secret 的情况。
@@ -67,6 +68,7 @@ const app = new Elysia()
           .use(roleModule)
           .use(permissionModule)
           .use(dashboardModule)
+          .use(approvalProcessModule)
           .use(formTemplateModule)
           .use(submissionModule)
           .use(formStatsModule)

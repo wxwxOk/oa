@@ -7,6 +7,7 @@ import {
   validateProcessDefinition,
   validateProcessStructure,
 } from '../process-config.service';
+import { createApprovalProcessConfig, updateApprovalProcessConfig } from '../process.route';
 
 async function setupProcessConfigFixture() {
   const fixedApprover = await prisma.user.create({
@@ -328,6 +329,96 @@ describe('process config service', () => {
       false,
     );
 
+    await expect(validateProcessDefinition(process.id)).rejects.toThrow('审批流程已停用');
+  });
+
+  it('failed process create rolls back invalid process and nodes', async () => {
+    const { applicant, fixedApprover } = await setupProcessConfigFixture();
+    const beforeProcessCount = await prisma.approvalProcess.count();
+    const beforeNodeCount = await prisma.approvalProcessNode.count();
+
+    await expect(
+      createApprovalProcessConfig({
+        name: '无效流程',
+        creatorId: applicant.id,
+        nodes: [
+          {
+            name: '',
+            order: 1,
+            approverSourceType: 'USER',
+            approverUserId: fixedApprover.id,
+          },
+        ],
+      }),
+    ).rejects.toThrow('审批节点名称不能为空');
+
+    expect(await prisma.approvalProcess.count()).toBe(beforeProcessCount);
+    expect(await prisma.approvalProcessNode.count()).toBe(beforeNodeCount);
+  });
+
+  it('failed process update leaves previous process and nodes unchanged', async () => {
+    const { applicant, fixedApprover } = await setupProcessConfigFixture();
+    const process = await createApprovalProcessConfig({
+      name: '原流程',
+      description: '原描述',
+      creatorId: applicant.id,
+      nodes: [
+        {
+          name: '原审批',
+          order: 1,
+          approverSourceType: 'USER',
+          approverUserId: fixedApprover.id,
+        },
+      ],
+    });
+
+    await expect(
+      updateApprovalProcessConfig(process.id, {
+        name: '更新失败流程',
+        description: '更新失败描述',
+        nodes: [
+          {
+            name: '',
+            order: 1,
+            approverSourceType: 'USER',
+            approverUserId: fixedApprover.id,
+          },
+        ],
+      }),
+    ).rejects.toThrow('审批节点名称不能为空');
+
+    const unchangedProcess = await prisma.approvalProcess.findUniqueOrThrow({
+      where: { id: process.id },
+    });
+    const unchangedNodes = await prisma.approvalProcessNode.findMany({
+      where: { processId: process.id },
+      orderBy: { order: 'asc' },
+    });
+
+    expect(unchangedProcess.name).toBe('原流程');
+    expect(unchangedProcess.description).toBe('原描述');
+    expect(unchangedNodes).toHaveLength(1);
+    expect(unchangedNodes[0].name).toBe('原审批');
+    expect(unchangedNodes[0].approverUserId).toBe(fixedApprover.id);
+  });
+
+  it('inactive structurally valid process can be saved but not used at runtime', async () => {
+    const { applicant, fixedApprover } = await setupProcessConfigFixture();
+    const process = await createApprovalProcessConfig({
+      name: '停用有效流程',
+      creatorId: applicant.id,
+      isActive: false,
+      nodes: [
+        {
+          name: '固定审批',
+          order: 1,
+          approverSourceType: 'USER',
+          approverUserId: fixedApprover.id,
+        },
+      ],
+    });
+
+    await expect(validateProcessStructure(process.id)).resolves.toBeUndefined();
     await expect(validateProcessDefinition(process.id)).rejects.toThrow('审批流程已停用');
   });
 });
