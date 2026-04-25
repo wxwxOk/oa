@@ -8,10 +8,21 @@ type DeptNode = {
   name: string;
   parentId: number | null;
   sort: number;
+  defaultApproverId: number | null;
+  defaultApprover: { id: number; username: string; realName: string } | null;
   children: DeptNode[];
 };
 
-function buildTree(rows: { id: number; name: string; parentId: number | null; sort: number }[]): DeptNode[] {
+type DeptRow = {
+  id: number;
+  name: string;
+  parentId: number | null;
+  sort: number;
+  defaultApproverId: number | null;
+  defaultApprover: { id: number; username: string; realName: string } | null;
+};
+
+function buildTree(rows: DeptRow[]): DeptNode[] {
   const map = new Map<number, DeptNode>();
   rows.forEach((r) => map.set(r.id, { ...r, children: [] }));
   const roots: DeptNode[] = [];
@@ -25,6 +36,17 @@ function buildTree(rows: { id: number; name: string; parentId: number | null; so
   };
   sortRec(roots);
   return roots;
+}
+
+async function assertActiveDefaultApprover(defaultApproverId: number | null | undefined) {
+  if (defaultApproverId === undefined || defaultApproverId === null) return;
+  const approver = await prisma.user.findUnique({
+    where: { id: defaultApproverId },
+    select: { id: true, status: true },
+  });
+  if (!approver || approver.status !== 'ACTIVE') {
+    throw new BizError('负责人必须是启用用户', 400, 'DEPARTMENT_APPROVER_INVALID');
+  }
 }
 
 // 获取某部门的所有子孙 ID（全量查询 + 内存递归，部门数 < 1000 性能可接受）
@@ -47,19 +69,46 @@ async function getDescendantIds(deptId: number): Promise<Set<number>> {
 
 export const departmentModule = new Elysia({ prefix: '/departments' })
   .use(authGuard('department:list'))
-  .get('/', async () => prisma.department.findMany({ orderBy: [{ sort: 'asc' }, { id: 'asc' }] }))
+  .get('/', async () =>
+    prisma.department.findMany({
+      include: { defaultApprover: { select: { id: true, username: true, realName: true } } },
+      orderBy: [{ sort: 'asc' }, { id: 'asc' }],
+    }),
+  )
   .get('/tree', async () => {
-    const rows = await prisma.department.findMany({ select: { id: true, name: true, parentId: true, sort: true } });
+    const rows = await prisma.department.findMany({
+      select: {
+        id: true,
+        name: true,
+        parentId: true,
+        sort: true,
+        defaultApproverId: true,
+        defaultApprover: { select: { id: true, username: true, realName: true } },
+      },
+    });
     return buildTree(rows);
   })
   .guard({}, (app) =>
+    app.use(authGuard('department:update')).get('/approver-options', async () =>
+      prisma.user.findMany({
+        where: { status: 'ACTIVE' },
+        select: { id: true, username: true, realName: true, departmentId: true },
+        orderBy: [{ realName: 'asc' }, { id: 'asc' }],
+      }),
+    ),
+  )
+  .guard({}, (app) =>
     app
       .use(authGuard('department:create'))
-      .post('/', async ({ body }: any) => prisma.department.create({ data: body }), {
+      .post('/', async ({ body }: any) => {
+        await assertActiveDefaultApprover(body.defaultApproverId);
+        return prisma.department.create({ data: body });
+      }, {
         body: t.Object({
           name: t.String({ minLength: 1 }),
           parentId: t.Optional(t.Nullable(t.Number())),
           sort: t.Optional(t.Number()),
+          defaultApproverId: t.Optional(t.Nullable(t.Number())),
         }),
       }),
   )
@@ -75,6 +124,7 @@ export const departmentModule = new Elysia({ prefix: '/departments' })
             throw new BizError('不能将部门移动到其子部门下');
           }
         }
+        await assertActiveDefaultApprover(body.defaultApproverId);
         return prisma.department.update({ where: { id }, data: body });
       },
       {
@@ -83,6 +133,7 @@ export const departmentModule = new Elysia({ prefix: '/departments' })
           name: t.Optional(t.String()),
           parentId: t.Optional(t.Nullable(t.Number())),
           sort: t.Optional(t.Number()),
+          defaultApproverId: t.Optional(t.Nullable(t.Number())),
         }),
       },
     ),

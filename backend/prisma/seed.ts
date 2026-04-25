@@ -4,6 +4,31 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+export const APPROVAL_PERMISSION_CODES = [
+  'approval:process:list',
+  'approval:process:create',
+  'approval:process:update',
+  'approval:process:delete',
+  'approval:template:bind',
+  'approval:application:create',
+  'approval:application:own',
+  'approval:application:department',
+  'approval:application:all',
+  'approval:task:list',
+  'approval:task:handle',
+  'approval:export',
+];
+
+export const EMPLOYEE_PERMISSION_CODES = [
+  'user:list',
+  'department:list',
+  'role:list',
+  'form:template:list',
+  'form:submission:list',
+  'approval:application:create',
+  'approval:application:own',
+];
+
 // 权限定义：按模块分组
 const PERMISSIONS = [
   // 用户模块
@@ -33,9 +58,22 @@ const PERMISSIONS = [
   { code: 'form:submission:list', name: '查看提交数据', module: 'form' },
   { code: 'form:stats:view', name: '查看表单统计', module: 'form' },
   { code: 'form:link-stats:view', name: '查看分享链接统计', module: 'form' },
+  // 审批模块
+  { code: 'approval:process:list', name: '流程配置列表', module: 'approval' },
+  { code: 'approval:process:create', name: '创建流程配置', module: 'approval' },
+  { code: 'approval:process:update', name: '编辑流程配置', module: 'approval' },
+  { code: 'approval:process:delete', name: '删除流程配置', module: 'approval' },
+  { code: 'approval:template:bind', name: '绑定模板审批流程', module: 'approval' },
+  { code: 'approval:application:create', name: '提交审批申请', module: 'approval' },
+  { code: 'approval:application:own', name: '查看我的申请', module: 'approval' },
+  { code: 'approval:application:department', name: '查看部门申请', module: 'approval' },
+  { code: 'approval:application:all', name: '查看全部申请', module: 'approval' },
+  { code: 'approval:task:list', name: '审批任务列表', module: 'approval' },
+  { code: 'approval:task:handle', name: '处理审批任务', module: 'approval' },
+  { code: 'approval:export', name: '导出审批数据', module: 'approval' },
 ];
 
-async function main() {
+export async function seedDatabase(): Promise<void> {
   console.log('🌱 开始 seed...');
 
   // 1. 权限
@@ -66,16 +104,16 @@ async function main() {
     data: allPerms.map((p) => ({ roleId: adminRole.id, permissionId: p.id })),
   });
 
-  // 4. EMPLOYEE 角色（仅查看）
+  // 4. EMPLOYEE 角色（查看基础数据 + 提交/查看本人审批申请）
   const employeeRole = await prisma.role.upsert({
     where: { code: 'EMPLOYEE' },
     update: { name: '普通员工' },
     create: { code: 'EMPLOYEE', name: '普通员工', description: '仅可查看' },
   });
-  const listPerms = allPerms.filter((p) => p.code.endsWith(':list'));
+  const employeePerms = allPerms.filter((p) => EMPLOYEE_PERMISSION_CODES.includes(p.code));
   await prisma.rolePermission.deleteMany({ where: { roleId: employeeRole.id } });
   await prisma.rolePermission.createMany({
-    data: listPerms.map((p) => ({ roleId: employeeRole.id, permissionId: p.id })),
+    data: employeePerms.map((p) => ({ roleId: employeeRole.id, permissionId: p.id })),
   });
 
   // 5. admin 用户
@@ -100,9 +138,11 @@ async function main() {
   console.log('✅ seed 完成: admin / admin123');
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+if (import.meta.main) {
+  seedDatabase()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}
