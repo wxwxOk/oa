@@ -47,7 +47,7 @@
 
 - [x] **Phase 15: 审批数据模型与状态机** - 流程定义、审批实例、任务、动作、时间线、快照和合法状态流转 (completed 2026-04-25)
 - [x] **Phase 16: 流程配置与模板绑定** - 审批模式、单步/串行流程配置、部门负责人、RBAC 和动态必填/schema 版本 (completed 2026-04-25)
-- [ ] **Phase 17: 我的申请与动态提交** - 登录提交、草稿、我的申请、申请详情、状态跟踪和撤销
+- [x] **Phase 17: 我的申请与动态提交** - 登录提交、草稿、我的申请、申请详情、状态跟踪和撤销 (completed 2026-04-25)
 - [ ] **Phase 18: 待我审批与移动审批** - 待办列表、筛选、审批详情、通过/驳回/意见、已办历史和移动端操作
 - [ ] **Phase 19: 收集后处理、归档导出统计** - 标签/标记、备注、受控编辑、处理字段、站内通知、归档查询、Excel/PDF 导出和统计
 
@@ -99,13 +99,14 @@ Plans:
   3. “我的申请”支持按草稿、审批中、已通过、已驳回、已撤销和时间范围筛选
   4. 申请详情展示表单数据、当前状态、当前节点、审批时间线和意见
   5. 申请人可在规则允许时撤销未终审申请，撤销后待办关闭且时间线可见
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
+**Verification:** passed — APP-01 through APP-05 verified with backend service/route tests, frontend store tests, builds, and mocked responsive Playwright smoke; see `17-VERIFICATION.md`
 Plans:
-- [ ] 17-01-PLAN.md — Backend employee application service helpers and tests
-- [ ] 17-02-PLAN.md — Authenticated approval application API routes
-- [ ] 17-03-PLAN.md — Frontend DTOs, status helpers, and Pinia store
-- [ ] 17-04-PLAN.md — My Applications list, template picker, form, routes, and navigation
-- [ ] 17-05-PLAN.md — Application detail, timeline, cancel flow, and responsive smoke
+- [x] 17-01-PLAN.md — Backend employee application service helpers and tests
+- [x] 17-02-PLAN.md — Authenticated approval application API routes
+- [x] 17-03-PLAN.md — Frontend DTOs, status helpers, and Pinia store
+- [x] 17-04-PLAN.md — My Applications list, template picker, form, routes, and navigation
+- [x] 17-05-PLAN.md — Application detail, timeline, cancel flow, and responsive smoke
 **UI hint**: yes
 
 ### Phase 18: 待我审批与移动审批
@@ -152,6 +153,6 @@ Plans:
 | 14. 响应式填写页 | v1.2 | 2/2 | Complete | 2026-04-22 |
 | 15. 审批数据模型与状态机 | v2.0 | 3/3 | Complete    | 2026-04-25 |
 | 16. 流程配置与模板绑定 | v2.0 | 9/9 | Complete    | 2026-04-25 |
-| 17. 我的申请与动态提交 | v2.0 | 0/5 | Planned |  |
+| 17. 我的申请与动态提交 | v2.0 | 5/5 | Complete | 2026-04-25 |
 | 18. 待我审批与移动审批 | v2.0 | 0/? | Pending |  |
 | 19. 收集后处理、归档导出统计 | v2.0 | 0/? | Pending |  |

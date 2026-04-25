@@ -26,11 +26,11 @@
 
 ### 我的申请与动态提交
 
-- [ ] **APP-01**: 登录员工可在 PC 和 Mobile 上打开审批模板并提交内部申请，申请绑定申请人、部门、模板、状态、当前节点和申请编号
-- [ ] **APP-02**: 申请人可保存草稿并在提交前继续编辑，草稿不会创建待审批任务
-- [ ] **APP-03**: 申请人可查看“我的申请”，按草稿、审批中、已通过、已驳回、已撤销和时间范围筛选
-- [ ] **APP-04**: 申请人可查看申请详情，包含表单数据、当前状态、当前节点、审批时间线、意见和内部可见性提示
-- [ ] **APP-05**: 申请人可在业务规则允许时撤销未终审申请，撤销动作写入时间线并关闭待办任务
+- [x] **APP-01**: 登录员工可在 PC 和 Mobile 上打开审批模板并提交内部申请，申请绑定申请人、部门、模板、状态、当前节点和申请编号
+- [x] **APP-02**: 申请人可保存草稿并在提交前继续编辑，草稿不会创建待审批任务
+- [x] **APP-03**: 申请人可查看“我的申请”，按草稿、审批中、已通过、已驳回、已撤销和时间范围筛选
+- [x] **APP-04**: 申请人可查看申请详情，包含表单数据、当前状态、当前节点、审批时间线、意见和内部可见性提示
+- [x] **APP-05**: 申请人可在业务规则允许时撤销未终审申请，撤销动作写入时间线并关闭待办任务
 
 ### 待我审批与移动审批
 
@@ -96,11 +96,11 @@
 | CFG-05 | Phase 16 | Complete |
 | DYN-01 | Phase 16 | Complete |
 | DYN-02 | Phase 16 | Complete |
-| APP-01 | Phase 17 | Pending |
-| APP-02 | Phase 17 | Pending |
-| APP-03 | Phase 17 | Pending |
-| APP-04 | Phase 17 | Pending |
-| APP-05 | Phase 17 | Pending |
+| APP-01 | Phase 17 | Complete |
+| APP-02 | Phase 17 | Complete |
+| APP-03 | Phase 17 | Complete |
+| APP-04 | Phase 17 | Complete |
+| APP-05 | Phase 17 | Complete |
 | APR-01 | Phase 18 | Pending |
 | APR-02 | Phase 18 | Pending |
 | APR-03 | Phase 18 | Pending |
@@ -122,4 +122,4 @@
 
 ---
 *Requirements defined: 2026-04-25*
-*Last updated: 2026-04-25 after Phase 16 completion*
+*Last updated: 2026-04-25 after Phase 17 completion*
