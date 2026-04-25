@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: verifying
-last_updated: "2026-04-25T09:00:25.046Z"
+last_updated: "2026-04-25T09:34:59.585Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 5
@@ -24,13 +24,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-25)
 
 **Core value:** 中小企业能用自定义表单快速上线可追踪、可审批、可归档的内部业务流程
-**Current focus:** Phase 15 — approval-data-model-state-machine
+**Current focus:** Phase 16 — process-config-template-binding UI-SPEC approved
 
 ## Current Position
 
 Phase: 16
-Plan: Not started
-Status: Phase complete — ready for verification
+Plan: UI design contract approved
+Status: Ready for planning
 Last activity: 2026-04-25
 
 Progress: [----------] 0%
