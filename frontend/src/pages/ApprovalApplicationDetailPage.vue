@@ -19,6 +19,17 @@
         />
       </div>
 
+      <q-btn
+        v-if="isMobile && detail && canShowCancelAction(detail)"
+        outline
+        color="negative"
+        icon="cancel"
+        label="撤销申请"
+        class="mobile-inline-cancel q-mb-md"
+        :loading="canceling"
+        @click="cancelDialog = true"
+      />
+
       <div v-if="loading" class="detail-grid">
         <q-card flat bordered class="detail-section">
           <q-card-section>
@@ -86,17 +97,6 @@
           </q-card>
         </div>
       </div>
-    </div>
-
-    <div v-if="isMobile && detail && canShowCancelAction(detail)" class="mobile-cancel">
-      <q-btn
-        outline
-        color="negative"
-        icon="cancel"
-        label="撤销申请"
-        :loading="canceling"
-        @click="cancelDialog = true"
-      />
     </div>
 
     <q-dialog v-model="cancelDialog" persistent>
@@ -264,17 +264,7 @@ onMounted(() => load());
   border-radius: 8px;
 }
 
-.mobile-cancel {
-  position: sticky;
-  bottom: 0;
-  background: var(--oa-surface);
-  border-top: 1px solid var(--oa-border);
-  padding: 12px 16px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  z-index: 10;
-}
-
-.mobile-cancel .q-btn {
+.mobile-inline-cancel {
   width: 100%;
   min-height: 44px;
 }
@@ -287,6 +277,19 @@ onMounted(() => load());
 
   .summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .detail-section :deep(.mode-print .print-grid-table),
+  .detail-section :deep(.mode-print .print-grid-table tbody),
+  .detail-section :deep(.mode-print .print-grid-table tr),
+  .detail-section :deep(.mode-print .print-grid-table td) {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .detail-section :deep(.mode-print .print-cell) {
+    overflow-wrap: anywhere;
   }
 }
 </style>
