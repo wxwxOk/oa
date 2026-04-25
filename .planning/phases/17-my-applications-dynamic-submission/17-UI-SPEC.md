@@ -1,10 +1,11 @@
 ---
 phase: 17
 slug: my-applications-dynamic-submission
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-25
+reviewed_at: 2026-04-25T21:42:43+08:00
 ---
 
 # Phase 17 — UI Design Contract
@@ -139,6 +140,7 @@ Use the existing admin/list pattern from `SubmissionPage.vue`, `TemplatePage.vue
 
 Desktop layout:
 - Container: `q-page padding`.
+- Primary focal point: the applications table/list is the main visual anchor; the `发起申请` CTA is the secondary visual anchor and must not dominate the data view.
 - Header: left title `我的申请`, right primary CTA `q-btn color="primary" icon="add" label="发起申请"` gated by `approval:application:create`.
 - Filters: horizontal `row items-center q-gutter-sm q-mb-md`.
 - Status filter: `q-btn-toggle toggle-color="primary" flat bordered` with `全部 / 草稿 / 审批中 / 已通过 / 已驳回 / 已撤销`.
