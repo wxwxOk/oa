@@ -330,6 +330,21 @@ describe('approval application service', () => {
     expect(unchangedApplication.status).toBe('APPROVING');
   });
 
+  it('rejects submission by non-applicant actors', async () => {
+    const { draftInput, approver1 } = await setupApprovalFixture();
+    const draft = await createDraftApplication(draftInput);
+
+    await expect(submitApplication(draft.id, { id: approver1.id, name: approver1.realName })).rejects.toThrow('无权提交该审批申请');
+
+    const unchangedApplication = await prisma.approvalApplication.findUniqueOrThrow({
+      where: { id: draft.id },
+    });
+    expect(unchangedApplication.status).toBe('DRAFT');
+    expect(await prisma.approvalTask.count({ where: { applicationId: draft.id } })).toBe(0);
+    expect(await prisma.approvalAction.count({ where: { applicationId: draft.id } })).toBe(0);
+    expect(await prisma.approvalTimelineEvent.count({ where: { applicationId: draft.id } })).toBe(0);
+  });
+
   it('appends comment mark and edit events without mutating form data', async () => {
     const { draftInput, applicant } = await setupApprovalFixture();
     const application = await createDraftApplication(draftInput);

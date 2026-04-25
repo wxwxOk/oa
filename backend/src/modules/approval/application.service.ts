@@ -166,6 +166,10 @@ export async function submitApplication(
       throw notFound('审批申请不存在');
     }
 
+    if (actor.id !== application.applicantId) {
+      throw new BizError('无权提交该审批申请', 403, 'APPROVAL_SUBMIT_FORBIDDEN');
+    }
+
     assertApplicationTransition(application.status, 'SUBMITTED');
 
     await createActionAndTimeline(tx, {
@@ -176,7 +180,7 @@ export async function submitApplication(
     });
 
     const [firstNode] = getProcessNodes(application.processSnapshot);
-    await tx.approvalTask.create({
+    const firstTask = await tx.approvalTask.create({
       data: {
         applicationId: application.id,
         nodeOrder: firstNode.order,
@@ -190,6 +194,7 @@ export async function submitApplication(
 
     await createActionAndTimeline(tx, {
       applicationId: application.id,
+      taskId: firstTask.id,
       actor,
       nodeOrder: firstNode.order,
       nodeName: firstNode.name,
@@ -229,14 +234,22 @@ export async function approveTask(
       assertApplicationTransition(task.application.status, 'APPROVED');
     }
 
-    await tx.approvalTask.update({
-      where: { id: task.id },
+    const claimed = await tx.approvalTask.updateMany({
+      where: {
+        id: task.id,
+        status: 'PENDING',
+        assigneeId: actor.id,
+      },
       data: {
         status: 'APPROVED',
         handledAt: new Date(),
         comment: comment ?? null,
       },
     });
+
+    if (claimed.count !== 1) {
+      throw new BizError('审批任务已被处理', 400, 'INVALID_APPROVAL_TASK_STATUS');
+    }
 
     await createActionAndTimeline(tx, {
       applicationId: task.applicationId,
@@ -316,14 +329,23 @@ export async function rejectTask(
 
     assertApplicationTransition(task.application.status, 'REJECTED');
 
-    await tx.approvalTask.update({
-      where: { id: task.id },
+    const claimed = await tx.approvalTask.updateMany({
+      where: {
+        id: task.id,
+        status: 'PENDING',
+        assigneeId: actor.id,
+      },
       data: {
         status: 'REJECTED',
         handledAt: new Date(),
         comment: comment ?? null,
       },
     });
+
+    if (claimed.count !== 1) {
+      throw new BizError('审批任务已被处理', 400, 'INVALID_APPROVAL_TASK_STATUS');
+    }
+
     await tx.approvalTask.updateMany({
       where: {
         applicationId: task.applicationId,
