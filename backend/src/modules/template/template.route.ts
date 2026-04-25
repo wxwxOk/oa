@@ -1,9 +1,194 @@
+import type { Prisma } from '@prisma/client';
 import { Elysia, t } from 'elysia';
 import { nanoid } from 'nanoid';
 import { prisma } from '../../plugins/prisma';
 import { authGuard } from '../../middlewares/auth';
 import { BizError, notFound } from '../../utils/errors';
+import { validateProcessDefinition } from '../approval/process-config.service';
 import { SchemaV2Body } from './schema.validation';
+
+type TemplateBusinessMode = 'COLLECTION_ONLY' | 'APPROVAL_REQUIRED';
+
+type CurrentUser = {
+  roleCodes?: string[];
+  permissions?: string[];
+};
+
+export type TemplateUpdateBody = {
+  name?: string;
+  description?: string | null;
+  schema?: unknown;
+  requireIdentity?: boolean;
+  businessMode?: TemplateBusinessMode;
+  approvalProcessId?: number | null;
+  disconnectPublicCollection?: boolean;
+};
+
+const templateInclude = {
+  creator: { select: { id: true, realName: true } },
+  approvalProcess: { select: { id: true, name: true, isActive: true } },
+} satisfies Prisma.FormTemplateInclude;
+
+const TemplateBusinessModeBody = t.Union([
+  t.Literal('COLLECTION_ONLY'),
+  t.Literal('APPROVAL_REQUIRED'),
+]);
+
+function hasApprovalTemplateBindPermission(currentUser?: CurrentUser): boolean {
+  if (!currentUser) return true;
+  if (currentUser.roleCodes?.includes('ADMIN')) return true;
+  return currentUser.permissions?.includes('approval:template:bind') === true;
+}
+
+function assertApprovalTemplateBindPermission(currentUser?: CurrentUser): void {
+  if (!hasApprovalTemplateBindPermission(currentUser)) {
+    throw new BizError('缺少权限: approval:template:bind', 403, 'FORBIDDEN');
+  }
+}
+
+function hasJsonChanged(next: unknown, current: unknown): boolean {
+  return JSON.stringify(next) !== JSON.stringify(current);
+}
+
+async function assertValidApprovalProcess(processId: number | null | undefined): Promise<void> {
+  if (processId == null) {
+    throw new BizError('请选择启用且有效的审批流程', 400, 'APPROVAL_PROCESS_INVALID');
+  }
+
+  try {
+    await validateProcessDefinition(processId);
+  } catch {
+    throw new BizError('请选择启用且有效的审批流程', 400, 'APPROVAL_PROCESS_INVALID');
+  }
+}
+
+export async function updateTemplate(
+  id: number,
+  body: TemplateUpdateBody,
+  currentUser?: CurrentUser,
+) {
+  const tpl = await prisma.formTemplate.findUnique({
+    where: { id },
+    include: { _count: { select: { shareLinks: true } } },
+  });
+  if (!tpl) throw notFound('模板不存在');
+
+  const targetBusinessMode = (body.businessMode ?? tpl.businessMode) as TemplateBusinessMode;
+  const targetApprovalProcessId =
+    body.approvalProcessId === undefined ? tpl.approvalProcessId : body.approvalProcessId;
+  const businessModeChanged =
+    body.businessMode !== undefined && body.businessMode !== tpl.businessMode;
+  const approvalProcessChanged =
+    body.approvalProcessId !== undefined && body.approvalProcessId !== tpl.approvalProcessId;
+  const bindingChanged = businessModeChanged || approvalProcessChanged;
+
+  if (bindingChanged) {
+    assertApprovalTemplateBindPermission(currentUser);
+  }
+
+  if (targetBusinessMode === 'APPROVAL_REQUIRED') {
+    await assertValidApprovalProcess(targetApprovalProcessId);
+  }
+
+  if (
+    tpl.status === 'PUBLISHED' &&
+    tpl.businessMode === 'COLLECTION_ONLY' &&
+    targetBusinessMode === 'APPROVAL_REQUIRED' &&
+    tpl._count.shareLinks > 0 &&
+    body.disconnectPublicCollection !== true
+  ) {
+    throw new BizError(
+      '切换为需审批前必须确认断开公开收集入口',
+      400,
+      'PUBLIC_COLLECTION_DISCONNECT_REQUIRED',
+    );
+  }
+
+  const data: Prisma.FormTemplateUpdateInput = {};
+  if (body.name !== undefined) data.name = body.name;
+  if (body.description !== undefined) data.description = body.description;
+  if (body.schema !== undefined) {
+    data.schema = body.schema as Prisma.InputJsonValue;
+    if (tpl.status === 'PUBLISHED' && hasJsonChanged(body.schema, tpl.schema)) {
+      data.schemaVersion = tpl.schemaVersion + 1;
+    }
+  }
+  if (body.requireIdentity !== undefined) data.requireIdentity = body.requireIdentity;
+  if (body.businessMode !== undefined) data.businessMode = body.businessMode;
+  if (body.approvalProcessId !== undefined) {
+    data.approvalProcess =
+      body.approvalProcessId == null
+        ? { disconnect: true }
+        : { connect: { id: body.approvalProcessId } };
+  }
+
+  return prisma.formTemplate.update({
+    where: { id },
+    data,
+    include: templateInclude,
+  });
+}
+
+export async function publishTemplate(id: number) {
+  const tpl = await prisma.formTemplate.findUnique({ where: { id } });
+  if (!tpl) throw notFound('模板不存在');
+
+  const transitions: Record<string, string> = {
+    DRAFT: 'PUBLISHED',
+    OFFLINE: 'PUBLISHED',
+  };
+  if (transitions[tpl.status] !== 'PUBLISHED') {
+    throw new BizError(`当前状态 ${tpl.status} 不可转为 PUBLISHED`);
+  }
+  if (tpl.businessMode === 'APPROVAL_REQUIRED') {
+    await assertValidApprovalProcess(tpl.approvalProcessId);
+  }
+
+  return prisma.formTemplate.update({
+    where: { id },
+    data: { status: 'PUBLISHED' },
+    include: templateInclude,
+  });
+}
+
+export async function updateTemplateStatus(id: number, action: 'publish' | 'offline') {
+  if (action === 'publish') {
+    return publishTemplate(id);
+  }
+
+  const tpl = await prisma.formTemplate.findUnique({ where: { id } });
+  if (!tpl) throw notFound('模板不存在');
+  if (tpl.status !== 'PUBLISHED') {
+    throw new BizError(`当前状态 ${tpl.status} 不可转为 OFFLINE`);
+  }
+
+  return prisma.formTemplate.update({
+    where: { id },
+    data: { status: 'OFFLINE' },
+    include: templateInclude,
+  });
+}
+
+export async function createTemplateShareLink(templateId: number, creatorId: number) {
+  const tpl = await prisma.formTemplate.findUnique({ where: { id: templateId } });
+  if (!tpl) throw notFound('模板不存在');
+  if (tpl.businessMode === 'APPROVAL_REQUIRED') {
+    throw new BizError(
+      '需审批模板不生成公开分享链接',
+      400,
+      'APPROVAL_TEMPLATE_SHARE_DISABLED',
+    );
+  }
+  if (tpl.status !== 'PUBLISHED') throw new BizError('仅已发布模板可生成分享链接');
+
+  return prisma.shareLink.create({
+    data: {
+      code: nanoid(12),
+      templateId,
+      creatorId,
+    },
+  });
+}
 
 export const formTemplateModule = new Elysia({ prefix: '/templates' })
   .use(authGuard('form:template:list'))
@@ -12,10 +197,11 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
     const size = Number(query.size) || 10;
     const where: any = {};
     if (query.status) where.status = query.status;
+    if (query.businessMode) where.businessMode = query.businessMode;
     const [rows, total] = await Promise.all([
       prisma.formTemplate.findMany({
         where,
-        include: { creator: { select: { id: true, realName: true } } },
+        include: templateInclude,
         orderBy: { updatedAt: 'desc' },
         skip: (page - 1) * size,
         take: size,
@@ -27,7 +213,7 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
   .get('/:id', async ({ params }: any) => {
     const tpl = await prisma.formTemplate.findUnique({
       where: { id: Number(params.id) },
-      include: { creator: { select: { id: true, realName: true } } },
+      include: templateInclude,
     });
     if (!tpl) throw notFound('模板不存在');
     return tpl;
@@ -52,29 +238,17 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
   .guard({}, (app) =>
     app.use(authGuard('form:template:edit')).put(
       '/:id',
-      async ({ params, body }: any) => {
-        const id = Number(params.id);
-        const tpl = await prisma.formTemplate.findUnique({ where: { id } });
-        if (!tpl) throw notFound('模板不存在');
-        const data: any = {};
-        if (body.name !== undefined) data.name = body.name;
-        if (body.description !== undefined) data.description = body.description;
-        if (body.schema !== undefined) {
-          data.schema = body.schema;
-          if (tpl.status === 'PUBLISHED') {
-            data.schemaVersion = tpl.schemaVersion + 1;
-          }
-        }
-        if (body.requireIdentity !== undefined) data.requireIdentity = body.requireIdentity;
-        return prisma.formTemplate.update({ where: { id }, data });
-      },
+      async ({ params, body, currentUser }: any) => updateTemplate(Number(params.id), body, currentUser),
       {
         params: t.Object({ id: t.String() }),
         body: t.Object({
           name: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
-          description: t.Optional(t.String()),
+          description: t.Optional(t.Nullable(t.String())),
           schema: t.Optional(SchemaV2Body),
           requireIdentity: t.Optional(t.Boolean()),
+          businessMode: t.Optional(TemplateBusinessModeBody),
+          approvalProcessId: t.Optional(t.Nullable(t.Number())),
+          disconnectPublicCollection: t.Optional(t.Boolean()),
         }),
       },
     ),
@@ -94,24 +268,7 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
   .guard({}, (app) =>
     app.use(authGuard('form:template:publish')).patch(
       '/:id/status',
-      async ({ params, body }: any) => {
-        const id = Number(params.id);
-        const tpl = await prisma.formTemplate.findUnique({ where: { id } });
-        if (!tpl) throw notFound('模板不存在');
-        const transitions: Record<string, string> = {
-          DRAFT: 'PUBLISHED',
-          PUBLISHED: 'OFFLINE',
-          OFFLINE: 'PUBLISHED',
-        };
-        const target = body.action === 'publish' ? 'PUBLISHED' : 'OFFLINE';
-        if (transitions[tpl.status] !== target) {
-          throw new BizError(`当前状态 ${tpl.status} 不可转为 ${target}`);
-        }
-        return prisma.formTemplate.update({
-          where: { id },
-          data: { status: target as any },
-        });
-      },
+      async ({ params, body }: any) => updateTemplateStatus(Number(params.id), body.action),
       {
         params: t.Object({ id: t.String() }),
         body: t.Object({
@@ -124,20 +281,8 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
   .guard({}, (app) =>
     app.use(authGuard('form:template:share')).post(
       '/:id/share-links',
-      async ({ params, currentUser }: any) => {
-        const templateId = Number(params.id);
-        const tpl = await prisma.formTemplate.findUnique({ where: { id: templateId } });
-        if (!tpl) throw notFound('模板不存在');
-        if (tpl.status !== 'PUBLISHED') throw new BizError('仅已发布模板可生成分享链接');
-        const link = await prisma.shareLink.create({
-          data: {
-            code: nanoid(12),
-            templateId,
-            creatorId: currentUser.id,
-          },
-        });
-        return link;
-      },
+      async ({ params, currentUser }: any) =>
+        createTemplateShareLink(Number(params.id), currentUser.id),
       { params: t.Object({ id: t.String() }) },
     ),
   );
