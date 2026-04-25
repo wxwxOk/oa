@@ -32,7 +32,7 @@ export type ApplicationRouteRow = {
   completedAt: RouteDate;
   createdAt: Date | string;
   updatedAt: Date | string;
-  canCancel: boolean;
+  canCancel?: boolean;
 };
 
 export type ApplicationRouteTimelineEvent = {
@@ -152,7 +152,7 @@ export function serializeApplicationRow(row: ApplicationRouteRow) {
     completedAt: toIso(row.completedAt),
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),
-    canCancel: row.canCancel,
+    canCancel: row.canCancel ?? (row.status === 'SUBMITTED' || row.status === 'APPROVING'),
   };
 }
 
