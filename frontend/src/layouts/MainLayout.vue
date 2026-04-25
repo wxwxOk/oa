@@ -169,6 +169,7 @@ const allMenus: MenuConfig[] = [
     title: '审批管理',
     icon: 'approval',
     children: [
+      { path: '/approval/applications', title: '我的申请', icon: 'assignment', perm: 'approval:application:own' },
       { path: '/approval/processes', title: '流程配置', icon: 'rule', perm: 'approval:process:list' },
     ],
   },

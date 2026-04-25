@@ -30,6 +30,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'templates/:id/submissions', component: () => import('pages/SubmissionPage.vue'), meta: { title: '提交数据', perm: 'form:submission:list' } },
       { path: 'share-link-stats', component: () => import('pages/ShareLinkStatsPage.vue'), meta: { title: '统计表', icon: 'bar_chart', perm: 'form:link-stats:view' } },
       { path: 'approval/processes', component: () => import('pages/ApprovalProcessPage.vue'), meta: { title: '流程配置', icon: 'rule', perm: 'approval:process:list' } },
+      { path: 'approval/applications', component: () => import('pages/ApprovalApplicationPage.vue'), meta: { title: '我的申请', icon: 'assignment', perm: 'approval:application:own' } },
+      { path: 'approval/applications/:id/edit', component: () => import('pages/ApprovalApplicationFormPage.vue'), meta: { title: '填写申请', perm: 'approval:application:create' } },
     ],
   },
   { path: '/:catchAll(.*)*', component: () => import('pages/NotFoundPage.vue'), meta: { public: true } },
