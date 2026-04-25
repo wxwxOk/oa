@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: verifying
-last_updated: "2026-04-25T08:23:53.106Z"
+last_updated: "2026-04-25T08:45:54.889Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 5
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 
 ## Current Position
 
-Phase: 15 (approval-data-model-state-machine) — EXECUTING
-Plan: 3 of 3
+Phase: 16
+Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-04-25
 
@@ -39,7 +39,7 @@ Progress: [----------] 0%
 
 **Velocity:**
 
-- Total plans completed: 54 (25 v1.0 + 13 v1.1 + 16 v1.2)
+- Total plans completed: 57 (25 v1.0 + 13 v1.1 + 16 v1.2)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
