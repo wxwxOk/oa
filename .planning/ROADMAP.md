@@ -99,7 +99,13 @@ Plans:
   3. “我的申请”支持按草稿、审批中、已通过、已驳回、已撤销和时间范围筛选
   4. 申请详情展示表单数据、当前状态、当前节点、审批时间线和意见
   5. 申请人可在规则允许时撤销未终审申请，撤销后待办关闭且时间线可见
-**Plans:** pending
+**Plans:** 5 plans
+Plans:
+- [ ] 17-01-PLAN.md — Backend employee application service helpers and tests
+- [ ] 17-02-PLAN.md — Authenticated approval application API routes
+- [ ] 17-03-PLAN.md — Frontend DTOs, status helpers, and Pinia store
+- [ ] 17-04-PLAN.md — My Applications list, template picker, form, routes, and navigation
+- [ ] 17-05-PLAN.md — Application detail, timeline, cancel flow, and responsive smoke
 **UI hint**: yes
 
 ### Phase 18: 待我审批与移动审批
@@ -146,6 +152,6 @@ Plans:
 | 14. 响应式填写页 | v1.2 | 2/2 | Complete | 2026-04-22 |
 | 15. 审批数据模型与状态机 | v2.0 | 3/3 | Complete    | 2026-04-25 |
 | 16. 流程配置与模板绑定 | v2.0 | 9/9 | Complete    | 2026-04-25 |
-| 17. 我的申请与动态提交 | v2.0 | 0/? | Pending |  |
+| 17. 我的申请与动态提交 | v2.0 | 0/5 | Planned |  |
 | 18. 待我审批与移动审批 | v2.0 | 0/? | Pending |  |
 | 19. 收集后处理、归档导出统计 | v2.0 | 0/? | Pending |  |
