@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../../plugins/prisma';
 import { notFound, BizError } from '../../utils/errors';
+import { validateFormDataRequiredFields } from '../template/schema.validation';
 
 export const publicFillModule = new Elysia({ prefix: '/public/f' })
   // GET /:code — 获取模板 schema（公开，无鉴权）(per D-03: 仅模板下线时失效)
@@ -16,6 +17,7 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
             schema: true,
             schemaVersion: true,
             status: true,
+            businessMode: true,
             requireIdentity: true,
           },
         },
@@ -23,6 +25,9 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
     });
     if (!link) throw notFound('链接无效');
     if (link.template.status !== 'PUBLISHED') {
+      throw new BizError('该表单已停止收集', 410, 'TEMPLATE_OFFLINE');
+    }
+    if (link.template.businessMode !== 'COLLECTION_ONLY') {
       throw new BizError('该表单已停止收集', 410, 'TEMPLATE_OFFLINE');
     }
     // 仅返回填写所需字段，不暴露内部数据
@@ -40,10 +45,24 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
     async ({ params, body }: any) => {
       const link = await prisma.shareLink.findUnique({
         where: { code: params.code },
-        include: { template: true },
+        include: {
+          template: {
+            select: {
+              id: true,
+              schema: true,
+              schemaVersion: true,
+              status: true,
+              businessMode: true,
+              requireIdentity: true,
+            },
+          },
+        },
       });
       if (!link) throw notFound('链接无效');
       if (link.template.status !== 'PUBLISHED') {
+        throw new BizError('该表单已停止收集', 410, 'TEMPLATE_OFFLINE');
+      }
+      if (link.template.businessMode !== 'COLLECTION_ONLY') {
         throw new BizError('该表单已停止收集', 410, 'TEMPLATE_OFFLINE');
       }
       // per D-09/D-12: 如果模板要求身份信息，校验必填
@@ -51,10 +70,11 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
         if (!body.submitterName?.trim()) throw new BizError('请输入姓名');
         if (!/^1\d{10}$/.test(body.submitterPhone ?? '')) throw new BizError('请输入有效手机号');
       }
+      validateFormDataRequiredFields(link.template.schema, body.data ?? {});
       // per D-14: schemaVersion 从服务端读取，不信任客户端
       const submission = await prisma.submission.create({
         data: {
-          data: body.data,
+          data: body.data ?? {},
           schemaVersion: link.template.schemaVersion,
           submitterName: body.submitterName || null,
           submitterPhone: body.submitterPhone || null,
