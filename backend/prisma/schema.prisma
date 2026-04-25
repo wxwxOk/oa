@@ -15,27 +15,28 @@ enum UserStatus {
 }
 
 model User {
-  id                     Int                     @id @default(autoincrement())
-  username               String                  @unique
-  password               String
-  realName               String
-  email                  String?                 @unique
-  phone                  String?
-  avatar                 String?
-  status                 UserStatus              @default(ACTIVE)
-  departmentId           Int?
-  department             Department?             @relation(fields: [departmentId], references: [id])
-  roles                  UserRole[]
-  templates              FormTemplate[]
-  shareLinks             ShareLink[]
-  approvalProcesses      ApprovalProcess[]
-  approvalProcessNodes   ApprovalProcessNode[]   @relation("ApprovalNodeApproverUser")
-  approvalApplications   ApprovalApplication[]
-  approvalTasks          ApprovalTask[]
-  approvalActions        ApprovalAction[]
-  approvalTimelineEvents ApprovalTimelineEvent[]
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
+  id                         Int                     @id @default(autoincrement())
+  username                   String                  @unique
+  password                   String
+  realName                   String
+  email                      String?                 @unique
+  phone                      String?
+  avatar                     String?
+  status                     UserStatus              @default(ACTIVE)
+  departmentId               Int?
+  department                 Department?             @relation(fields: [departmentId], references: [id])
+  roles                      UserRole[]
+  templates                  FormTemplate[]
+  shareLinks                 ShareLink[]
+  approvalProcesses          ApprovalProcess[]
+  approvalProcessNodes       ApprovalProcessNode[]   @relation("ApprovalNodeApproverUser")
+  approvalApplications       ApprovalApplication[]
+  approvalTasks              ApprovalTask[]
+  approvalActions            ApprovalAction[]
+  approvalTimelineEvents     ApprovalTimelineEvent[]
+  defaultApproverDepartments Department[]            @relation("DepartmentDefaultApprover")
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
 
   @@index([departmentId])
 }
@@ -48,9 +49,12 @@ model Department {
   children             Department[]          @relation("DeptTree")
   sort                 Int                   @default(0)
   users                User[]
+  defaultApproverId    Int?
+  defaultApprover      User?                 @relation("DepartmentDefaultApprover", fields: [defaultApproverId], references: [id])
   approvalApplications ApprovalApplication[]
 
   @@index([parentId])
+  @@index([defaultApproverId])
 }
 
 model Role {
@@ -98,6 +102,11 @@ enum TemplateStatus {
   OFFLINE
 }
 
+enum TemplateBusinessMode {
+  COLLECTION_ONLY
+  APPROVAL_REQUIRED
+}
+
 model FormTemplate {
   id                   Int                   @id @default(autoincrement())
   name                 String
@@ -105,6 +114,9 @@ model FormTemplate {
   schema               Json                  @default("[]")
   schemaVersion        Int                   @default(1)
   status               TemplateStatus        @default(DRAFT)
+  businessMode         TemplateBusinessMode  @default(COLLECTION_ONLY)
+  approvalProcessId    Int?
+  approvalProcess      ApprovalProcess?      @relation(fields: [approvalProcessId], references: [id])
   requireIdentity      Boolean               @default(false)
   creatorId            Int
   creator              User                  @relation(fields: [creatorId], references: [id])
@@ -116,6 +128,8 @@ model FormTemplate {
 
   @@index([creatorId])
   @@index([status])
+  @@index([businessMode])
+  @@index([approvalProcessId])
 }
 
 enum ApprovalApplicationStatus {
@@ -153,16 +167,17 @@ enum ApprovalApproverSourceType {
 }
 
 model ApprovalProcess {
-  id           Int                   @id @default(autoincrement())
-  name         String
-  description  String?
-  isActive     Boolean               @default(true)
-  creatorId    Int
-  creator      User                  @relation(fields: [creatorId], references: [id])
-  nodes        ApprovalProcessNode[]
-  applications ApprovalApplication[]
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
+  id             Int                   @id @default(autoincrement())
+  name           String
+  description    String?
+  isActive       Boolean               @default(true)
+  creatorId      Int
+  creator        User                  @relation(fields: [creatorId], references: [id])
+  nodes          ApprovalProcessNode[]
+  applications   ApprovalApplication[]
+  boundTemplates FormTemplate[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
 
   @@index([creatorId])
   @@index([isActive])
