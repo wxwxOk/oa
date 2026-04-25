@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: verifying
-last_updated: "2026-04-25T08:45:54.889Z"
+last_updated: "2026-04-25T09:00:25.046Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 5
