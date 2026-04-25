@@ -32,6 +32,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'approval/processes', component: () => import('pages/ApprovalProcessPage.vue'), meta: { title: '流程配置', icon: 'rule', perm: 'approval:process:list' } },
       { path: 'approval/applications', component: () => import('pages/ApprovalApplicationPage.vue'), meta: { title: '我的申请', icon: 'assignment', perm: 'approval:application:own' } },
       { path: 'approval/applications/:id/edit', component: () => import('pages/ApprovalApplicationFormPage.vue'), meta: { title: '填写申请', perm: 'approval:application:create' } },
+      { path: 'approval/applications/:id', component: () => import('pages/ApprovalApplicationDetailPage.vue'), meta: { title: '申请详情', perm: 'approval:application:own' } },
     ],
   },
   { path: '/:catchAll(.*)*', component: () => import('pages/NotFoundPage.vue'), meta: { public: true } },
