@@ -1,0 +1,98 @@
+import { afterAll, beforeEach, describe, expect, it } from 'bun:test';
+
+import { prisma } from '../../../plugins/prisma';
+import {
+  APPROVAL_PERMISSION_CODES,
+  EMPLOYEE_PERMISSION_CODES,
+  seedDatabase,
+} from '../../../../prisma/seed';
+
+const phase16ApprovalCodes = [
+  'approval:process:list',
+  'approval:process:create',
+  'approval:process:update',
+  'approval:process:delete',
+  'approval:template:bind',
+  'approval:application:create',
+  'approval:application:own',
+  'approval:application:department',
+  'approval:application:all',
+  'approval:task:list',
+  'approval:task:handle',
+  'approval:export',
+];
+
+async function rolePermissionCodes(roleCode: string) {
+  const role = await prisma.role.findUniqueOrThrow({
+    where: { code: roleCode },
+    include: {
+      permissions: {
+        include: {
+          permission: true,
+        },
+      },
+    },
+  });
+
+  return role.permissions.map((item) => item.permission.code).sort();
+}
+
+describe('approval permission seed data', () => {
+  beforeEach(async () => {
+    await prisma.approvalTimelineEvent.deleteMany();
+    await prisma.approvalAction.deleteMany();
+    await prisma.approvalTask.deleteMany();
+    await prisma.approvalApplication.deleteMany();
+    await prisma.approvalProcessNode.deleteMany();
+    await prisma.approvalProcess.deleteMany();
+    await prisma.submission.deleteMany();
+    await prisma.shareLink.deleteMany();
+    await prisma.formTemplate.deleteMany();
+    await prisma.userRole.deleteMany();
+    await prisma.rolePermission.deleteMany();
+    await prisma.permission.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.department.deleteMany();
+    await prisma.role.deleteMany();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('seeded permission list includes all Phase 16 approval codes', async () => {
+    expect(APPROVAL_PERMISSION_CODES).toEqual(phase16ApprovalCodes);
+
+    await seedDatabase();
+
+    const permissions = await prisma.permission.findMany({
+      where: { code: { in: phase16ApprovalCodes } },
+      orderBy: { code: 'asc' },
+    });
+
+    expect(permissions.map((permission) => permission.code).sort()).toEqual([...phase16ApprovalCodes].sort());
+  });
+
+  it('ADMIN receives all approval permissions', async () => {
+    await seedDatabase();
+
+    const adminCodes = await rolePermissionCodes('ADMIN');
+
+    expect(adminCodes).toEqual(expect.arrayContaining(APPROVAL_PERMISSION_CODES));
+  });
+
+  it('EMPLOYEE receives approval application create and own permissions', async () => {
+    expect(EMPLOYEE_PERMISSION_CODES).toEqual(
+      expect.arrayContaining(['approval:application:create', 'approval:application:own']),
+    );
+    expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:task:handle');
+
+    await seedDatabase();
+
+    const employeeCodes = await rolePermissionCodes('EMPLOYEE');
+
+    expect(employeeCodes).toContain('approval:application:create');
+    expect(employeeCodes).toContain('approval:application:own');
+    expect(employeeCodes).not.toContain('approval:task:handle');
+  });
+});
