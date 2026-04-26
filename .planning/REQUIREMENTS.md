@@ -34,12 +34,12 @@
 
 ### 待我审批与移动审批
 
-- [ ] **APR-01**: 审批人可查看“待我审批”任务列表，并按模板、申请人、部门、状态和日期筛选
-- [ ] **APR-02**: 审批人可打开审批详情，查看按 schema 快照渲染的表单数据、当前节点和完整时间线
-- [ ] **APR-03**: 审批人可对待办执行通过或驳回，并填写审批意见；系统推进下一节点或进入最终状态
-- [ ] **APR-04**: 审批人可查看已处理审批历史，区分已通过、已驳回和已转入后续节点的记录
-- [ ] **APR-05**: Mobile 审批详情页提供可读时间线和 sticky 操作区，动态表格、签名和长表单在窄屏可用
-- [ ] **APR-06**: 审批人可添加内部处理备注，备注独立于原始提交数据并显示在详情/时间线中
+- [x] **APR-01**: 审批人可查看“待我审批”任务列表，并按模板、申请人、部门、状态和日期筛选
+- [x] **APR-02**: 审批人可打开审批详情，查看按 schema 快照渲染的表单数据、当前节点和完整时间线
+- [x] **APR-03**: 审批人可对待办执行通过或驳回，并填写审批意见；系统推进下一节点或进入最终状态
+- [x] **APR-04**: 审批人可查看已处理审批历史，区分已通过、已驳回和已转入后续节点的记录
+- [x] **APR-05**: Mobile 审批详情页提供可读时间线和 sticky 操作区，动态表格、签名和长表单在窄屏可用
+- [x] **APR-06**: 审批人可添加内部处理备注，备注独立于原始提交数据并显示在详情/时间线中
 
 ### 收集后处理、标记备注、归档导出统计
 
@@ -101,12 +101,12 @@
 | APP-03 | Phase 17 | Complete |
 | APP-04 | Phase 17 | Complete |
 | APP-05 | Phase 17 | Complete |
-| APR-01 | Phase 18 | Pending |
-| APR-02 | Phase 18 | Pending |
-| APR-03 | Phase 18 | Pending |
-| APR-04 | Phase 18 | Pending |
-| APR-05 | Phase 18 | Pending |
-| APR-06 | Phase 18 | Pending |
+| APR-01 | Phase 18 | Complete |
+| APR-02 | Phase 18 | Complete |
+| APR-03 | Phase 18 | Complete |
+| APR-04 | Phase 18 | Complete |
+| APR-05 | Phase 18 | Complete |
+| APR-06 | Phase 18 | Complete |
 | OPS-01 | Phase 19 | Pending |
 | OPS-02 | Phase 19 | Pending |
 | OPS-03 | Phase 19 | Pending |

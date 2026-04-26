@@ -48,7 +48,7 @@
 - [x] **Phase 15: 审批数据模型与状态机** - 流程定义、审批实例、任务、动作、时间线、快照和合法状态流转 (completed 2026-04-25)
 - [x] **Phase 16: 流程配置与模板绑定** - 审批模式、单步/串行流程配置、部门负责人、RBAC 和动态必填/schema 版本 (completed 2026-04-25)
 - [x] **Phase 17: 我的申请与动态提交** - 登录提交、草稿、我的申请、申请详情、状态跟踪和撤销 (completed 2026-04-25)
-- [ ] **Phase 18: 待我审批与移动审批** - 待办列表、筛选、审批详情、通过/驳回/意见、已办历史和移动端操作
+- [x] **Phase 18: 待我审批与移动审批** - 待办列表、筛选、审批详情、通过/驳回/意见、已办历史和移动端操作 (completed 2026-04-26)
 - [ ] **Phase 19: 收集后处理、归档导出统计** - 标签/标记、备注、受控编辑、处理字段、站内通知、归档查询、Excel/PDF 导出和统计
 
 ## Phase Details
@@ -120,13 +120,13 @@ Plans:
   4. 审批人可查看已处理历史，已办记录与待办清晰分离
   5. 移动端审批详情有可读时间线和 sticky 操作区，长表单、动态表格、签名字段不遮挡操作
   6. 审批人可添加内部处理备注，备注不修改原始提交数据
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 Plans:
-- [ ] 18-01-PLAN.md — Wave 0 backend/frontend regression contracts for task queue, action APIs, mobile detail, and internal remark visibility
-- [ ] 18-02-PLAN.md — Backend `/approval/tasks` service/routes, delegated action wrappers, and applicant-side internal remark filtering
-- [ ] 18-03-PLAN.md — Frontend approval-task DTOs, helpers, and Pinia store
-- [ ] 18-04-PLAN.md — Responsive approver inbox page plus `/approval/tasks` route and menu integration
-- [ ] 18-05-PLAN.md — Approval task detail, timeline/internal remark rendering, and sticky mobile action flows
+- [x] 18-01-PLAN.md — Wave 0 backend/frontend regression contracts for task queue, action APIs, mobile detail, and internal remark visibility
+- [x] 18-02-PLAN.md — Backend `/approval/tasks` service/routes, delegated action wrappers, and applicant-side internal remark filtering
+- [x] 18-03-PLAN.md — Frontend approval-task DTOs, helpers, and Pinia store
+- [x] 18-04-PLAN.md — Responsive approver inbox page plus `/approval/tasks` route and menu integration
+- [x] 18-05-PLAN.md — Approval task detail, timeline/internal remark rendering, and sticky mobile action flows
 **UI hint**: yes
 
 ### Phase 19: 收集后处理、归档导出统计
@@ -160,5 +160,5 @@ Plans:
 | 15. 审批数据模型与状态机 | v2.0 | 3/3 | Complete    | 2026-04-25 |
 | 16. 流程配置与模板绑定 | v2.0 | 9/9 | Complete    | 2026-04-25 |
 | 17. 我的申请与动态提交 | v2.0 | 5/5 | Complete | 2026-04-25 |
-| 18. 待我审批与移动审批 | v2.0 | 0/? | Pending |  |
+| 18. 待我审批与移动审批 | v2.0 | 5/5 | Complete   | 2026-04-26 |
 | 19. 收集后处理、归档导出统计 | v2.0 | 0/? | Pending |  |
