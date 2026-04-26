@@ -210,7 +210,7 @@ function serializeDetail(actor: ApprovalActor, application: OwnApplicationWithRe
     timeline: application.timelineEvents
       .filter((event) => {
         const payload = event.payload as { visibility?: unknown } | null;
-        return !(event.type === 'COMMENT' && payload?.visibility === 'INTERNAL');
+        return payload?.visibility !== 'INTERNAL';
       })
       .map((event) => ({
         id: event.id,

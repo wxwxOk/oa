@@ -378,7 +378,7 @@ describe('employee approval application submission service', () => {
     ).rejects.toThrow('非法状态流转');
   });
 
-  it('internal remark hidden from own detail when payload.visibility === \'INTERNAL\'', async () => {
+  it('internal archive and remark events are hidden from own detail when payload.visibility === \'INTERNAL\'', async () => {
     const { applicant, approver, template } = await setupApplicationSubmissionFixture();
     const draft = await createApplicationDraft(
       { id: applicant.id, name: applicant.realName },
@@ -406,6 +406,25 @@ describe('employee approval application submission service', () => {
     });
     await appendApplicationEvent({
       applicationId: submitted.id,
+      actor: { id: approver.id, name: approver.realName },
+      type: 'MARK',
+      title: '更新归档标签',
+      comment: '内部标记',
+      payload: { visibility: 'INTERNAL', tags: ['重点'] },
+    });
+    await appendApplicationEvent({
+      applicationId: submitted.id,
+      actor: { id: approver.id, name: approver.realName },
+      type: 'EDIT',
+      title: '修正提交数据',
+      comment: '内部修正',
+      payload: {
+        visibility: 'INTERNAL',
+        changes: [{ field: 'reason', before: '采购电脑', after: '采购显示器' }],
+      },
+    });
+    await appendApplicationEvent({
+      applicationId: submitted.id,
       taskId: task.id,
       actor: { id: approver.id, name: approver.realName },
       nodeOrder: task.nodeOrder,
@@ -425,9 +444,11 @@ describe('employee approval application submission service', () => {
     expect(
       detail.timeline.some((event) => {
         const payload = event.payload as { visibility?: string } | null;
-        return event.type === 'COMMENT' && payload !== null && payload.visibility === 'INTERNAL';
+        return payload !== null && payload.visibility === 'INTERNAL';
       }),
     ).toBe(false);
+    expect(detail.timeline.map((event) => event.title)).not.toContain('更新归档标签');
+    expect(detail.timeline.map((event) => event.title)).not.toContain('修正提交数据');
     expect(detail.timeline.map((event) => event.comment)).toContain('普通备注仍可见');
     expect(detail.timeline.map((event) => event.type)).toContain('APPROVE');
   });
