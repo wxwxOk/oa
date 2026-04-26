@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test';
 
 import { prisma } from '../../../plugins/prisma';
+import { appendApplicationEvent, approveTask } from '../application.service';
 import {
   cancelOwnApplication,
   createApplicationDraft,
@@ -375,5 +376,59 @@ describe('employee approval application submission service', () => {
     await expect(
       cancelOwnApplication({ id: applicant.id, name: applicant.realName }, submitted.id, '再次撤销'),
     ).rejects.toThrow('非法状态流转');
+  });
+
+  it('internal remark hidden from own detail when payload.visibility === \'INTERNAL\'', async () => {
+    const { applicant, approver, template } = await setupApplicationSubmissionFixture();
+    const draft = await createApplicationDraft(
+      { id: applicant.id, name: applicant.realName },
+      { templateId: template.id, formData: validFormData },
+    );
+    const submitted = await submitDraftApplication(
+      { id: applicant.id, name: applicant.realName },
+      draft.id,
+      validFormData,
+    );
+    const task = await prisma.approvalTask.findFirstOrThrow({
+      where: { applicationId: submitted.id, assigneeId: approver.id },
+    });
+
+    await appendApplicationEvent({
+      applicationId: submitted.id,
+      taskId: task.id,
+      actor: { id: approver.id, name: approver.realName },
+      nodeOrder: task.nodeOrder,
+      nodeName: task.nodeName,
+      type: 'COMMENT',
+      title: '内部备注',
+      comment: '申请人不应看到这条备注',
+      payload: { visibility: 'INTERNAL' },
+    });
+    await appendApplicationEvent({
+      applicationId: submitted.id,
+      taskId: task.id,
+      actor: { id: approver.id, name: approver.realName },
+      nodeOrder: task.nodeOrder,
+      nodeName: task.nodeName,
+      type: 'COMMENT',
+      title: '公开备注',
+      comment: '普通备注仍可见',
+      payload: { visibility: 'PUBLIC' },
+    });
+    await approveTask(task.id, { id: approver.id, name: approver.realName }, '审批通过');
+
+    const detail = await getOwnApplicationDetail(
+      { id: applicant.id, name: applicant.realName },
+      submitted.id,
+    );
+
+    expect(
+      detail.timeline.some((event) => {
+        const payload = event.payload as { visibility?: string } | null;
+        return event.type === 'COMMENT' && payload !== null && payload.visibility === 'INTERNAL';
+      }),
+    ).toBe(false);
+    expect(detail.timeline.map((event) => event.comment)).toContain('普通备注仍可见');
+    expect(detail.timeline.map((event) => event.type)).toContain('APPROVE');
   });
 });
