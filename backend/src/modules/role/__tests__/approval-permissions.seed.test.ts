@@ -90,6 +90,7 @@ describe('approval permission seed data', () => {
       expect.arrayContaining(['approval:application:create', 'approval:application:own']),
     );
     expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:task:handle');
+    expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:export');
     expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:archive:edit');
     expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:archive:mark');
     expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:archive:stats');
@@ -101,6 +102,7 @@ describe('approval permission seed data', () => {
     expect(employeeCodes).toContain('approval:application:create');
     expect(employeeCodes).toContain('approval:application:own');
     expect(employeeCodes).not.toContain('approval:task:handle');
+    expect(employeeCodes).not.toContain('approval:export');
     expect(employeeCodes).not.toContain('approval:archive:edit');
     expect(employeeCodes).not.toContain('approval:archive:mark');
     expect(employeeCodes).not.toContain('approval:archive:stats');
