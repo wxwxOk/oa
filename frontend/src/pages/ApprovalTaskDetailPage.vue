@@ -260,6 +260,7 @@ import ApplicationTimeline from 'src/components/approval/ApplicationTimeline.vue
 import GridFormRenderer from 'src/components/renderer/GridFormRenderer.vue';
 import { useResponsive } from 'src/composables/useResponsive';
 import { useApprovalTaskStore } from 'src/stores/approvalTask';
+import { statusLabel } from 'src/types/approvalApplication';
 import { canHandleTask, type ApprovalTaskDetail } from 'src/types/approvalTask';
 
 const route = useRoute();
@@ -287,7 +288,7 @@ const CurrentTaskSummary = defineComponent({
       detail.value
         ? h('div', { class: 'summary-grid q-mt-md' }, [
             h('div', [h('span', { class: 'muted' }, '任务状态：'), taskStatusText(detail.value.taskStatus)]),
-            h('div', [h('span', { class: 'muted' }, '申请状态：'), detail.value.applicationStatus]),
+            h('div', [h('span', { class: 'muted' }, '申请状态：'), statusLabel(detail.value.applicationStatus)]),
             h('div', [h('span', { class: 'muted' }, '当前节点：'), detail.value.nodeName || '—']),
             h('div', [h('span', { class: 'muted' }, '分配时间：'), formatDate(detail.value.assignedAt)]),
             h('div', [h('span', { class: 'muted' }, '处理时间：'), formatDate(detail.value.handledAt)]),
