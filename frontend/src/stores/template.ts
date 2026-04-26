@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 import type { SchemaV2, SchemaField, SchemaGroup, SchemaDynamicTable } from 'src/types/schema';
+import type { ArchiveProcessingField as ProcessingFieldConfig } from 'src/types/approvalArchive';
 import { flattenFields } from 'src/types/schema';
 
 /** @deprecated Use SchemaField from 'src/types/schema' instead */
@@ -19,6 +20,7 @@ export interface Template {
   name: string;
   description: string | null;
   schema: SchemaV2;
+  processingSchema: ProcessingFieldConfig[];
   schemaVersion: number;
   status: 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
   requireIdentity: boolean;
@@ -35,6 +37,7 @@ export interface TemplateUpdatePayload {
   name?: string;
   description?: string;
   schema?: SchemaV2;
+  processingSchema?: ProcessingFieldConfig[];
   requireIdentity?: boolean;
   businessMode?: TemplateBusinessMode;
   approvalProcessId?: number | null;
