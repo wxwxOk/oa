@@ -207,19 +207,24 @@ function serializeDetail(actor: ApprovalActor, application: OwnApplicationWithRe
     formData: application.formData,
     schemaSnapshot: application.schemaSnapshot,
     processSnapshot: application.processSnapshot,
-    timeline: application.timelineEvents.map((event) => ({
-      id: event.id,
-      taskId: event.taskId,
-      actorId: event.actorId,
-      actorName: event.actorName,
-      nodeOrder: event.nodeOrder,
-      nodeName: event.nodeName,
-      type: event.type,
-      title: event.title,
-      comment: event.comment,
-      payload: event.payload,
-      createdAt: event.createdAt,
-    })),
+    timeline: application.timelineEvents
+      .filter((event) => {
+        const payload = event.payload as { visibility?: unknown } | null;
+        return !(event.type === 'COMMENT' && payload?.visibility === 'INTERNAL');
+      })
+      .map((event) => ({
+        id: event.id,
+        taskId: event.taskId,
+        actorId: event.actorId,
+        actorName: event.actorName,
+        nodeOrder: event.nodeOrder,
+        nodeName: event.nodeName,
+        type: event.type,
+        title: event.title,
+        comment: event.comment,
+        payload: event.payload,
+        createdAt: event.createdAt,
+      })),
     tasks: application.tasks.map((task) => ({
       id: task.id,
       nodeOrder: task.nodeOrder,
