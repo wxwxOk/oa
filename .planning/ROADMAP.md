@@ -141,7 +141,18 @@ Plans:
   5. 授权人员可导出列表 Excel，并复用现有 PDF/打印能力导出单个申请详情
   6. 管理员可查看按模板、状态、部门和月份聚合的基础统计
   7. 站内通知覆盖新待办、通过、驳回和未读数量
-**Plans:** pending
+**Plans:** 10 plans
+Plans:
+- [ ] 19-01-PLAN.md — Wave 0 backend contracts for archive operations, export, stats, notifications, and permissions
+- [ ] 19-02-PLAN.md — Wave 0 frontend contracts for archive DTO/store/page/detail and notifications
+- [ ] 19-03-PLAN.md — Data model, ExcelJS dependency, permissions, and blocking Prisma generate/migrate gate
+- [ ] 19-04-PLAN.md — Frontend archive/notification DTOs, stores, and any-permission route guard support
+- [ ] 19-05-PLAN.md — Backend archive operations, template processing config, and archive route registration
+- [ ] 19-06-PLAN.md — Backend transaction-bound in-app notifications and notification routes
+- [ ] 19-07-PLAN.md — Backend Excel export and archive statistics routes
+- [ ] 19-08-PLAN.md — Archive query/detail/statistics UI, route wiring, and navigation entry
+- [ ] 19-09-PLAN.md — Template processing-field configuration UI
+- [ ] 19-10-PLAN.md — Header notification badge, list, polling, navigation, and mark-read UI
 **UI hint**: yes
 
 ## Progress
