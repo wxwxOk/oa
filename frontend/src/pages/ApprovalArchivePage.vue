@@ -285,51 +285,15 @@
       </div>
     </template>
 
-    <section v-perm="'approval:archive:stats'" class="archive-stats q-mt-lg">
-      <div class="row items-center q-mb-sm">
-        <div class="section-title">归档统计</div>
-        <q-space />
-        <q-btn
-          flat
-          dense
-          round
-          icon="refresh"
-          aria-label="刷新归档统计"
-          :loading="store.statsLoading"
-          @click="loadStats"
-        >
-          <q-tooltip>刷新归档统计</q-tooltip>
-        </q-btn>
-      </div>
-      <q-banner v-if="statsError" dense rounded class="bg-negative text-white q-mb-sm">
-        统计数据加载失败，请检查筛选条件后重试。
-      </q-banner>
-      <div v-if="store.statsLoading" class="stats-grid">
-        <q-skeleton v-for="name in statTitles" :key="name" type="rect" height="120px" />
-      </div>
-      <div v-else-if="statsEmpty" class="text-center q-pa-lg muted">暂无统计数据</div>
-      <div v-else class="stats-grid">
-        <q-card v-for="dataset in statsDatasets" :key="dataset.title" flat bordered class="stats-block">
-          <q-card-section>
-            <div class="text-subtitle2 q-mb-sm">{{ dataset.title }}</div>
-            <q-markup-table dense flat>
-              <thead>
-                <tr>
-                  <th class="text-left">维度</th>
-                  <th class="text-right">数量</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in dataset.rows" :key="item.label">
-                  <td class="text-left wrap-text">{{ item.label }}</td>
-                  <td class="text-right">{{ item.count }}</td>
-                </tr>
-              </tbody>
-            </q-markup-table>
-          </q-card-section>
-        </q-card>
-      </div>
-    </section>
+    <ArchiveStatsPanel
+      v-perm="'approval:archive:stats'"
+      aria-label="归档统计 按模板统计 按状态统计 按部门统计 按月份统计"
+      :stats="store.stats"
+      :loading="store.statsLoading"
+      :error="statsError"
+      empty-copy="暂无统计数据"
+      @reload="loadStats"
+    />
 
     <q-dialog v-model="filterDialog" position="bottom">
       <q-card class="filter-sheet">
@@ -413,6 +377,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { Notify } from 'quasar';
 import { useRouter } from 'vue-router';
 import EmptyState from 'src/components/EmptyState.vue';
+import ArchiveStatsPanel from 'src/components/approval/ArchiveStatsPanel.vue';
 import { useResponsive } from 'src/composables/useResponsive';
 import { useApprovalArchiveStore } from 'src/stores/approvalArchive';
 import {
@@ -486,28 +451,6 @@ const tagOptions = computed(() => {
   ]);
   return Array.from(tags);
 });
-
-const statTitles = ['按模板统计', '按状态统计', '按部门统计', '按月份统计'];
-const statsDatasets = computed(() => [
-  {
-    title: '按模板统计',
-    rows: (store.stats?.byTemplate ?? []).map((item) => ({ label: item.templateName, count: item.count })),
-  },
-  {
-    title: '按状态统计',
-    rows: (store.stats?.byStatus ?? []).map((item) => ({ label: archiveStatusLabel(item.status), count: item.count })),
-  },
-  {
-    title: '按部门统计',
-    rows: (store.stats?.byDepartment ?? []).map((item) => ({ label: item.departmentName || '未设置部门', count: item.count })),
-  },
-  {
-    title: '按月份统计',
-    rows: (store.stats?.byMonth ?? []).map((item) => ({ label: item.month, count: item.count })),
-  },
-]);
-
-const statsEmpty = computed(() => statsDatasets.value.every((dataset) => dataset.rows.length === 0));
 
 function createEmptyFilters(): ArchiveListFilters {
   return {
@@ -667,8 +610,7 @@ onMounted(() => {
 }
 
 .state-panel,
-.archive-card,
-.stats-block {
+.archive-card {
   border-radius: 8px;
   background: var(--oa-surface);
 }
@@ -680,18 +622,6 @@ onMounted(() => {
 .archive-query,
 .archive-export {
   min-height: 36px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
 }
 
 .tag-list,
@@ -730,11 +660,6 @@ onMounted(() => {
 @media (max-width: 1023px) {
   .archive-header {
     align-items: center;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
   }
 
   .mobile-filter-trigger,
