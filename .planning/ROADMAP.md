@@ -142,6 +142,7 @@ Plans:
   6. 管理员可查看按模板、状态、部门和月份聚合的基础统计
   7. 站内通知覆盖新待办、通过、驳回和未读数量
 **Plans:** 10/10 plans complete
+**Verification:** passed — 9/9 must-haves verified after applicant internal-event visibility gap closure; see `19-VERIFICATION.md`
 Plans:
 - [x] 19-01-PLAN.md — Wave 0 backend contracts for archive operations, export, stats, notifications, and permissions
 - [x] 19-02-PLAN.md — Wave 0 frontend contracts for archive DTO/store/page/detail and notifications
