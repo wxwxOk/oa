@@ -13,6 +13,7 @@ import {
   listApprovalTasks,
   rejectApprovalTask,
 } from '../task.service';
+import { addArchiveNote, setArchiveTags } from '../archive.service';
 
 const requiredSchema = {
   version: 2,
@@ -222,6 +223,28 @@ describe('approval task service', () => {
     await expect(
       getApprovalTaskDetail({ id: approver2.id, name: approver2.realName }, firstTask.id),
     ).rejects.toThrow('无权查看该审批任务');
+  });
+
+  it('getApprovalTaskDetail includes archive tags and internal notes for assigned approvers', async () => {
+    const { approver1, firstTask } = await setupTaskFixture();
+    const archiveActor = {
+      id: approver1.id,
+      name: approver1.realName,
+      permissions: ['approval:archive:mark', 'approval:application:all'],
+    };
+
+    await setArchiveTags(archiveActor, 'approval', firstTask.applicationId, { tags: ['重点'] });
+    await addArchiveNote(archiveActor, 'approval', firstTask.applicationId, { comment: '归档内部备注' });
+
+    const detail = await getApprovalTaskDetail({ id: approver1.id, name: approver1.realName }, firstTask.id);
+
+    expect(detail.archive.tags).toEqual(['重点']);
+    expect(detail.archive.notes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ comment: '归档内部备注' })]),
+    );
+    expect(detail.archive.events.map((event) => event.type)).toEqual(
+      expect.arrayContaining(['TAGS_UPDATED', 'NOTE_ADDED']),
+    );
   });
 
   it('approveApprovalTask and rejectApprovalTask delegate state changes and enforce assignee scope', async () => {

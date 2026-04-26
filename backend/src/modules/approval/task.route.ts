@@ -30,7 +30,15 @@ export type ApprovalTaskRouteRow = Omit<
 
 export type ApprovalTaskRouteDetail = Omit<
   ApprovalTaskDetail,
-  'assignedAt' | 'handledAt' | 'submittedAt' | 'completedAt' | 'createdAt' | 'updatedAt' | 'timeline' | 'tasks'
+  | 'assignedAt'
+  | 'handledAt'
+  | 'submittedAt'
+  | 'completedAt'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'timeline'
+  | 'tasks'
+  | 'archive'
 > & {
   assignedAt: RouteDate;
   handledAt: RouteDate;
@@ -45,6 +53,15 @@ export type ApprovalTaskRouteDetail = Omit<
       handledAt: RouteDate;
     }
   >;
+  archive: {
+    tags: string[];
+    notes: Array<
+      Omit<ApprovalTaskDetail['archive']['notes'][number], 'createdAt'> & { createdAt: Date | string }
+    >;
+    events: Array<
+      Omit<ApprovalTaskDetail['archive']['events'][number], 'createdAt'> & { createdAt: Date | string }
+    >;
+  };
 };
 
 const taskStatusSchema = t.Union([
@@ -183,6 +200,25 @@ export function serializeApprovalTaskDetail(detail: ApprovalTaskRouteDetail) {
       handledAt: toIso(task.handledAt),
       comment: task.comment,
     })),
+    archive: {
+      tags: detail.archive.tags,
+      notes: detail.archive.notes.map((note) => ({
+        id: note.id,
+        comment: note.comment,
+        actorId: note.actorId,
+        actorName: note.actorName,
+        createdAt: toIso(note.createdAt),
+      })),
+      events: detail.archive.events.map((event) => ({
+        id: event.id,
+        type: event.type,
+        comment: event.comment,
+        actorId: event.actorId,
+        actorName: event.actorName,
+        createdAt: toIso(event.createdAt),
+        payload: event.payload,
+      })),
+    },
   };
 }
 

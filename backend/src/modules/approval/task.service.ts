@@ -90,6 +90,25 @@ export type ApprovalTaskDetail = ApprovalTaskListItem & {
   processSnapshot: unknown;
   timeline: ApprovalTaskTimelineEvent[];
   tasks: ApprovalTaskSummary[];
+  archive: {
+    tags: string[];
+    notes: Array<{
+      id: number;
+      comment: string;
+      actorId: number | null;
+      actorName: string;
+      createdAt: Date;
+    }>;
+    events: Array<{
+      id: number;
+      type: string;
+      comment: string | null;
+      actorId: number | null;
+      actorName: string;
+      createdAt: Date;
+      payload: unknown;
+    }>;
+  };
 };
 
 export type ApprovalTaskFilterOptions = {
@@ -111,6 +130,11 @@ type TaskWithDetailApplication = Prisma.ApprovalTaskGetPayload<{
       include: {
         tasks: true;
         timelineEvents: true;
+        archiveMeta: {
+          include: {
+            events: true;
+          };
+        };
       };
     };
   };
@@ -210,6 +234,10 @@ function serializeTaskRow(actor: ApprovalActor, task: TaskWithApplication): Appr
 }
 
 function serializeTaskDetail(actor: ApprovalActor, task: TaskWithDetailApplication): ApprovalTaskDetail {
+  const archiveEvents = [...(task.application.archiveMeta?.events ?? [])].sort(
+    (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id - b.id,
+  );
+
   return {
     ...serializeTaskRow(actor, task),
     formData: task.application.formData,
@@ -239,6 +267,27 @@ function serializeTaskDetail(actor: ApprovalActor, task: TaskWithDetailApplicati
       handledAt: summary.handledAt,
       comment: summary.comment,
     })),
+    archive: {
+      tags: task.application.archiveMeta?.tags ?? [],
+      notes: archiveEvents
+        .filter((event) => event.type === 'NOTE_ADDED')
+        .map((event) => ({
+          id: event.id,
+          comment: event.comment ?? '',
+          actorId: event.actorId,
+          actorName: event.actorName,
+          createdAt: event.createdAt,
+        })),
+      events: archiveEvents.map((event) => ({
+        id: event.id,
+        type: event.type,
+        comment: event.comment,
+        actorId: event.actorId,
+        actorName: event.actorName,
+        createdAt: event.createdAt,
+        payload: event.payload,
+      })),
+    },
   };
 }
 
@@ -329,6 +378,9 @@ export async function getApprovalTaskDetail(actor: ApprovalActor, taskId: number
         include: {
           tasks: { orderBy: [{ nodeOrder: 'asc' }, { id: 'asc' }] },
           timelineEvents: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
+          archiveMeta: {
+            include: { events: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] } },
+          },
         },
       },
     },
