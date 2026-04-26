@@ -15,6 +15,8 @@ import {
   type ArchiveListItem,
   type ArchiveSourceTypeParam,
 } from './archive.service';
+import { exportArchiveExcel } from './archive-export.service';
+import { getArchiveStats } from './archive-stats.service';
 
 type RouteDate = Date | string | null;
 
@@ -178,6 +180,32 @@ export function serializeArchiveDetail(detail: ArchiveRouteDetail) {
 }
 
 export const approvalArchiveModule = new Elysia({ prefix: '/approval/archive' })
+  .guard({}, (app) =>
+    app.use(authGuard('approval:export')).get(
+      '/export',
+      async ({ query, currentUser, set }: any) => {
+        const workbook = await exportArchiveExcel(toActor(currentUser), query as ArchiveListFilters);
+        const buffer = await workbook.xlsx.writeBuffer();
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+        set.headers['Content-Type'] =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        set.headers['Content-Disposition'] = `attachment; filename="archive-export-${timestamp}.xlsx"`;
+
+        return buffer;
+      },
+      { query: archiveListQuerySchema },
+    ),
+  )
+  .guard({}, (app) =>
+    app
+      .use(authGuard('approval:archive:stats'))
+      .get(
+        '/stats',
+        async ({ query, currentUser }: any) => getArchiveStats(toActor(currentUser), query as ArchiveListFilters),
+        { query: archiveListQuerySchema },
+      ),
+  )
   .guard({}, (app) =>
     app
       .use(authGuard())

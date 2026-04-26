@@ -30,6 +30,10 @@ function schemaPropertyNames(schema: unknown) {
   return Object.keys(candidate.properties ?? {});
 }
 
+function routeSignatures() {
+  return (approvalArchiveModule.routes ?? []).map((route: { method: string; path: string }) => `${route.method} ${route.path}`);
+}
+
 function expectStrictPayloadSchema(schema: unknown, allowedFields: string[]) {
   const propertyNames = schemaPropertyNames(schema);
   expect(propertyNames).toEqual(allowedFields);
@@ -95,6 +99,12 @@ function makeDetail(): ArchiveRouteDetail {
 describe('approval archive route contract', () => {
   it('exports the authenticated archive module under /approval/archive', () => {
     expect(approvalArchiveModule.config.prefix).toBe('/approval/archive');
+  });
+
+  it('exposes export and stats endpoints under the archive route module', () => {
+    expect(routeSignatures()).toEqual(
+      expect.arrayContaining(['GET /approval/archive/export', 'GET /approval/archive/stats']),
+    );
   });
 
   it('list query schema exposes archive filters without trusted mutation fields', () => {
