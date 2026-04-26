@@ -49,6 +49,8 @@ async function cleanArchiveFixture() {
   await prisma.approvalAction.deleteMany();
   await prisma.approvalTask.deleteMany();
   await prisma.approvalApplication.deleteMany();
+  await prisma.approvalProcessNode.deleteMany();
+  await prisma.approvalProcess.deleteMany();
   await prisma.submission.deleteMany();
   await prisma.shareLink.deleteMany();
   await prisma.formTemplate.deleteMany();
