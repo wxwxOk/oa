@@ -498,17 +498,17 @@ function resolveArchiveVisibility(user: CurrentUser) {
 | A2 | The most likely reason developers pollute form JSON is convenience rather than a product requirement | Common Pitfalls / Pitfall 2 | Low; mitigation is still required by locked decisions |
 | A3 | Route handlers may be tempted to accept arbitrary JSON patch payloads for edits | Common Pitfalls / Pitfall 3 | Medium; planner should write route contract tests to prevent this |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **What export row cap should Phase 19 enforce?**
    - What we know: Row cap is left to Claude's discretion, and Excel export must use current filters and permissions [VERIFIED: 19-CONTEXT.md].
    - What's unclear: No existing product requirement defines a maximum row count [VERIFIED: .planning/REQUIREMENTS.md].
-   - Recommendation: Use an MVP cap of 2,000 rows for list export and return a clear error if filters match more, then raise later only after measuring memory/time with ExcelJS [ASSUMED].
+   - RESOLVED: Phase 19 plans use an MVP cap of 2,000 rows for list export and require a clear error if filters match more. Raise later only after measuring memory/time with ExcelJS [ASSUMED].
 
 2. **Should processing field config changes be versioned?**
    - What we know: Formal submit schema is versioned and historical forms use snapshots, but Phase 19 only says processing fields are separate and internal [VERIFIED: 16-CONTEXT.md+19-CONTEXT.md].
    - What's unclear: No locked decision requires processing-schema version snapshots [VERIFIED: 19-CONTEXT.md].
-   - Recommendation: Keep processing config on the template without bumping formal `schemaVersion`; preserve historical processing values by key in `processingData` and display unknown keys defensively [ASSUMED].
+   - RESOLVED: Phase 19 plans keep processing config on the template without bumping formal `schemaVersion`; historical processing values are preserved by key in `processingData`, and unknown keys must display defensively [ASSUMED].
 
 ## Environment Availability
 
