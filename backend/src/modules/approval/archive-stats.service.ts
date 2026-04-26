@@ -1,8 +1,11 @@
-import type { ApprovalApplicationStatus, Prisma } from '@prisma/client';
-
-import { prisma } from '../../plugins/prisma';
 import { BizError } from '../../utils/errors';
-import type { ArchiveActor, ArchiveListFilters, ArchiveSourceTypeParam } from './archive.service';
+import {
+  listArchiveRecords,
+  type ArchiveActor,
+  type ArchiveListFilters,
+  type ArchiveListItem,
+  type ArchiveSourceTypeParam,
+} from './archive.service';
 
 type ArchiveStatsActor = ArchiveActor & {
   departmentId?: number | null;
@@ -24,8 +27,8 @@ export type ArchiveStats = {
   bySourceType: Array<StatsRowBase & { sourceType: StatsSourceType }>;
 };
 
-type ApprovalStatsRecord = {
-  sourceType: 'approval';
+type StatsRecord = {
+  sourceType: StatsSourceType;
   templateId: number;
   templateName: string;
   departmentId: number | null;
@@ -34,126 +37,8 @@ type ApprovalStatsRecord = {
   date: Date;
 };
 
-type CollectionStatsRecord = {
-  sourceType: 'collection';
-  templateId: number;
-  templateName: string;
-  departmentId: null;
-  departmentName: null;
-  status: 'COLLECTED';
-  date: Date;
-};
-
-type StatsRecord = ApprovalStatsRecord | CollectionStatsRecord;
-
-const ARCHIVE_APPROVAL_STATUSES: ApprovalApplicationStatus[] = [
-  'SUBMITTED',
-  'APPROVING',
-  'APPROVED',
-  'REJECTED',
-  'CANCELED',
-];
-
 function hasPermission(actor: ArchiveStatsActor, permission: string): boolean {
   return actor.roleCodes?.includes('ADMIN') === true || actor.permissions.includes(permission);
-}
-
-function normalizeNumber(value: number | string | undefined): number | undefined {
-  if (value === undefined || value === null || value === '') return undefined;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < 1) return undefined;
-  return Math.floor(parsed);
-}
-
-function normalizeSourceType(value: string | undefined): StatsSourceType | undefined {
-  if (!value) return undefined;
-  if (value === 'approval' || value === 'collection') return value;
-  throw new BizError('归档来源类型无效', 400, 'INVALID_ARCHIVE_SOURCE_TYPE');
-}
-
-function parseDateBoundary(value: string | undefined, boundary: 'start' | 'end'): Date | undefined {
-  if (!value?.trim()) return undefined;
-
-  const parsed = new Date(value.includes('T') ? value : `${value}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) {
-    throw new BizError('日期格式无效', 400, 'INVALID_DATE_RANGE');
-  }
-  if (boundary === 'end' && !value.includes('T')) {
-    parsed.setHours(23, 59, 59, 999);
-  }
-  return parsed;
-}
-
-async function resolveActorDepartmentId(actor: ArchiveStatsActor): Promise<number | null> {
-  if (actor.departmentId !== undefined) return actor.departmentId;
-
-  const user = await prisma.user.findUnique({
-    where: { id: actor.id },
-    select: { departmentId: true },
-  });
-  if (!user) throw new BizError('当前用户不存在', 403, 'ARCHIVE_ACTOR_NOT_FOUND');
-  return user.departmentId;
-}
-
-async function buildApprovalWhere(
-  actor: ArchiveStatsActor,
-  filters: ArchiveListFilters,
-): Promise<Prisma.ApprovalApplicationWhereInput | null> {
-  const hasAll = hasPermission(actor, 'approval:application:all');
-  const hasDepartment = hasPermission(actor, 'approval:application:department');
-  if (!hasAll && !hasDepartment) return null;
-
-  const templateId = normalizeNumber(filters.templateId);
-  const requestedDepartmentId = normalizeNumber(filters.departmentId);
-  const dateFrom = parseDateBoundary(filters.dateFrom, 'start');
-  const dateTo = parseDateBoundary(filters.dateTo, 'end');
-  const where: Prisma.ApprovalApplicationWhereInput = {
-    status: { in: ARCHIVE_APPROVAL_STATUSES, not: 'DRAFT' },
-  };
-
-  if (!hasAll) {
-    const actorDepartmentId = await resolveActorDepartmentId(actor);
-    if (!actorDepartmentId) return null;
-    if (requestedDepartmentId && requestedDepartmentId !== actorDepartmentId) return null;
-    where.applicantDepartmentId = actorDepartmentId;
-  } else if (requestedDepartmentId) {
-    where.applicantDepartmentId = requestedDepartmentId;
-  }
-  if (templateId) where.templateId = templateId;
-  if (filters.status?.trim()) {
-    if (!ARCHIVE_APPROVAL_STATUSES.includes(filters.status as ApprovalApplicationStatus)) return null;
-    where.status = filters.status as ApprovalApplicationStatus;
-  }
-  if (dateFrom || dateTo) {
-    where.createdAt = {
-      ...(dateFrom ? { gte: dateFrom } : {}),
-      ...(dateTo ? { lte: dateTo } : {}),
-    };
-  }
-
-  return where;
-}
-
-function buildCollectionWhere(filters: ArchiveListFilters): Prisma.SubmissionWhereInput | null {
-  const templateId = normalizeNumber(filters.templateId);
-  const departmentId = normalizeNumber(filters.departmentId);
-  const dateFrom = parseDateBoundary(filters.dateFrom, 'start');
-  const dateTo = parseDateBoundary(filters.dateTo, 'end');
-
-  if (departmentId) return null;
-  if (filters.status?.trim() && filters.status.trim() !== 'COLLECTED') return null;
-
-  return {
-    ...(templateId ? { templateId } : {}),
-    ...(dateFrom || dateTo
-      ? {
-          createdAt: {
-            ...(dateFrom ? { gte: dateFrom } : {}),
-            ...(dateTo ? { lte: dateTo } : {}),
-          },
-        }
-      : {}),
-  };
 }
 
 function monthKey(date: Date): string {
@@ -229,6 +114,31 @@ function aggregateStats(records: StatsRecord[]): ArchiveStats {
   };
 }
 
+async function listAllVisibleArchiveRows(
+  actor: ArchiveStatsActor,
+  filters: ArchiveListFilters,
+): Promise<ArchiveListItem[]> {
+  const rows: ArchiveListItem[] = [];
+  for (let page = 1; ; page += 1) {
+    const result = await listArchiveRecords(actor, { ...filters, page, size: 100 });
+    rows.push(...result.rows);
+    if (rows.length >= result.total || result.rows.length === 0) break;
+  }
+  return rows;
+}
+
+function toStatsRecord(row: ArchiveListItem): StatsRecord {
+  return {
+    sourceType: row.sourceType,
+    templateId: row.templateId,
+    templateName: row.templateName,
+    departmentId: row.departmentId,
+    departmentName: row.departmentName,
+    status: row.status,
+    date: row.updatedAt,
+  };
+}
+
 export async function getArchiveStats(
   actor: ArchiveStatsActor,
   filters: ArchiveListFilters = {},
@@ -237,61 +147,6 @@ export async function getArchiveStats(
     throw new BizError('缺少权限: approval:archive:stats', 403, 'FORBIDDEN');
   }
 
-  const requestedSourceType = normalizeSourceType(filters.sourceType);
-  const records: StatsRecord[] = [];
-
-  if (!requestedSourceType || requestedSourceType === 'approval') {
-    const approvalWhere = await buildApprovalWhere(actor, filters);
-    if (approvalWhere) {
-      const approvals = await prisma.approvalApplication.findMany({
-        where: approvalWhere,
-        select: {
-          templateId: true,
-          templateName: true,
-          applicantDepartmentId: true,
-          applicantDepartmentName: true,
-          status: true,
-          createdAt: true,
-        },
-      });
-      records.push(
-        ...approvals.map((row) => ({
-          sourceType: 'approval' as const,
-          templateId: row.templateId,
-          templateName: row.templateName,
-          departmentId: row.applicantDepartmentId,
-          departmentName: row.applicantDepartmentName,
-          status: row.status,
-          date: row.createdAt,
-        })),
-      );
-    }
-  }
-
-  if ((!requestedSourceType || requestedSourceType === 'collection') && hasPermission(actor, 'form:submission:list')) {
-    const collectionWhere = buildCollectionWhere(filters);
-    if (collectionWhere) {
-      const submissions = await prisma.submission.findMany({
-        where: collectionWhere,
-        select: {
-          templateId: true,
-          createdAt: true,
-          template: { select: { name: true } },
-        },
-      });
-      records.push(
-        ...submissions.map((row) => ({
-          sourceType: 'collection' as const,
-          templateId: row.templateId,
-          templateName: row.template.name,
-          departmentId: null,
-          departmentName: null,
-          status: 'COLLECTED' as const,
-          date: row.createdAt,
-        })),
-      );
-    }
-  }
-
-  return aggregateStats(records);
+  const rows = await listAllVisibleArchiveRows(actor, filters);
+  return aggregateStats(rows.map(toStatsRecord));
 }

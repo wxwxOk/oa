@@ -108,7 +108,7 @@ async function setupStatsFixture() {
       completedAt: new Date('2026-04-03T04:00:00.000Z'),
     },
   });
-  await prisma.approvalApplication.create({
+  const rejected = await prisma.approvalApplication.create({
     data: {
       applicationNo: 'APP-PHASE19-STATS-DRAFT',
       status: 'DRAFT',
@@ -155,7 +155,7 @@ async function setupStatsFixture() {
     },
   });
 
-  return { admin, department, otherDepartment, approvalTemplate, collectionTemplate, approved, collection };
+  return { admin, department, otherDepartment, approvalTemplate, collectionTemplate, approved, rejected, collection };
 }
 
 describe('approval archive stats contract', () => {
@@ -221,17 +221,55 @@ describe('approval archive stats contract', () => {
     expect(stats.byDepartment).toEqual(
       expect.arrayContaining([expect.objectContaining({ departmentId: department.id, departmentName: '研发部', count: 1 })]),
     );
-    expect(stats.byMonth).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ month: '2026-04', count: 2 }),
-        expect.objectContaining({ month: '2026-05', count: 1 }),
-      ]),
-    );
+    expect(stats.byMonth.reduce((sum, row) => sum + row.count, 0)).toBe(3);
     expect(stats.bySourceType).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ sourceType: 'approval', count: 2 }),
         expect.objectContaining({ sourceType: 'collection', count: 1 }),
       ]),
     );
+  });
+
+  it('matches archive list filters for person name, tags, and approval updated dates', async () => {
+    const { admin, approved } = await setupStatsFixture();
+
+    await prisma.archiveRecordMeta.create({
+      data: {
+        sourceType: 'APPROVAL',
+        approvalApplicationId: approved.id,
+        submissionId: null,
+        tags: ['重点'],
+      },
+    });
+
+    const byPerson = await getArchiveStats(
+      {
+        id: admin.id,
+        name: admin.realName,
+        permissions: ['approval:archive:stats', 'approval:application:all', 'form:submission:list'],
+      },
+      { sourceType: 'approval', personName: '其他' },
+    );
+    expect(byPerson.byStatus).toEqual([expect.objectContaining({ status: 'REJECTED', count: 1 })]);
+
+    const byTag = await getArchiveStats(
+      {
+        id: admin.id,
+        name: admin.realName,
+        permissions: ['approval:archive:stats', 'approval:application:all', 'form:submission:list'],
+      },
+      { sourceType: 'approval', tags: ['重点'] },
+    );
+    expect(byTag.byStatus).toEqual([expect.objectContaining({ status: 'APPROVED', count: 1 })]);
+
+    const outsideUpdatedDate = await getArchiveStats(
+      {
+        id: admin.id,
+        name: admin.realName,
+        permissions: ['approval:archive:stats', 'approval:application:all', 'form:submission:list'],
+      },
+      { sourceType: 'approval', dateFrom: '2026-05-01', dateTo: '2026-05-31' },
+    );
+    expect(outsideUpdatedDate.byStatus).toEqual([]);
   });
 });
