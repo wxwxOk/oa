@@ -3,21 +3,21 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: executing
-last_updated: "2026-04-26T08:02:19.663Z"
+last_updated: "2026-04-26T08:15:59.883Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 28
-  percent: 88
+  completed_plans: 29
+  percent: 91
 ---
 
 # State
 
 - Initialized: 2026-04-17
 - Milestone: v2.0 表单驱动 OA 审批中心 — EXECUTING
-- Status: Phase 19 plan 6 completed; ready to execute plan 7
+- Status: Phase 19 plan 7 completed; ready to execute plan 8
 
 ## Project Reference
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 ## Current Position
 
 Phase: 19 (收集后处理、归档导出统计) — EXECUTING
-Plan: 7 of 10
-Status: Ready to execute plan 7
-Last activity: 2026-04-26 -- Completed 19-06-PLAN.md
+Plan: 8 of 10
+Status: Ready to execute plan 8
+Last activity: 2026-04-26 -- Completed 19-07-PLAN.md
 
 Progress: [######----] 3/5 v2.0 phases complete
 
@@ -39,7 +39,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 
 **Velocity:**
 
-- Total plans completed: 73 (25 v1.0 + 13 v1.1 + 16 v1.2 + 19 v2.0)
+- Total plans completed: 74 (25 v1.0 + 13 v1.1 + 16 v1.2 + 20 v2.0)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
@@ -51,6 +51,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 - Phase 19 Plan 19-04: 345s, 3 tasks, 6 files, completed 2026-04-26
 - Phase 19 Plan 19-05: 1006s, 3 tasks, 10 files, completed 2026-04-26
 - Phase 19 Plan 19-06: 533s, 3 tasks, 5 files, completed 2026-04-26
+- Phase 19 Plan 19-07: 515s, 3 tasks, 5 files, completed 2026-04-26
 
 ## Accumulated Context
 
@@ -73,6 +74,9 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 19]: Notification rows are written inside the same Prisma transaction that creates approval tasks or terminal approval/rejection state changes.
 - [Phase 19]: Notification list/count/read routes derive scope from currentUser.id and expose no client-supplied user scope.
 - [Phase 19]: Unread count route returns unreadCount for frontend consumers while preserving the existing unread alias from the backend contract test.
+- [Phase 19]: Excel export enforces the locked Phase 19 cap of 2,000 rows before workbook generation.
+- [Phase 19]: Export reuses archive list filters and actor visibility, then loads archive detail data only when list rows lack effective/processing fields.
+- [Phase 19]: Archive stats require approval:archive:stats and separately apply approval application visibility plus form submission list visibility.
 
 ### Blockers/Concerns
 
