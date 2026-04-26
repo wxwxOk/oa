@@ -120,7 +120,13 @@ Plans:
   4. 审批人可查看已处理历史，已办记录与待办清晰分离
   5. 移动端审批详情有可读时间线和 sticky 操作区，长表单、动态表格、签名字段不遮挡操作
   6. 审批人可添加内部处理备注，备注不修改原始提交数据
-**Plans:** pending
+**Plans:** 5 plans
+Plans:
+- [ ] 18-01-PLAN.md — Wave 0 backend/frontend regression contracts for task queue, action APIs, mobile detail, and internal remark visibility
+- [ ] 18-02-PLAN.md — Backend `/approval/tasks` service/routes, delegated action wrappers, and applicant-side internal remark filtering
+- [ ] 18-03-PLAN.md — Frontend approval-task DTOs, helpers, and Pinia store
+- [ ] 18-04-PLAN.md — Responsive approver inbox page plus `/approval/tasks` route and menu integration
+- [ ] 18-05-PLAN.md — Approval task detail, timeline/internal remark rendering, and sticky mobile action flows
 **UI hint**: yes
 
 ### Phase 19: 收集后处理、归档导出统计
