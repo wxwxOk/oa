@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: executing
-last_updated: "2026-04-26T07:23:26.894Z"
+last_updated: "2026-04-26T07:47:42.434Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 26
-  percent: 81
+  completed_plans: 27
+  percent: 84
 ---
 
 # State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 ## Current Position
 
 Phase: 19 (收集后处理、归档导出统计) — EXECUTING
-Plan: 5 of 10
-Status: Ready to execute plan 5
-Last activity: 2026-04-26 -- Completed 19-04-PLAN.md
+Plan: 6 of 10
+Status: Ready to execute plan 6
+Last activity: 2026-04-26 -- Completed 19-05-PLAN.md
 
 Progress: [######----] 3/5 v2.0 phases complete
 
@@ -49,6 +49,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 - Phase 19 Plan 19-02: 370s, 3 tasks, 6 files, completed 2026-04-26
 - Phase 19 Plan 19-03: 612s, 3 tasks, 6 files, completed 2026-04-26
 - Phase 19 Plan 19-04: 345s, 3 tasks, 6 files, completed 2026-04-26
+- Phase 19 Plan 19-05: 1006s, 3 tasks, 10 files, completed 2026-04-26
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 19]: Archive operation payload constants export both plan names and Wave 0 compatibility aliases while excluding trusted fields.
 - [Phase 19]: Notification types accept TASK_ASSIGNED as a backend compatibility alias for NEW_TASK.
 - [Phase 19]: Route permAny is additive and preserves the existing single meta.perm guard behavior.
+- [Phase 19]: Processing field config is stored on FormTemplate.processingSchema and does not bump formal schemaVersion.
+- [Phase 19]: Archive operations store tags, notes, processing values, and correction overlays in ArchiveRecordMeta/ArchiveEvent, not submitted JSON.
+- [Phase 19]: Approval task detail may expose archive tags/internal notes to assigned approvers while applicant own-detail remains filtered.
 
 ### Blockers/Concerns
 
