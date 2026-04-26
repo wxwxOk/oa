@@ -7,6 +7,7 @@ import type {
 
 import { prisma } from '../../plugins/prisma';
 import { BizError, notFound } from '../../utils/errors';
+import { notifyApplicationFinalized, notifyTaskAssigned } from './notification.service';
 import { assertApplicationTransition, assertPendingTask } from './state-machine';
 
 export type ApprovalActor = {
@@ -202,6 +203,12 @@ export async function submitApplication(
       title: '分配审批任务',
     });
 
+    await notifyTaskAssigned(tx, {
+      task: firstTask,
+      application,
+      assigneeId: firstNode.assigneeId,
+    });
+
     assertApplicationTransition('SUBMITTED', 'APPROVING');
 
     return tx.approvalApplication.update({
@@ -289,6 +296,12 @@ export async function approveTask(
         title: '分配审批任务',
       });
 
+      await notifyTaskAssigned(tx, {
+        task: nextTask,
+        application: task.application,
+        assigneeId: nextNode.assigneeId,
+      });
+
       return tx.approvalApplication.update({
         where: { id: task.applicationId },
         data: {
@@ -301,7 +314,7 @@ export async function approveTask(
 
     assertApplicationTransition('APPROVING', 'APPROVED');
 
-    return tx.approvalApplication.update({
+    const approvedApplication = await tx.approvalApplication.update({
       where: { id: task.applicationId },
       data: {
         status: 'APPROVED',
@@ -311,6 +324,15 @@ export async function approveTask(
       },
       include: { tasks: true },
     });
+
+    await notifyApplicationFinalized(tx, {
+      application: approvedApplication,
+      status: 'APPROVED',
+      actorName: actor.name,
+      comment,
+    });
+
+    return approvedApplication;
   });
 }
 
@@ -369,7 +391,7 @@ export async function rejectTask(
       comment,
     });
 
-    return tx.approvalApplication.update({
+    const rejectedApplication = await tx.approvalApplication.update({
       where: { id: task.applicationId },
       data: {
         status: 'REJECTED',
@@ -379,6 +401,15 @@ export async function rejectTask(
       },
       include: { tasks: true },
     });
+
+    await notifyApplicationFinalized(tx, {
+      application: rejectedApplication,
+      status: 'REJECTED',
+      actorName: actor.name,
+      comment,
+    });
+
+    return rejectedApplication;
   });
 }
 
