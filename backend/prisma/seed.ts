@@ -17,6 +17,9 @@ export const APPROVAL_PERMISSION_CODES = [
   'approval:task:list',
   'approval:task:handle',
   'approval:export',
+  'approval:archive:edit',
+  'approval:archive:mark',
+  'approval:archive:stats',
 ];
 
 export const EMPLOYEE_PERMISSION_CODES = [
@@ -71,6 +74,9 @@ const PERMISSIONS = [
   { code: 'approval:task:list', name: '审批任务列表', module: 'approval' },
   { code: 'approval:task:handle', name: '处理审批任务', module: 'approval' },
   { code: 'approval:export', name: '导出审批数据', module: 'approval' },
+  { code: 'approval:archive:edit', name: '归档受控编辑', module: 'approval' },
+  { code: 'approval:archive:mark', name: '归档标记备注', module: 'approval' },
+  { code: 'approval:archive:stats', name: '归档统计', module: 'approval' },
 ];
 
 export async function seedDatabase(): Promise<void> {
