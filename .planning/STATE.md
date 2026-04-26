@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: executing
-last_updated: "2026-04-26T08:15:59.883Z"
+last_updated: "2026-04-26T08:40:29.746Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 29
-  percent: 91
+  completed_plans: 30
+  percent: 94
 ---
 
 # State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 ## Current Position
 
 Phase: 19 (收集后处理、归档导出统计) — EXECUTING
-Plan: 8 of 10
-Status: Ready to execute plan 8
-Last activity: 2026-04-26 -- Completed 19-07-PLAN.md
+Plan: 9 of 10
+Status: Ready to execute plan 9
+Last activity: 2026-04-26 -- Completed 19-08-PLAN.md
 
 Progress: [######----] 3/5 v2.0 phases complete
 
@@ -39,7 +39,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 
 **Velocity:**
 
-- Total plans completed: 74 (25 v1.0 + 13 v1.1 + 16 v1.2 + 20 v2.0)
+- Total plans completed: 75 (25 v1.0 + 13 v1.1 + 16 v1.2 + 21 v2.0)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
@@ -52,6 +52,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 - Phase 19 Plan 19-05: 1006s, 3 tasks, 10 files, completed 2026-04-26
 - Phase 19 Plan 19-06: 533s, 3 tasks, 5 files, completed 2026-04-26
 - Phase 19 Plan 19-07: 515s, 3 tasks, 5 files, completed 2026-04-26
+- Phase 19 Plan 19-08: 1080s, 3 tasks, 6 files, completed 2026-04-26
 
 ## Accumulated Context
 
@@ -77,6 +78,10 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 19]: Excel export enforces the locked Phase 19 cap of 2,000 rows before workbook generation.
 - [Phase 19]: Export reuses archive list filters and actor visibility, then loads archive detail data only when list rows lack effective/processing fields.
 - [Phase 19]: Archive stats require approval:archive:stats and separately apply approval application visibility plus form submission list visibility.
+- [Phase 19]: 归档详情继续把正式提交内容放在 #print-area 内，并把处理字段、备注、标签和修正历史作为内部运营信息分区展示。
+- [Phase 19]: 归档统计保留在归档查询页内，并仅通过 approval:archive:stats 权限展示。
+- [Phase 19]: 归档列表和详情路由只做客户端 permAny 可见性控制，后端仍负责实际数据授权。
+- [Phase 19]: approvalArchive 类型常量使用当前前端构建链兼容的类型断言，避免 Vite/esbuild 无法解析 satisfies。
 
 ### Blockers/Concerns
 
