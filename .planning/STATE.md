@@ -3,21 +3,21 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: executing
-last_updated: "2026-04-26T08:40:29.746Z"
+last_updated: "2026-04-26T08:55:32.066Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 30
-  percent: 94
+  completed_plans: 31
+  percent: 97
 ---
 
 # State
 
 - Initialized: 2026-04-17
 - Milestone: v2.0 表单驱动 OA 审批中心 — EXECUTING
-- Status: Phase 19 plan 7 completed; ready to execute plan 8
+- Status: Phase 19 plan 9 completed; ready to execute plan 10
 
 ## Project Reference
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 ## Current Position
 
 Phase: 19 (收集后处理、归档导出统计) — EXECUTING
-Plan: 9 of 10
-Status: Ready to execute plan 9
-Last activity: 2026-04-26 -- Completed 19-08-PLAN.md
+Plan: 10 of 10
+Status: Ready to execute plan 10
+Last activity: 2026-04-26 -- Completed 19-09-PLAN.md
 
 Progress: [######----] 3/5 v2.0 phases complete
 
@@ -53,6 +53,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 - Phase 19 Plan 19-06: 533s, 3 tasks, 5 files, completed 2026-04-26
 - Phase 19 Plan 19-07: 515s, 3 tasks, 5 files, completed 2026-04-26
 - Phase 19 Plan 19-08: 1080s, 3 tasks, 6 files, completed 2026-04-26
+- Phase 19 Plan 19-09: 624s, 2 tasks, 4 files, completed 2026-04-26
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 19]: 归档统计保留在归档查询页内，并仅通过 approval:archive:stats 权限展示。
 - [Phase 19]: 归档列表和详情路由只做客户端 permAny 可见性控制，后端仍负责实际数据授权。
 - [Phase 19]: approvalArchive 类型常量使用当前前端构建链兼容的类型断言，避免 Vite/esbuild 无法解析 satisfies。
+- [Phase 19]: Template processingSchema is typed and saved through the template store while remaining outside formal schema flattening helpers.
+- [Phase 19]: Form Designer exposes only text, textarea, date, radio, checkbox, and phone processing field types for internal operations.
+- [Phase 19]: Processing field editing uses a separate Quasar dialog with explicit copy that internal processing fields do not overwrite formal submitted content.
 
 ### Blockers/Concerns
 
