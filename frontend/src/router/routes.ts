@@ -36,6 +36,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'approval/applications/:id/edit', component: () => import('pages/ApprovalApplicationFormPage.vue'), meta: { title: '填写申请', perm: 'approval:application:create' } },
       { path: 'approval/applications/:id', component: () => import('pages/ApprovalApplicationDetailPage.vue'), meta: { title: '申请详情', perm: 'approval:application:own' } },
       { path: 'approval/archive', component: () => import('pages/ApprovalArchivePage.vue'), meta: { title: '归档查询', icon: 'inventory_2', permAny: ['approval:application:department', 'approval:application:all', 'form:submission:list'] } },
+      { path: 'approval/archive/:sourceType/:id', component: () => import('pages/ApprovalArchiveDetailPage.vue'), meta: { title: '归档详情', permAny: ['approval:application:department', 'approval:application:all', 'form:submission:list'] } },
     ],
   },
   { path: '/:catchAll(.*)*', component: () => import('pages/NotFoundPage.vue'), meta: { public: true } },
