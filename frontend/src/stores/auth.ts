@@ -62,6 +62,11 @@ export const useAuthStore = defineStore('auth', {
       if (this.user.roles.includes('ADMIN')) return true;
       return this.user.permissions.includes(code);
     },
+    hasAnyPerm(codes: string[]): boolean {
+      if (!this.user) return false;
+      if (this.user.roles.includes('ADMIN')) return true;
+      return codes.some((code) => this.user?.permissions.includes(code));
+    },
     async maybeRefreshProfile() {
       if (!this.accessToken) return;
       if (Date.now() - this.lastProfileFetch < 60_000) return;
