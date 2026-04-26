@@ -3,21 +3,21 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: executing
-last_updated: "2026-04-26T07:47:42.434Z"
+last_updated: "2026-04-26T08:02:19.663Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 27
-  percent: 84
+  completed_plans: 28
+  percent: 88
 ---
 
 # State
 
 - Initialized: 2026-04-17
 - Milestone: v2.0 表单驱动 OA 审批中心 — EXECUTING
-- Status: Phase 19 plan 2 completed; ready to execute plan 3
+- Status: Phase 19 plan 6 completed; ready to execute plan 7
 
 ## Project Reference
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 ## Current Position
 
 Phase: 19 (收集后处理、归档导出统计) — EXECUTING
-Plan: 6 of 10
-Status: Ready to execute plan 6
-Last activity: 2026-04-26 -- Completed 19-05-PLAN.md
+Plan: 7 of 10
+Status: Ready to execute plan 7
+Last activity: 2026-04-26 -- Completed 19-06-PLAN.md
 
 Progress: [######----] 3/5 v2.0 phases complete
 
@@ -50,6 +50,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 - Phase 19 Plan 19-03: 612s, 3 tasks, 6 files, completed 2026-04-26
 - Phase 19 Plan 19-04: 345s, 3 tasks, 6 files, completed 2026-04-26
 - Phase 19 Plan 19-05: 1006s, 3 tasks, 10 files, completed 2026-04-26
+- Phase 19 Plan 19-06: 533s, 3 tasks, 5 files, completed 2026-04-26
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 19]: Processing field config is stored on FormTemplate.processingSchema and does not bump formal schemaVersion.
 - [Phase 19]: Archive operations store tags, notes, processing values, and correction overlays in ArchiveRecordMeta/ArchiveEvent, not submitted JSON.
 - [Phase 19]: Approval task detail may expose archive tags/internal notes to assigned approvers while applicant own-detail remains filtered.
+- [Phase 19]: Notification rows are written inside the same Prisma transaction that creates approval tasks or terminal approval/rejection state changes.
+- [Phase 19]: Notification list/count/read routes derive scope from currentUser.id and expose no client-supplied user scope.
+- [Phase 19]: Unread count route returns unreadCount for frontend consumers while preserving the existing unread alias from the backend contract test.
 
 ### Blockers/Concerns
 
