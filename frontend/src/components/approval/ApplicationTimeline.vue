@@ -36,7 +36,8 @@ function eventTitle(event: ApprovalTimelineEvent) {
   if (event.type === 'ASSIGN') return `进入 ${event.nodeName || '审批节点'}`;
   if (event.type === 'APPROVE') return '审批通过';
   if (event.type === 'REJECT') return '审批驳回';
-  if (event.type === 'CANCEL') return '撤销申请';
+  if (event.type === 'CANCEL') return '申请已撤销';
+  if (event.type === 'COMMENT') return '内部备注';
   return event.title;
 }
 
