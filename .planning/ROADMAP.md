@@ -49,7 +49,7 @@
 - [x] **Phase 16: 流程配置与模板绑定** - 审批模式、单步/串行流程配置、部门负责人、RBAC 和动态必填/schema 版本 (completed 2026-04-25)
 - [x] **Phase 17: 我的申请与动态提交** - 登录提交、草稿、我的申请、申请详情、状态跟踪和撤销 (completed 2026-04-25)
 - [ ] **Phase 18: 待我审批与移动审批** - 待办列表、筛选、审批详情、通过/驳回/意见、已办历史和移动端操作 (implemented; verification pending 2026-04-26)
-- [ ] **Phase 19: 收集后处理、归档导出统计** - 标签/标记、备注、受控编辑、处理字段、站内通知、归档查询、Excel/PDF 导出和统计
+- [x] **Phase 19: 收集后处理、归档导出统计** - 标签/标记、备注、受控编辑、处理字段、站内通知、归档查询、Excel/PDF 导出和统计 (completed 2026-04-26)
 
 ## Phase Details
 
@@ -141,7 +141,7 @@ Plans:
   5. 授权人员可导出列表 Excel，并复用现有 PDF/打印能力导出单个申请详情
   6. 管理员可查看按模板、状态、部门和月份聚合的基础统计
   7. 站内通知覆盖新待办、通过、驳回和未读数量
-**Plans:** 9/10 plans executed
+**Plans:** 10/10 plans complete
 Plans:
 - [x] 19-01-PLAN.md — Wave 0 backend contracts for archive operations, export, stats, notifications, and permissions
 - [x] 19-02-PLAN.md — Wave 0 frontend contracts for archive DTO/store/page/detail and notifications
@@ -152,7 +152,7 @@ Plans:
 - [x] 19-07-PLAN.md — Backend Excel export and archive statistics routes
 - [x] 19-08-PLAN.md — Archive query/detail/statistics UI, route wiring, and navigation entry
 - [x] 19-09-PLAN.md — Template processing-field configuration UI
-- [ ] 19-10-PLAN.md — Header notification badge, list, polling, navigation, and mark-read UI
+- [x] 19-10-PLAN.md — Header notification badge, list, polling, navigation, and mark-read UI
 **UI hint**: yes
 
 ## Progress
@@ -172,4 +172,4 @@ Plans:
 | 16. 流程配置与模板绑定 | v2.0 | 9/9 | Complete    | 2026-04-25 |
 | 17. 我的申请与动态提交 | v2.0 | 5/5 | Complete | 2026-04-25 |
 | 18. 待我审批与移动审批 | v2.0 | 5/5 | Verification Pending |  |
-| 19. 收集后处理、归档导出统计 | v2.0 | 9/10 | In Progress|  |
+| 19. 收集后处理、归档导出统计 | v2.0 | 10/10 | Complete   | 2026-04-26 |
