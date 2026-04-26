@@ -9,15 +9,45 @@ import { SchemaV2Body } from './schema.validation';
 
 type TemplateBusinessMode = 'COLLECTION_ONLY' | 'APPROVAL_REQUIRED';
 
+export const SUPPORTED_PROCESSING_FIELD_TYPES = [
+  'text',
+  'textarea',
+  'date',
+  'radio',
+  'checkbox',
+  'phone',
+] as const;
+
+type ProcessingFieldType = (typeof SUPPORTED_PROCESSING_FIELD_TYPES)[number];
+
 type CurrentUser = {
   roleCodes?: string[];
   permissions?: string[];
+};
+
+type ProcessingFieldBody = {
+  id?: unknown;
+  type?: unknown;
+  label?: unknown;
+  required?: unknown;
+  placeholder?: unknown;
+  options?: unknown;
+};
+
+type ProcessingField = {
+  id: string;
+  type: ProcessingFieldType;
+  label: string;
+  required?: boolean;
+  placeholder?: string;
+  options?: string[];
 };
 
 export type TemplateUpdateBody = {
   name?: string;
   description?: string | null;
   schema?: unknown;
+  processingSchema?: unknown;
   requireIdentity?: boolean;
   businessMode?: TemplateBusinessMode;
   approvalProcessId?: number | null;
@@ -34,6 +64,18 @@ const TemplateBusinessModeBody = t.Union([
   t.Literal('APPROVAL_REQUIRED'),
 ]);
 
+const ProcessingFieldBodySchema = t.Object(
+  {
+    id: t.String(),
+    type: t.String(),
+    label: t.String(),
+    required: t.Optional(t.Boolean()),
+    placeholder: t.Optional(t.String()),
+    options: t.Optional(t.Array(t.String())),
+  },
+  { additionalProperties: false },
+);
+
 function hasApprovalTemplateBindPermission(currentUser?: CurrentUser): boolean {
   if (!currentUser) return true;
   if (currentUser.roleCodes?.includes('ADMIN')) return true;
@@ -48,6 +90,59 @@ function assertApprovalTemplateBindPermission(currentUser?: CurrentUser): void {
 
 function hasJsonChanged(next: unknown, current: unknown): boolean {
   return JSON.stringify(next) !== JSON.stringify(current);
+}
+
+function assertSupportedProcessingFieldType(type: unknown): asserts type is ProcessingFieldType {
+  if (
+    typeof type !== 'string' ||
+    !SUPPORTED_PROCESSING_FIELD_TYPES.includes(type as ProcessingFieldType)
+  ) {
+    throw new BizError(
+      '处理字段类型不支持',
+      400,
+      'INVALID_PROCESSING_FIELD_TYPE',
+    );
+  }
+}
+
+function normalizeProcessingSchema(value: unknown): ProcessingField[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) {
+    throw new BizError('处理字段配置格式无效', 400, 'INVALID_PROCESSING_SCHEMA');
+  }
+
+  return value.map((raw, index) => {
+    const field = raw as ProcessingFieldBody;
+    assertSupportedProcessingFieldType(field.type);
+
+    const id = typeof field.id === 'string' ? field.id.trim() : '';
+    const label = typeof field.label === 'string' ? field.label.trim() : '';
+    if (!id) {
+      throw new BizError(`第 ${index + 1} 个处理字段缺少 id`, 400, 'INVALID_PROCESSING_FIELD_ID');
+    }
+    if (!label) {
+      throw new BizError(`第 ${index + 1} 个处理字段缺少名称`, 400, 'INVALID_PROCESSING_FIELD_LABEL');
+    }
+
+    const normalized: ProcessingField = {
+      id,
+      type: field.type,
+      label,
+    };
+
+    if (typeof field.required === 'boolean') normalized.required = field.required;
+    if (typeof field.placeholder === 'string' && field.placeholder.trim()) {
+      normalized.placeholder = field.placeholder.trim();
+    }
+    if (Array.isArray(field.options)) {
+      normalized.options = field.options
+        .filter((option): option is string => typeof option === 'string')
+        .map((option) => option.trim())
+        .filter(Boolean);
+    }
+
+    return normalized;
+  });
 }
 
 async function assertValidApprovalProcess(processId: number | null | undefined): Promise<void> {
@@ -112,6 +207,9 @@ export async function updateTemplate(
     if (tpl.status === 'PUBLISHED' && hasJsonChanged(body.schema, tpl.schema)) {
       data.schemaVersion = tpl.schemaVersion + 1;
     }
+  }
+  if (body.processingSchema !== undefined) {
+    data.processingSchema = normalizeProcessingSchema(body.processingSchema) as Prisma.InputJsonValue;
   }
   if (body.requireIdentity !== undefined) data.requireIdentity = body.requireIdentity;
   if (body.businessMode !== undefined) data.businessMode = body.businessMode;
@@ -245,6 +343,7 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
           name: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
           description: t.Optional(t.Nullable(t.String())),
           schema: t.Optional(SchemaV2Body),
+          processingSchema: t.Optional(t.Array(ProcessingFieldBodySchema)),
           requireIdentity: t.Optional(t.Boolean()),
           businessMode: t.Optional(TemplateBusinessModeBody),
           approvalProcessId: t.Optional(t.Nullable(t.Number())),

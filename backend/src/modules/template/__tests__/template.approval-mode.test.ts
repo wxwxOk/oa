@@ -222,4 +222,52 @@ describe('template approval mode behavior', () => {
     expect((updated as any).approvalProcessId).toBe(process.id);
     expect(updated.schemaVersion).toBe(1);
   });
+
+  it('processing field config is normalized separately and does not increment schemaVersion', async () => {
+    const creator = await createCreator();
+    const template = await createTemplate(creator.id, {
+      businessMode: 'COLLECTION_ONLY',
+      status: 'PUBLISHED',
+      schemaVersion: 1,
+    });
+
+    const updated = await updateTemplate(template.id, {
+      processingSchema: [
+        {
+          id: ' followUpResult ',
+          type: 'textarea',
+          label: ' 跟进结果 ',
+          required: true,
+          placeholder: ' 输入处理说明 ',
+          options: [' 已电话回访 ', ' '],
+        },
+      ],
+    });
+
+    expect(updated.schemaVersion).toBe(1);
+    expect(updated.processingSchema).toEqual([
+      {
+        id: 'followUpResult',
+        type: 'textarea',
+        label: '跟进结果',
+        required: true,
+        placeholder: '输入处理说明',
+        options: ['已电话回访'],
+      },
+    ]);
+  });
+
+  it('processing field config rejects unsupported field types', async () => {
+    const creator = await createCreator();
+    const template = await createTemplate(creator.id, {
+      businessMode: 'COLLECTION_ONLY',
+      status: 'PUBLISHED',
+    });
+
+    await expect(
+      updateTemplate(template.id, {
+        processingSchema: [{ id: 'sign', type: 'signature', label: '签名' }],
+      }),
+    ).rejects.toMatchObject({ code: 'INVALID_PROCESSING_FIELD_TYPE' });
+  });
 });
