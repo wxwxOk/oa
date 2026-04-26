@@ -32,17 +32,23 @@ export type ArchiveListFilters = {
 };
 
 export type ArchiveListItem = {
+  id: number;
   archiveKey: string;
   sourceType: ArchiveSourceTypeParam;
   sourceId: number;
   archiveNo: string;
   templateId: number;
   templateName: string;
+  templateVersion: number;
   departmentId: number | null;
   departmentName: string | null;
   personName: string;
+  personPhone?: string | null;
   status: string;
   tags: string[];
+  processingSummary?: string | null;
+  submittedAt: Date | null;
+  completedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -82,6 +88,7 @@ export type ArchiveDetailEvent = {
 export type ArchiveDetail = ArchiveListItem & {
   formData: unknown;
   effectiveData: Record<string, unknown>;
+  processingFields: unknown[];
   processingData: Record<string, unknown>;
   schemaSnapshot: unknown;
   notes: ArchiveNote[];
@@ -254,6 +261,20 @@ function toRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function toArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function firstProcessingSummary(value: unknown): string | null {
+  for (const item of Object.values(toRecord(value))) {
+    if (item === null || item === undefined) continue;
+    if (Array.isArray(item) && item.length > 0) return item.map(String).join('、');
+    const text = String(item).trim();
+    if (text) return text;
+  }
+  return null;
+}
+
 function readFieldIdsFromSchema(schema: unknown): Set<string> {
   const result = new Set<string>();
   const candidate = toRecord(schema);
@@ -326,7 +347,7 @@ async function buildApprovalWhere(
   if (!hasAll && !hasDepartment) return null;
 
   const templateId = normalizeNumber(filters.templateId);
-  const departmentId = normalizeNumber(filters.departmentId);
+  const requestedDepartmentId = normalizeNumber(filters.departmentId);
   const dateFrom = parseDateBoundary(filters.dateFrom, 'start');
   const dateTo = parseDateBoundary(filters.dateTo, 'end');
   const where: Prisma.ApprovalApplicationWhereInput = {
@@ -336,10 +357,12 @@ async function buildApprovalWhere(
   if (!hasAll) {
     const actorDepartmentId = await resolveActorDepartmentId(actor);
     if (!actorDepartmentId) return null;
+    if (requestedDepartmentId && requestedDepartmentId !== actorDepartmentId) return null;
     where.applicantDepartmentId = actorDepartmentId;
+  } else if (requestedDepartmentId) {
+    where.applicantDepartmentId = requestedDepartmentId;
   }
   if (templateId) where.templateId = templateId;
-  if (departmentId) where.applicantDepartmentId = departmentId;
   if (filters.personName?.trim()) {
     where.applicantName = {
       contains: filters.personName.trim(),
@@ -421,19 +444,26 @@ function serializeArchiveEvent(
 function serializeApprovalRow(record: ApprovalArchiveRecord): ArchiveListItem {
   const tags = record.archiveMeta?.tags ?? [];
   const updatedAt = record.archiveMeta?.updatedAt ?? record.updatedAt;
+  const formData = toRecord(record.formData);
 
   return {
+    id: record.id,
     archiveKey: `approval:${record.id}`,
     sourceType: 'approval',
     sourceId: record.id,
     archiveNo: record.applicationNo,
     templateId: record.templateId,
     templateName: record.templateName,
+    templateVersion: record.templateVersion,
     departmentId: record.applicantDepartmentId,
     departmentName: record.applicantDepartmentName,
     personName: record.applicantName,
+    personPhone: typeof formData.phone === 'string' ? formData.phone : null,
     status: record.status,
     tags,
+    processingSummary: firstProcessingSummary(record.archiveMeta?.processingData),
+    submittedAt: record.submittedAt,
+    completedAt: record.completedAt,
     createdAt: record.createdAt,
     updatedAt,
   };
@@ -444,17 +474,23 @@ function serializeCollectionRow(record: CollectionArchiveRecord): ArchiveListIte
   const updatedAt = record.archiveMeta?.updatedAt ?? record.createdAt;
 
   return {
+    id: record.id,
     archiveKey: `collection:${record.id}`,
     sourceType: 'collection',
     sourceId: record.id,
     archiveNo: `COL-${record.id}`,
     templateId: record.templateId,
     templateName: record.template.name,
+    templateVersion: record.schemaVersion,
     departmentId: null,
     departmentName: null,
     personName: record.submitterName ?? record.submitterPhone ?? `收集记录 ${record.id}`,
+    personPhone: record.submitterPhone,
     status: 'COLLECTED',
     tags,
+    processingSummary: firstProcessingSummary(record.archiveMeta?.processingData),
+    submittedAt: record.createdAt,
+    completedAt: null,
     createdAt: record.createdAt,
     updatedAt,
   };
@@ -470,6 +506,7 @@ function serializeApprovalDetail(record: ApprovalArchiveRecord): ArchiveDetail {
     ...row,
     formData,
     effectiveData: { ...formData, ...correctionStore.current },
+    processingFields: toArray(record.template.processingSchema),
     processingData: toRecord(record.archiveMeta?.processingData),
     schemaSnapshot: record.schemaSnapshot,
     notes: events
@@ -496,6 +533,7 @@ function serializeCollectionDetail(record: CollectionArchiveRecord): ArchiveDeta
     ...row,
     formData,
     effectiveData: { ...formData, ...correctionStore.current },
+    processingFields: toArray(record.template.processingSchema),
     processingData: toRecord(record.archiveMeta?.processingData),
     schemaSnapshot: record.template.schema,
     notes: events
@@ -675,7 +713,7 @@ export async function listArchiveMeta(actor: ArchiveActor) {
   return {
     templates: Array.from(templates.values()).sort((a, b) => a.label.localeCompare(b.label, 'zh-CN')),
     departments: Array.from(departments.values()).sort((a, b) => a.label.localeCompare(b.label, 'zh-CN')),
-    tags: Array.from(tags),
+    recommendedTags: Array.from(tags),
   };
 }
 

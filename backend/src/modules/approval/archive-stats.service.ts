@@ -104,7 +104,7 @@ async function buildApprovalWhere(
   if (!hasAll && !hasDepartment) return null;
 
   const templateId = normalizeNumber(filters.templateId);
-  const departmentId = normalizeNumber(filters.departmentId);
+  const requestedDepartmentId = normalizeNumber(filters.departmentId);
   const dateFrom = parseDateBoundary(filters.dateFrom, 'start');
   const dateTo = parseDateBoundary(filters.dateTo, 'end');
   const where: Prisma.ApprovalApplicationWhereInput = {
@@ -114,10 +114,12 @@ async function buildApprovalWhere(
   if (!hasAll) {
     const actorDepartmentId = await resolveActorDepartmentId(actor);
     if (!actorDepartmentId) return null;
+    if (requestedDepartmentId && requestedDepartmentId !== actorDepartmentId) return null;
     where.applicantDepartmentId = actorDepartmentId;
+  } else if (requestedDepartmentId) {
+    where.applicantDepartmentId = requestedDepartmentId;
   }
   if (templateId) where.templateId = templateId;
-  if (departmentId) where.applicantDepartmentId = departmentId;
   if (filters.status?.trim()) {
     if (!ARCHIVE_APPROVAL_STATUSES.includes(filters.status as ApprovalApplicationStatus)) return null;
     where.status = filters.status as ApprovalApplicationStatus;

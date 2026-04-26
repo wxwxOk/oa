@@ -28,7 +28,7 @@ describe('approval archive type helpers', () => {
 
   it('keeps archive operation payload constants limited to user-editable fields', () => {
     expect(UPDATE_ARCHIVE_TAGS_PAYLOAD_KEYS).toEqual(['tags']);
-    expect(CREATE_ARCHIVE_NOTE_PAYLOAD_KEYS).toEqual(['content']);
+    expect(CREATE_ARCHIVE_NOTE_PAYLOAD_KEYS).toEqual(['comment']);
     expect(UPDATE_ARCHIVE_PROCESSING_PAYLOAD_KEYS).toEqual(['processingData']);
     expect(CREATE_ARCHIVE_CORRECTION_PAYLOAD_KEYS).toEqual(['changes', 'reason']);
 

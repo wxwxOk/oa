@@ -44,6 +44,7 @@ const archiveDetail = {
   formData: { reason: '年度调休' },
   effectiveData: { reason: '年度调休' },
   schemaSnapshot: { version: 2, items: [] },
+  processingFields: [{ id: 'followResult', type: 'text', label: '跟进结果' }],
   processingData: { followResult: '待回访' },
   notes: [],
   corrections: [],
@@ -74,6 +75,22 @@ describe('approval archive store', () => {
     expect(mockedApi.get).toHaveBeenCalledWith('/approval/archive/meta');
     expect(result).toEqual(meta);
     expect(store.filterOptions).toEqual(meta);
+  });
+
+  it('normalizes legacy archive metadata tags to recommendedTags', async () => {
+    mockedApi.get.mockResolvedValueOnce({
+      data: {
+        templates: [],
+        departments: [],
+        tags: ['待跟进'],
+      },
+    });
+
+    const store = useApprovalArchiveStore();
+    const result = await store.fetchMeta();
+
+    expect(result.recommendedTags).toEqual(['待跟进']);
+    expect(store.filterOptions.recommendedTags).toEqual(['待跟进']);
   });
 
   it('fetches GET /approval/archive with source, template, department, person, status, date, and tag filters', async () => {
@@ -125,17 +142,64 @@ describe('approval archive store', () => {
     const result = await store.fetchDetail('approval', 17);
 
     expect(mockedApi.get).toHaveBeenCalledWith('/approval/archive/approval/17');
-    expect(result).toEqual(archiveDetail);
-    expect(store.detail).toEqual(archiveDetail);
+    expect(result).toEqual(expect.objectContaining(archiveDetail));
+    expect(store.detail).toEqual(expect.objectContaining(archiveDetail));
     expect(store.detailLoading).toBe(false);
+  });
+
+  it('normalizes backend archive detail shape for the detail page contract', async () => {
+    mockedApi.get.mockResolvedValueOnce({
+      data: {
+        ...archiveRow,
+        formData: { reason: '年度调休', phone: '13800138000' },
+        effectiveData: { reason: '年度调休', phone: '13999999999' },
+        schemaSnapshot: { version: 2, items: [] },
+        processingFields: [{ id: 'followResult', type: 'text', label: '跟进结果' }],
+        processingData: { followResult: '待回访' },
+        notes: [
+          {
+            id: 1,
+            comment: '内部备注',
+            actorId: 7,
+            actorName: '运营人员',
+            createdAt: '2026-04-26T09:30:00.000Z',
+          },
+        ],
+        correctionHistory: [
+          {
+            id: 2,
+            field: 'phone',
+            before: '13800138000',
+            after: '13999999999',
+            reason: '复核修正',
+            actorId: 7,
+            actorName: '运营人员',
+            createdAt: '2026-04-26T09:31:00.000Z',
+          },
+        ],
+        events: [{ id: 3, type: 'EDIT', title: '修正提交数据', actorName: '运营人员', createdAt: '2026-04-26T09:31:00.000Z' }],
+      },
+    });
+
+    const store = useApprovalArchiveStore();
+    const result = await store.fetchDetail('approval', 17);
+
+    expect(result.notes[0].content).toBe('内部备注');
+    expect(result.correctionHistory?.[0].changes[0]).toMatchObject({
+      fieldId: 'phone',
+      beforeValue: '13800138000',
+      afterValue: '13999999999',
+    });
+    expect(result.timeline).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'EDIT' })]));
+    expect(result.processingFields?.[0]).toMatchObject({ id: 'followResult' });
   });
 
   it('writes tags, notes, processing data, and corrections to operation-only endpoints', async () => {
     const tagsPayload = { tags: ['已核对', '重点'] };
-    const notePayload = { content: '电话确认过资料。' };
+    const notePayload = { comment: '电话确认过资料。' };
     const processingPayload = { processingData: { followResult: '已回访' } };
     const correctionPayload = {
-      changes: [{ fieldId: 'reason', value: '年假' }],
+      changes: { reason: '年假' },
       reason: '申请人补充材料后修正',
     };
 

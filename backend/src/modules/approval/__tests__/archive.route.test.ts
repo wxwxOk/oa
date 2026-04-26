@@ -45,18 +45,25 @@ function expectStrictPayloadSchema(schema: unknown, allowedFields: string[]) {
 
 function makeDetail(): ArchiveRouteDetail {
   return {
+    id: 17,
     archiveKey: 'approval:17',
     sourceType: 'approval',
     sourceId: 17,
     templateId: 3,
     templateName: '请假申请',
+    templateVersion: 5,
     departmentId: 2,
     departmentName: '研发部',
     personName: '申请人',
+    personPhone: '13800138000',
     status: 'APPROVED',
     tags: ['待跟进'],
+    processingSummary: '已电话回访',
+    submittedAt: new Date('2026-04-25T08:30:00.000Z'),
+    completedAt: new Date('2026-04-25T09:30:00.000Z'),
     formData: { reason: '年度调休' },
     effectiveData: { reason: '年度调休', phone: '13999999999' },
+    processingFields: [{ id: 'followUpResult', type: 'text', label: '跟进结果' }],
     processingData: { followUpResult: '已电话回访' },
     schemaSnapshot: { version: 2, items: [] },
     notes: [
@@ -151,9 +158,13 @@ describe('approval archive route contract', () => {
           sourceType: 'approval',
           sourceId: 17,
           templateName: '请假申请',
+          templateVersion: 5,
           personName: '申请人',
+          personPhone: '13800138000',
           status: 'APPROVED',
           tags: ['待跟进'],
+          submittedAt: '2026-04-25T08:30:00.000Z',
+          completedAt: '2026-04-25T09:30:00.000Z',
           updatedAt: '2026-04-26T08:01:00.000Z',
         }),
       ],
@@ -172,9 +183,11 @@ describe('approval archive route contract', () => {
       formData: { reason: '年度调休' },
       effectiveData: { reason: '年度调休', phone: '13999999999' },
       processingData: { followUpResult: '已电话回访' },
+      processingFields: [expect.objectContaining({ id: 'followUpResult', label: '跟进结果' })],
       notes: [
         expect.objectContaining({
           comment: '内部备注',
+          content: '内部备注',
           createdAt: '2026-04-26T08:00:00.000Z',
         }),
       ],
@@ -186,6 +199,18 @@ describe('approval archive route contract', () => {
           reason: '复核修正手机号',
         }),
       ],
+      corrections: [
+        expect.objectContaining({
+          changes: [
+            expect.objectContaining({
+              fieldId: 'phone',
+              beforeValue: '13800138000',
+              afterValue: '13999999999',
+            }),
+          ],
+        }),
+      ],
+      timeline: [expect.objectContaining({ type: 'EDIT', title: '修正提交数据' })],
     });
   });
 });

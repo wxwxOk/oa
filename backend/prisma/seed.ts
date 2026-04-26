@@ -1,4 +1,4 @@
-// 数据库种子 - 内置 admin/admin123 + 全部权限
+// 数据库种子 - 创建 admin 用户 + 全部权限
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
@@ -79,6 +79,17 @@ const PERMISSIONS = [
   { code: 'approval:archive:stats', name: '归档统计', module: 'approval' },
 ];
 
+function resolveAdminPassword(): string {
+  const password = process.env.SEED_ADMIN_PASSWORD?.trim();
+  if (!password) {
+    throw new Error('SEED_ADMIN_PASSWORD is required for seeding the admin user');
+  }
+  if (password.length < 8) {
+    throw new Error('SEED_ADMIN_PASSWORD must be at least 8 characters');
+  }
+  return password;
+}
+
 export async function seedDatabase(): Promise<void> {
   console.log('🌱 开始 seed...');
 
@@ -123,7 +134,7 @@ export async function seedDatabase(): Promise<void> {
   });
 
   // 5. admin 用户
-  const hash = bcrypt.hashSync('admin123', 10);
+  const hash = bcrypt.hashSync(resolveAdminPassword(), 10);
   const admin = await prisma.user.upsert({
     where: { username: 'admin' },
     update: {},
@@ -141,7 +152,7 @@ export async function seedDatabase(): Promise<void> {
     create: { userId: admin.id, roleId: adminRole.id },
   });
 
-  console.log('✅ seed 完成: admin / admin123');
+  console.log('✅ seed 完成: admin 用户已创建或更新');
 }
 
 if (import.meta.main) {

@@ -106,9 +106,10 @@ export const notificationModule = new Elysia({ prefix: '/notifications' })
       if ('updatedCount' in result) return result;
       return serializeNotificationItem(result);
     },
-    { params: paramsSchema },
+    { params: paramsSchema, body: markNotificationReadBodySchema },
   )
   .post(
     '/mark-all-read',
     async ({ currentUser }: any) => markAllNotificationsRead(toActor(currentUser)),
+    { body: markAllNotificationsReadBodySchema },
   );

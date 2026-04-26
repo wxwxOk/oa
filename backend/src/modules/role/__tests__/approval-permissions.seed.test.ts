@@ -25,6 +25,8 @@ const phase19ApprovalCodes = [
   'approval:archive:stats',
 ];
 
+const originalSeedAdminPassword = process.env.SEED_ADMIN_PASSWORD;
+
 async function rolePermissionCodes(roleCode: string) {
   const role = await prisma.role.findUniqueOrThrow({
     where: { code: roleCode },
@@ -42,6 +44,7 @@ async function rolePermissionCodes(roleCode: string) {
 
 describe('approval permission seed data', () => {
   beforeEach(async () => {
+    process.env.SEED_ADMIN_PASSWORD = 'phase19-admin-password';
     await prisma.approvalTimelineEvent.deleteMany();
     await prisma.approvalAction.deleteMany();
     await prisma.approvalTask.deleteMany();
@@ -60,7 +63,18 @@ describe('approval permission seed data', () => {
   });
 
   afterAll(async () => {
+    if (originalSeedAdminPassword === undefined) {
+      delete process.env.SEED_ADMIN_PASSWORD;
+    } else {
+      process.env.SEED_ADMIN_PASSWORD = originalSeedAdminPassword;
+    }
     await prisma.$disconnect();
+  });
+
+  it('requires an explicit admin password for seeding', async () => {
+    delete process.env.SEED_ADMIN_PASSWORD;
+
+    await expect(seedDatabase()).rejects.toThrow('SEED_ADMIN_PASSWORD');
   });
 
   it('seeded permission list includes all Phase 19 approval and archive operation codes', async () => {

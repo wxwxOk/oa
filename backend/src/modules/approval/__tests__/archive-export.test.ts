@@ -92,19 +92,43 @@ describe('approval archive Excel export contract', () => {
   });
 
   it('exportArchiveExcel reuses archive list filters and permissions before building the workbook', async () => {
+    const calls: unknown[] = [];
     const workbook = await exportArchiveExcel(archiveActor, archiveFilters, {
       listArchiveRecords: async (receivedActor: unknown, receivedFilters: unknown) => {
         expect(receivedActor).toBe(archiveActor);
-        expect(receivedFilters).toEqual({ ...archiveFilters, page: 1, size: MAX_ARCHIVE_EXPORT_ROWS + 1 });
+        calls.push(receivedFilters);
         return {
           rows: [makeArchiveRow()],
           total: 1,
           page: 1,
-          size: MAX_ARCHIVE_EXPORT_ROWS + 1,
+          size: 100,
         };
       },
     });
 
+    expect(calls).toEqual([{ ...archiveFilters, page: 1, size: 100 }]);
     expect(workbook.getWorksheet('归档数据')).toBeTruthy();
+  });
+
+  it('exportArchiveExcel fetches every visible page before workbook generation', async () => {
+    const calls: unknown[] = [];
+    const workbook = await exportArchiveExcel(archiveActor, archiveFilters, {
+      listArchiveRecords: async (_receivedActor: unknown, receivedFilters: unknown) => {
+        calls.push(receivedFilters);
+        const page = (receivedFilters as { page: number }).page;
+        return {
+          rows: page === 1 ? [makeArchiveRow(1), makeArchiveRow(2)] : [makeArchiveRow(3)],
+          total: 3,
+          page,
+          size: 100,
+        };
+      },
+    });
+
+    expect(calls).toEqual([
+      { ...archiveFilters, page: 1, size: 100 },
+      { ...archiveFilters, page: 2, size: 100 },
+    ]);
+    expect(workbook.getWorksheet('归档数据')?.rowCount).toBe(4);
   });
 });

@@ -548,6 +548,9 @@ const changedCorrectionFields = computed(() =>
     .filter((field) => isFieldChanged(field.id))
     .map((field) => ({ fieldId: field.id, value: correctionValues[field.id] })),
 );
+const changedCorrectionPayload = computed(() =>
+  Object.fromEntries(changedCorrectionFields.value.map(({ fieldId, value }) => [fieldId, value])),
+);
 
 watch(detail, (value) => {
   if (!value) return;
@@ -656,7 +659,7 @@ async function saveNote() {
   const content = noteContent.value.trim();
   if (!value || !content) return;
   try {
-    await store.addNote(value.sourceType, value.sourceId, { content });
+    await store.addNote(value.sourceType, value.sourceId, { comment: content });
     Notify.create({ type: 'positive', message: '备注已保存' });
     noteDialog.value = false;
   } catch {
@@ -685,7 +688,7 @@ async function saveCorrection() {
   if (!value || !canSaveCorrection.value) return;
   try {
     await store.saveCorrection(value.sourceType, value.sourceId, {
-      changes: changedCorrectionFields.value,
+      changes: changedCorrectionPayload.value,
       reason: correctionReason.value.trim(),
     });
     Notify.create({ type: 'positive', message: '修正已保存' });

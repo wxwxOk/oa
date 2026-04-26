@@ -13,6 +13,7 @@ import {
 export const MAX_ARCHIVE_EXPORT_ROWS = 2000;
 
 const EXPORT_TOO_LARGE_MESSAGE = '当前筛选结果超过导出上限，请缩小筛选范围后重试。';
+const EXPORT_PAGE_SIZE = 100;
 const FORMULA_PREFIX_PATTERN = /^[=+\-@\t\r]/;
 
 type ArchiveExportRow = Partial<ArchiveDetail> &
@@ -232,15 +233,21 @@ export async function exportArchiveExcel(
 ): Promise<ExcelJS.Workbook> {
   const listArchiveRecords = dependencies.listArchiveRecords ?? defaultListArchiveRecords;
   const getArchiveDetail = dependencies.getArchiveDetail ?? defaultGetArchiveDetail;
-  const exportFilters = { ...filters, page: 1, size: MAX_ARCHIVE_EXPORT_ROWS + 1 };
-  const result = await listArchiveRecords(actor, exportFilters);
+  const firstPage = await listArchiveRecords(actor, { ...filters, page: 1, size: EXPORT_PAGE_SIZE });
 
-  if (result.total > MAX_ARCHIVE_EXPORT_ROWS || result.rows.length > MAX_ARCHIVE_EXPORT_ROWS) {
+  if (firstPage.total > MAX_ARCHIVE_EXPORT_ROWS) {
     throw new BizError(EXPORT_TOO_LARGE_MESSAGE, 400, 'ARCHIVE_EXPORT_TOO_LARGE');
   }
 
+  const listRows = [...firstPage.rows];
+  for (let page = 2; listRows.length < firstPage.total; page += 1) {
+    const nextPage = await listArchiveRecords(actor, { ...filters, page, size: EXPORT_PAGE_SIZE });
+    if (nextPage.rows.length === 0) break;
+    listRows.push(...nextPage.rows);
+  }
+
   const rows: ArchiveExportRow[] = [];
-  for (const row of result.rows as ArchiveExportRow[]) {
+  for (const row of listRows as ArchiveExportRow[]) {
     if (needsArchiveDetail(row)) {
       rows.push(await getArchiveDetail(actor, row.sourceType, row.sourceId));
     } else {

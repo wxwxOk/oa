@@ -92,6 +92,7 @@ export interface ArchiveCorrectionHistory {
 export interface ArchiveNote {
   id: number;
   content: string;
+  comment?: string;
   actorId: number | null;
   actorName: string;
   createdAt: string;
@@ -146,7 +147,7 @@ export interface UpdateArchiveTagsPayload {
 }
 
 export interface CreateArchiveNotePayload {
-  content: string;
+  comment: string;
 }
 
 export interface UpdateArchiveProcessingPayload {
@@ -154,7 +155,7 @@ export interface UpdateArchiveProcessingPayload {
 }
 
 export interface CreateArchiveCorrectionPayload {
-  changes: Array<{ fieldId: string; value: unknown }>;
+  changes: Record<string, unknown>;
   reason: string;
 }
 
@@ -170,7 +171,7 @@ export const SUPPORTED_PROCESSING_FIELD_TYPES = [
 ] as readonly ArchiveProcessingFieldType[];
 
 export const ARCHIVE_TAG_PAYLOAD_KEYS = ['tags'] as const;
-export const ARCHIVE_NOTE_PAYLOAD_KEYS = ['content'] as const;
+export const ARCHIVE_NOTE_PAYLOAD_KEYS = ['comment'] as const;
 export const ARCHIVE_PROCESSING_PAYLOAD_KEYS = ['processingData'] as const;
 export const ARCHIVE_CORRECTION_PAYLOAD_KEYS = ['changes', 'reason'] as const;
 

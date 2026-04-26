@@ -1,9 +1,13 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
+import { useAuthStore } from 'src/stores/auth';
 import type {
+  ArchiveCorrectionHistory,
   ArchiveDetail,
   ArchiveFilterOptions,
   ArchiveListFilters,
+  ArchiveNote,
+  ArchiveProcessingField,
   ArchiveRow,
   ArchiveSourceType,
   ArchiveStats,
@@ -19,6 +23,17 @@ interface ArchiveListResponse {
   page: number;
   size: number;
 }
+
+type RawArchiveCorrection = ArchiveCorrectionHistory | {
+  id: number;
+  field: string;
+  before: unknown;
+  after: unknown;
+  reason: string;
+  actorId: number | null;
+  actorName: string;
+  createdAt: string;
+};
 
 function buildArchiveParams(filters: ArchiveListFilters): Record<string, unknown> {
   const params: Record<string, unknown> = {};
@@ -46,6 +61,63 @@ function mergeFilters(
     ...filters,
     page: filters?.page ?? page,
     size: filters?.size ?? size,
+  };
+}
+
+function normalizeMeta(data: ArchiveFilterOptions & { tags?: string[] }): ArchiveFilterOptions {
+  return {
+    templates: data.templates ?? [],
+    departments: data.departments ?? [],
+    recommendedTags: data.recommendedTags ?? data.tags ?? [],
+  };
+}
+
+function normalizeNote(note: ArchiveNote & { comment?: string }): ArchiveNote {
+  return {
+    ...note,
+    content: note.content ?? note.comment ?? '',
+  };
+}
+
+function normalizeCorrections(items: RawArchiveCorrection[] | undefined): ArchiveCorrectionHistory[] {
+  return (items ?? []).map((item) => {
+    if ('changes' in item && Array.isArray(item.changes)) return item;
+    return {
+      id: item.id,
+      changes: [
+        {
+          fieldId: item.field,
+          fieldLabel: item.field,
+          beforeValue: item.before,
+          afterValue: item.after,
+        },
+      ],
+      reason: item.reason,
+      actorId: item.actorId,
+      actorName: item.actorName,
+      createdAt: item.createdAt,
+    };
+  });
+}
+
+function normalizeDetail(data: ArchiveDetail): ArchiveDetail {
+  const auth = useAuthStore();
+  const correctionHistory = normalizeCorrections(data.correctionHistory ?? data.corrections);
+  return {
+    ...data,
+    id: data.id ?? data.sourceId,
+    templateVersion: data.templateVersion ?? 1,
+    personPhone: data.personPhone ?? null,
+    submittedAt: data.submittedAt ?? data.createdAt,
+    completedAt: data.completedAt ?? null,
+    processingSummary: data.processingSummary ?? null,
+    processingFields: (data.processingFields ?? []) as ArchiveProcessingField[],
+    notes: (data.notes ?? []).map(normalizeNote),
+    corrections: correctionHistory,
+    correctionHistory,
+    timeline: data.timeline ?? data.events ?? [],
+    canMark: data.canMark ?? auth.hasPerm('approval:archive:mark'),
+    canEdit: data.canEdit ?? auth.hasPerm('approval:archive:edit'),
   };
 }
 
@@ -82,8 +154,8 @@ export const useApprovalArchiveStore = defineStore('approvalArchive', {
   actions: {
     async fetchMeta() {
       const { data } = await api.get('/approval/archive/meta');
-      this.filterOptions = data;
-      return data as ArchiveFilterOptions;
+      this.filterOptions = normalizeMeta(data);
+      return this.filterOptions;
     },
     async fetchList(filters?: ArchiveListFilters) {
       this.loading = true;
@@ -105,9 +177,10 @@ export const useApprovalArchiveStore = defineStore('approvalArchive', {
       this.detailLoading = true;
       try {
         const { data } = await api.get(`/approval/archive/${sourceType}/${sourceId}`);
-        this.current = data;
-        this.detail = data;
-        return data as ArchiveDetail;
+        const detail = normalizeDetail(data as ArchiveDetail);
+        this.current = detail;
+        this.detail = detail;
+        return detail;
       } finally {
         this.detailLoading = false;
       }
@@ -116,9 +189,10 @@ export const useApprovalArchiveStore = defineStore('approvalArchive', {
       this.actionLoading = true;
       try {
         const { data } = await api.put(`/approval/archive/${sourceType}/${sourceId}/tags`, payload);
-        this.current = data;
-        this.detail = data;
-        return data as ArchiveDetail;
+        const detail = normalizeDetail(data as ArchiveDetail);
+        this.current = detail;
+        this.detail = detail;
+        return detail;
       } finally {
         this.actionLoading = false;
       }
@@ -130,9 +204,10 @@ export const useApprovalArchiveStore = defineStore('approvalArchive', {
       this.actionLoading = true;
       try {
         const { data } = await api.post(`/approval/archive/${sourceType}/${sourceId}/notes`, payload);
-        this.current = data;
-        this.detail = data;
-        return data as ArchiveDetail;
+        const detail = normalizeDetail(data as ArchiveDetail);
+        this.current = detail;
+        this.detail = detail;
+        return detail;
       } finally {
         this.actionLoading = false;
       }
@@ -145,9 +220,10 @@ export const useApprovalArchiveStore = defineStore('approvalArchive', {
       this.actionLoading = true;
       try {
         const { data } = await api.put(`/approval/archive/${sourceType}/${sourceId}/processing`, payload);
-        this.current = data;
-        this.detail = data;
-        return data as ArchiveDetail;
+        const detail = normalizeDetail(data as ArchiveDetail);
+        this.current = detail;
+        this.detail = detail;
+        return detail;
       } finally {
         this.actionLoading = false;
       }
@@ -167,9 +243,10 @@ export const useApprovalArchiveStore = defineStore('approvalArchive', {
       this.actionLoading = true;
       try {
         const { data } = await api.post(`/approval/archive/${sourceType}/${sourceId}/corrections`, payload);
-        this.current = data;
-        this.detail = data;
-        return data as ArchiveDetail;
+        const detail = normalizeDetail(data as ArchiveDetail);
+        this.current = detail;
+        this.detail = detail;
+        return detail;
       } finally {
         this.actionLoading = false;
       }

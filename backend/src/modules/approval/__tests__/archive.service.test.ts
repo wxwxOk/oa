@@ -208,7 +208,8 @@ describe('approval archive service contract', () => {
   });
 
   it('T-19-IDOR lists approval and collection archive records as normalized source rows under source-specific permissions', async () => {
-    const { approval, draftApproval, collection, operator, department, template } = await setupArchiveFixture();
+    const { approval, draftApproval, collection, operator, department, otherDepartment, template } =
+      await setupArchiveFixture();
 
     const fullAccess = await listArchiveRecords(
       actor(operator, ['approval:application:all', 'form:submission:list']),
@@ -248,6 +249,12 @@ describe('approval archive service contract', () => {
     );
     expect(departmentApprovalOnly.rows.every((row) => row.sourceType === 'approval')).toBe(true);
     expect(departmentApprovalOnly.rows.every((row) => row.departmentId === department.id)).toBe(true);
+
+    const attemptedDepartmentBypass = await listArchiveRecords(
+      actor(operator, ['approval:application:department']),
+      { sourceType: 'approval', departmentId: otherDepartment.id },
+    );
+    expect(attemptedDepartmentBypass.rows).toEqual([]);
 
     await expect(
       getArchiveDetail(actor(operator, ['approval:application:department']), 'approval', collection.id),

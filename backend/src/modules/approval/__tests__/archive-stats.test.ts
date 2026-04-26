@@ -168,7 +168,7 @@ describe('approval archive stats contract', () => {
   });
 
   it('T-19-IDOR requires approval:archive:stats and source visibility before returning aggregate counts', async () => {
-    const { admin } = await setupStatsFixture();
+    const { admin, otherDepartment } = await setupStatsFixture();
 
     await expect(
       getArchiveStats(
@@ -176,6 +176,19 @@ describe('approval archive stats contract', () => {
         { dateFrom: '2026-04-01', dateTo: '2026-04-30' },
       ),
     ).rejects.toThrow('缺少权限');
+
+    const scopedStats = await getArchiveStats(
+      {
+        id: admin.id,
+        name: admin.realName,
+        departmentId: admin.departmentId,
+        permissions: ['approval:archive:stats', 'approval:application:department'],
+      },
+      { sourceType: 'approval', departmentId: otherDepartment.id },
+    );
+
+    expect(scopedStats.byTemplate).toEqual([]);
+    expect(scopedStats.byDepartment).toEqual([]);
   });
 
   it('excludes DRAFT approvals, maps collection rows to COLLECTED, and groups by template/status/department/month/sourceType', async () => {
