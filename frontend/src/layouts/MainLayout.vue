@@ -442,6 +442,7 @@ async function markAllNotificationsRead() {
   try {
     await notification.markAllRead();
     await refreshUnreadCount();
+    await loadNotifications();
   } catch {
     ignoreNotificationRefreshError();
   }
