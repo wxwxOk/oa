@@ -165,6 +165,7 @@ async function timelineTypes(applicationId: number) {
 
 describe('approval application service', () => {
   beforeEach(async () => {
+    await prisma.userNotification.deleteMany();
     await prisma.approvalTimelineEvent.deleteMany();
     await prisma.approvalAction.deleteMany();
     await prisma.approvalTask.deleteMany();
@@ -224,6 +225,17 @@ describe('approval application service', () => {
     expect(tasks[0].nodeOrder).toBe(1);
     expect(await actionTypes(application.id)).toEqual(['SUBMIT', 'ASSIGN']);
     expect(await timelineTypes(application.id)).toEqual(['SUBMIT', 'ASSIGN']);
+    expect(
+      await prisma.userNotification.count({
+        where: {
+          userId: approver1.id,
+          type: 'NEW_TASK',
+          approvalApplicationId: application.id,
+          approvalTaskId: tasks[0].id,
+          targetRoute: `/approval/tasks/${tasks[0].id}`,
+        },
+      }),
+    ).toBe(1);
   });
 
   it('serial approval creates the next task then approves the final node', async () => {
@@ -243,12 +255,32 @@ describe('approval application service', () => {
     expect(approvedFirstTask.status).toBe('APPROVED');
     expect(secondTask.nodeOrder).toBe(2);
     expect(secondTask.assigneeId).toBe(approver2.id);
+    expect(
+      await prisma.userNotification.count({
+        where: {
+          userId: approver2.id,
+          type: 'NEW_TASK',
+          approvalApplicationId: submitted.id,
+          approvalTaskId: secondTask.id,
+        },
+      }),
+    ).toBe(1);
 
     const approved = await approveTask(secondTask.id, { id: approver2.id, name: approver2.realName }, '二级通过');
 
     expect(approved.status).toBe('APPROVED');
     expect(await prisma.approvalTask.count({ where: { applicationId: submitted.id, status: 'PENDING' } })).toBe(0);
     expect(await actionTypes(submitted.id)).toEqual(['SUBMIT', 'ASSIGN', 'APPROVE', 'ASSIGN', 'APPROVE']);
+    expect(
+      await prisma.userNotification.count({
+        where: {
+          userId: applicant.id,
+          type: 'APPROVED',
+          approvalApplicationId: submitted.id,
+          targetRoute: `/approval/applications/${submitted.id}`,
+        },
+      }),
+    ).toBe(1);
   });
 
   it('reject closes pending tasks and records rejection', async () => {
@@ -266,6 +298,16 @@ describe('approval application service', () => {
     expect(await prisma.approvalTask.count({ where: { applicationId: submitted.id, status: 'PENDING' } })).toBe(0);
     expect(rejectedTask.status).toBe('REJECTED');
     expect(await timelineTypes(submitted.id)).toContain('REJECT');
+    expect(
+      await prisma.userNotification.count({
+        where: {
+          userId: applicant.id,
+          type: 'REJECTED',
+          approvalApplicationId: submitted.id,
+          targetRoute: `/approval/applications/${submitted.id}`,
+        },
+      }),
+    ).toBe(1);
   });
 
   it('cancel closes pending tasks and records cancellation', async () => {
@@ -283,6 +325,15 @@ describe('approval application service', () => {
     expect(await prisma.approvalTask.count({ where: { applicationId: submitted.id, status: 'PENDING' } })).toBe(0);
     expect(canceledTask.status).toBe('CANCELED');
     expect(await timelineTypes(submitted.id)).toContain('CANCEL');
+    expect(
+      await prisma.userNotification.count({
+        where: {
+          userId: applicant.id,
+          type: { in: ['APPROVED', 'REJECTED'] },
+          approvalApplicationId: submitted.id,
+        },
+      }),
+    ).toBe(0);
   });
 
   it('rejects illegal operations on terminal applications', async () => {
