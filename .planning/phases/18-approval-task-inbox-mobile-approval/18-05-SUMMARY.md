@@ -52,6 +52,7 @@ completed: 2026-04-26
 ## Task Commits
 
 1. **Task 1-2: Approval task detail and actions** - `c7ef01d` (feat)
+2. **Review fix: Chinese application status label in task summary** - `06cebe0` (fix)
 
 **Plan metadata:** included in this summary commit.
 
@@ -66,7 +67,20 @@ Internal remarks remain visible on approver detail but separate from submitted f
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 2 - Missing Critical] Raw application status code in task summary**
+- **Found during:** Post-execution code review
+- **Issue:** The current-task summary displayed `APPROVING` instead of the Chinese application status label.
+- **Fix:** Reused `statusLabel()` from `approvalApplication.ts`.
+- **Files modified:** `frontend/src/pages/ApprovalTaskDetailPage.vue`
+- **Verification:** `cd frontend && bun run test`; `cd frontend && bun run build`
+- **Committed in:** `06cebe0`
+
+---
+
+**Total deviations:** 1 auto-fixed (missing UI consistency requirement)
+**Impact on plan:** Improves user-facing status clarity without scope change.
 
 ## Issues Encountered
 
