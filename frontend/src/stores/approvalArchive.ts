@@ -46,7 +46,7 @@ function buildArchiveParams(filters: ArchiveListFilters): Record<string, unknown
   if (filters.status) params.status = filters.status;
   if (filters.dateFrom) params.dateFrom = filters.dateFrom;
   if (filters.dateTo) params.dateTo = filters.dateTo;
-  if (filters.tags && filters.tags.length > 0) params.tags = filters.tags;
+  if (filters.tags && filters.tags.length > 0) params.tags = filters.tags.join(',');
   return params;
 }
 

@@ -128,7 +128,7 @@ describe('approval archive store', () => {
         status: 'COLLECTED',
         dateFrom: '2026-04-01',
         dateTo: '2026-04-26',
-        tags: ['待跟进', '重点'],
+        tags: '待跟进,重点',
       },
     });
     expect(store.rows).toEqual([archiveRow]);
@@ -241,7 +241,7 @@ describe('approval archive store', () => {
     await store.exportExcel(filters);
 
     expect(mockedApi.get).toHaveBeenCalledWith('/approval/archive/export', {
-      params: filters,
+      params: { ...filters, tags: '资料不全' },
       responseType: 'blob',
     });
     expect(store.exportLoading).toBe(false);
