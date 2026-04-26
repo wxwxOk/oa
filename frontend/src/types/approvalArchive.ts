@@ -167,7 +167,7 @@ export const SUPPORTED_PROCESSING_FIELD_TYPES = [
   'radio',
   'checkbox',
   'phone',
-] as const satisfies readonly ArchiveProcessingFieldType[];
+] as readonly ArchiveProcessingFieldType[];
 
 export const ARCHIVE_TAG_PAYLOAD_KEYS = ['tags'] as const;
 export const ARCHIVE_NOTE_PAYLOAD_KEYS = ['content'] as const;

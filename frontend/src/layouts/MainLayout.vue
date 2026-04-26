@@ -150,6 +150,7 @@ interface MenuConfig {
   title: string;
   icon: string;
   perm?: string;
+  permAny?: string[];
   children?: MenuConfig[];
 }
 
@@ -171,6 +172,12 @@ const allMenus: MenuConfig[] = [
     children: [
       { path: '/approval/tasks', title: '待我审批', icon: 'fact_check', perm: 'approval:task:list' },
       { path: '/approval/applications', title: '我的申请', icon: 'assignment', perm: 'approval:application:own' },
+      {
+        path: '/approval/archive',
+        title: '归档查询',
+        icon: 'inventory_2',
+        permAny: ['approval:application:department', 'approval:application:all', 'form:submission:list'],
+      },
       { path: '/approval/processes', title: '流程配置', icon: 'rule', perm: 'approval:process:list' },
     ],
   },
@@ -181,7 +188,7 @@ function filterMenus(menus: MenuConfig[]): MenuConfig[] {
     if (m.children) {
       const children = filterMenus(m.children);
       if (children.length > 0) acc.push({ ...m, children });
-    } else if (!m.perm || auth.hasPerm(m.perm)) {
+    } else if ((!m.perm || auth.hasPerm(m.perm)) && (!m.permAny || auth.hasAnyPerm(m.permAny))) {
       acc.push(m);
     }
     return acc;
