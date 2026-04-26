@@ -3,21 +3,21 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: executing
-last_updated: "2026-04-26T06:35:20.407Z"
-last_activity: 2026-04-26 -- Phase 19 execution started
+last_updated: "2026-04-26T06:48:17.212Z"
+last_activity: 2026-04-26
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 22
-  percent: 69
+  completed_plans: 23
+  percent: 72
 ---
 
 # State
 
 - Initialized: 2026-04-17
 - Milestone: v2.0 表单驱动 OA 审批中心 — EXECUTING
-- Status: Phase 17 planned; ready to execute
+- Status: Phase 19 plan 1 completed; ready to execute plan 2
 
 ## Project Reference
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 ## Current Position
 
 Phase: 19 (收集后处理、归档导出统计) — EXECUTING
-Plan: 1 of 10
-Status: Executing Phase 19
-Last activity: 2026-04-26 -- Phase 19 execution started
+Plan: 2 of 10
+Status: Ready to execute plan 2
+Last activity: 2026-04-26 -- Completed 19-01-PLAN.md
 
 Progress: [######----] 3/5 v2.0 phases complete
 
@@ -43,11 +43,19 @@ Progress: [######----] 3/5 v2.0 phases complete
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
+**Plan Execution:**
+
+- Phase 19 Plan 19-01: 580s, 3 tasks, 7 files, completed 2026-04-26
+
 ## Accumulated Context
 
 ### Decisions
 
 Archived to PROJECT.md Key Decisions table.
+
+- [Phase 19]: Phase 19 Wave 0 tests intentionally fail until future archive, export, stats, and notification modules are implemented.
+- [Phase 19]: Archive route contracts reject trusted fields and only accept operation payload fields for tags, notes, processing data, corrections, and reasons.
+- [Phase 19]: Notification contracts require transaction-supplied writes and userId = currentUser.id scoping for list/count/read operations.
 
 ### Blockers/Concerns
 
