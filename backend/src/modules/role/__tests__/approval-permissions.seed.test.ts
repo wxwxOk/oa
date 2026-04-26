@@ -7,7 +7,7 @@ import {
   seedDatabase,
 } from '../../../../prisma/seed';
 
-const phase16ApprovalCodes = [
+const phase19ApprovalCodes = [
   'approval:process:list',
   'approval:process:create',
   'approval:process:update',
@@ -20,6 +20,9 @@ const phase16ApprovalCodes = [
   'approval:task:list',
   'approval:task:handle',
   'approval:export',
+  'approval:archive:edit',
+  'approval:archive:mark',
+  'approval:archive:stats',
 ];
 
 async function rolePermissionCodes(roleCode: string) {
@@ -60,17 +63,18 @@ describe('approval permission seed data', () => {
     await prisma.$disconnect();
   });
 
-  it('seeded permission list includes all Phase 16 approval codes', async () => {
-    expect(APPROVAL_PERMISSION_CODES).toEqual(phase16ApprovalCodes);
+  it('seeded permission list includes all Phase 19 approval and archive operation codes', async () => {
+    expect(APPROVAL_PERMISSION_CODES).toEqual(phase19ApprovalCodes);
+    expect(APPROVAL_PERMISSION_CODES).toContain('approval:export');
 
     await seedDatabase();
 
     const permissions = await prisma.permission.findMany({
-      where: { code: { in: phase16ApprovalCodes } },
+      where: { code: { in: phase19ApprovalCodes } },
       orderBy: { code: 'asc' },
     });
 
-    expect(permissions.map((permission) => permission.code).sort()).toEqual([...phase16ApprovalCodes].sort());
+    expect(permissions.map((permission) => permission.code).sort()).toEqual([...phase19ApprovalCodes].sort());
   });
 
   it('ADMIN receives all approval permissions', async () => {
@@ -81,11 +85,14 @@ describe('approval permission seed data', () => {
     expect(adminCodes).toEqual(expect.arrayContaining(APPROVAL_PERMISSION_CODES));
   });
 
-  it('EMPLOYEE receives approval application create and own permissions', async () => {
+  it('EMPLOYEE receives approval application create and own permissions but not archive operations', async () => {
     expect(EMPLOYEE_PERMISSION_CODES).toEqual(
       expect.arrayContaining(['approval:application:create', 'approval:application:own']),
     );
     expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:task:handle');
+    expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:archive:edit');
+    expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:archive:mark');
+    expect(EMPLOYEE_PERMISSION_CODES).not.toContain('approval:archive:stats');
 
     await seedDatabase();
 
@@ -94,5 +101,8 @@ describe('approval permission seed data', () => {
     expect(employeeCodes).toContain('approval:application:create');
     expect(employeeCodes).toContain('approval:application:own');
     expect(employeeCodes).not.toContain('approval:task:handle');
+    expect(employeeCodes).not.toContain('approval:archive:edit');
+    expect(employeeCodes).not.toContain('approval:archive:mark');
+    expect(employeeCodes).not.toContain('approval:archive:stats');
   });
 });
