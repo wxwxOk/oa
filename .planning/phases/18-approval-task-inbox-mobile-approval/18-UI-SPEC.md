@@ -1,10 +1,11 @@
 ---
 phase: 18
 slug: approval-task-inbox-mobile-approval
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-26
+reviewed_at: 2026-04-26T11:45:49+08:00
 ---
 
 # Phase 18 — UI Design Contract
@@ -146,6 +147,7 @@ Use the Phase 17 approval list pattern as the base, with a task-centered mode sw
 
 Desktop layout:
 - Container: `q-page padding`.
+- Primary focal point: the `待办` / `已处理` mode switch and task list are the main visual anchors; filters, reload, and reset controls are secondary.
 - Header: left title `待我审批`, right filter reset/reload controls only; there is no create CTA in this phase.
 - Under header, place a top-level mode switch for `待办` and `已处理`. Use `q-tabs` or `q-btn-toggle`, but active state must use the accent contract and remain visually distinct from secondary filters.
 - Pending is the default tab on first entry.
@@ -286,8 +288,8 @@ Timeline contract:
 - There is no list-row quick action.
 - Desktop actions live inside the `当前任务` card footer.
 - Mobile actions live in a sticky bottom bar with two buttons:
-  - Left: `驳回`, outline or tonal negative
-  - Right: `通过`, solid primary
+  - Left: `驳回审批`, outline or tonal negative
+  - Right: `通过审批`, solid primary
 - Sticky bar must sit on a surface color, include a top border, and reserve safe-area padding.
 
 Approve confirmation dialog:
@@ -370,8 +372,8 @@ Additional required copy:
 | Reload | 重新加载 |
 | Pending action | 处理审批 |
 | Handled action | 查看详情 |
-| Approve action | 通过 |
-| Reject action | 驳回 |
+| Approve action | 通过审批 |
+| Reject action | 驳回审批 |
 | Add remark | 添加内部备注 |
 | Save remark | 保存备注 |
 | Approve dialog title | 确认通过审批 |
