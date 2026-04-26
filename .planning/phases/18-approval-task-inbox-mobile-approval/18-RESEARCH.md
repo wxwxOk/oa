@@ -436,17 +436,17 @@ export async function approveApprovalTask(actor: ApprovalActor, taskId: number, 
 |---|-------|---------|---------------|
 | A1 | Engineers may be tempted to trust frontend gating for task-action authorization | Common Pitfalls / Pitfall 5 | Low; the plan still mandates backend enforcement, but wording about the cause is interpretive rather than code-verified |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **内部备注的“内外可见性”字段落点放哪里最稳妥？**
    - What we know: Applicant own-detail currently serializes all timeline events, and Phase 18 requires internal remarks to stay hidden from applicant routes [VERIFIED: backend/src/modules/approval/application-submission.service.ts+.planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
-   - What's unclear: Whether the cleanest implementation is a serializer-side filter by event type/context, or a payload flag such as `visibility: 'internal'` that future phases can also reuse [ASSUMED].
-   - Recommendation: Plan for a task in Wave 0 that decides and codifies one visibility contract before any frontend remark UI is implemented [VERIFIED: .planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
+   - RESOLVED: Phase 18 uses backend serializer-side filtering on the applicant own-detail response, while the approver task-detail route may show internal `COMMENT` events. If a payload visibility marker is added later it is optional future hardening, not a Phase 18 requirement [VERIFIED: .planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
+   - Chosen contract: Implement the own-detail visibility boundary in `application-submission.service.ts` and keep approver-task serialization free to include internal remarks without reusing applicant route semantics [VERIFIED: backend/src/modules/approval/application-submission.service.ts+.planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
 
 2. **`CANCELED` handled-history rows 默认隐藏还是归入“已关闭”筛选项？**
    - What we know: Phase 18 forbids treating `CANCELED` as an approver-acted result, but allows planner discretion on whether it is hidden or placed under a distinct closed bucket [VERIFIED: .planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
-   - What's unclear: The UX tradeoff between simpler MVP default-hidden behavior and richer auditability for “已关闭/已失效” records [VERIFIED: .planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
-   - Recommendation: Prefer default-hidden for MVP unless the planner can add a separate closed filter without bloating tab complexity [ASSUMED].
+   - RESOLVED: `CANCELED` tasks are hidden from the main handled-history default and never counted as an approver-handled result. They may appear only under an explicit `CANCELED` / `已关闭` filter if the UI implements that separate state [VERIFIED: .planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
+   - Chosen contract: Pending defaults stay untouched, handled defaults stay focused on approver actions (`APPROVED` / `REJECTED`), and any closed-state exposure must remain opt-in and visually distinct from approver outcomes [VERIFIED: .planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
 
 ## Environment Availability
 
@@ -569,7 +569,7 @@ The `workflow.nyquist_validation` key is absent from `.planning/config.json`, so
 
 - Standard stack: HIGH - All recommended libraries are already present in the repo and their broader capabilities were checked against official docs and npm registry [VERIFIED: frontend/package.json+backend/package.json+npm registry].
 - Architecture: HIGH - The plan rides directly on existing approval models, tests, serializers, and page/store patterns rather than proposing a new subsystem [VERIFIED: backend/src/modules/approval/application.service.ts+frontend/src/pages/ApprovalApplicationDetailPage.vue].
-- Pitfalls: MEDIUM - The visibility leak and handled-history risks are strongly evidenced, but the exact internal-remark visibility encoding choice is still open [VERIFIED: backend/src/modules/approval/application-submission.service.ts+.planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
+- Pitfalls: MEDIUM - The visibility leak and handled-history risks are strongly evidenced, and the chosen Phase 18 contracts are now explicit: serializer-side applicant filtering for internal remarks, plus default-hidden `CANCELED` history outside explicit closed filters [VERIFIED: backend/src/modules/approval/application-submission.service.ts+.planning/phases/18-approval-task-inbox-mobile-approval/18-CONTEXT.md].
 
 **Research date:** 2026-04-26  
 **Valid until:** 2026-05-26 for repo structure and phase scope; re-check npm registry versions sooner if the planner decides to combine this phase with dependency upgrades [VERIFIED: current research session].
