@@ -5,6 +5,7 @@ import {
   addArchiveNote,
   correctArchiveData,
   getArchiveDetail,
+  listArchiveMeta,
   listArchiveRecords,
   setArchiveTags,
   updateProcessingData,
@@ -259,6 +260,62 @@ describe('approval archive service contract', () => {
     await expect(
       getArchiveDetail(actor(operator, ['approval:application:department']), 'approval', collection.id),
     ).rejects.toThrow('无权查看归档记录');
+  });
+
+  it('builds archive metadata across every visible page', async () => {
+    const { operator, applicant, department, template } = await setupArchiveFixture();
+    const oldTemplate = await prisma.formTemplate.create({
+      data: {
+        name: '历史归档模板',
+        schema: requiredSchema,
+        schemaVersion: 1,
+        status: 'PUBLISHED',
+        businessMode: 'APPROVAL_REQUIRED',
+        creatorId: applicant.id,
+      },
+    });
+
+    await prisma.approvalApplication.create({
+      data: {
+        applicationNo: 'APP-PHASE19-META-OLD',
+        status: 'APPROVED',
+        formData: { reason: '较早记录' },
+        schemaSnapshot: requiredSchema,
+        processSnapshot: { nodes: [] },
+        templateId: oldTemplate.id,
+        templateName: oldTemplate.name,
+        templateVersion: oldTemplate.schemaVersion,
+        applicantId: applicant.id,
+        applicantName: applicant.realName,
+        applicantDepartmentId: department.id,
+        applicantDepartmentName: department.name,
+      },
+    });
+
+    for (let index = 0; index < 105; index += 1) {
+      await prisma.approvalApplication.create({
+        data: {
+          applicationNo: `APP-PHASE19-META-${index}`,
+          status: 'APPROVED',
+          formData: { reason: `分页记录 ${index}` },
+          schemaSnapshot: requiredSchema,
+          processSnapshot: { nodes: [] },
+          templateId: template.id,
+          templateName: template.name,
+          templateVersion: template.schemaVersion,
+          applicantId: applicant.id,
+          applicantName: applicant.realName,
+          applicantDepartmentId: department.id,
+          applicantDepartmentName: department.name,
+        },
+      });
+    }
+
+    const meta = await listArchiveMeta(actor(operator, ['approval:application:all']));
+
+    expect(meta.templates).toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: oldTemplate.id, label: oldTemplate.name })]),
+    );
   });
 
   it('T-19-AUDIT stores tags and internal notes as operations metadata with append-only events for both sources', async () => {

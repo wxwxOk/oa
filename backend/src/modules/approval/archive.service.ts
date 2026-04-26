@@ -694,7 +694,13 @@ export async function listArchiveRecords(actor: ArchiveActor, filters: ArchiveLi
 }
 
 export async function listArchiveMeta(actor: ArchiveActor) {
-  const { rows } = await listArchiveRecords(actor, { page: 1, size: MAX_PAGE_SIZE });
+  const rows: ArchiveListItem[] = [];
+  for (let page = 1; ; page += 1) {
+    const result = await listArchiveRecords(actor, { page, size: MAX_PAGE_SIZE });
+    rows.push(...result.rows);
+    if (rows.length >= result.total || result.rows.length === 0) break;
+  }
+
   const templates = new Map<number, { label: string; value: number }>();
   const departments = new Map<number, { label: string; value: number }>();
   const tags = new Set<string>(RECOMMENDED_TAGS);

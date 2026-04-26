@@ -137,7 +137,9 @@ export async function seedDatabase(): Promise<void> {
   const hash = bcrypt.hashSync(resolveAdminPassword(), 10);
   const admin = await prisma.user.upsert({
     where: { username: 'admin' },
-    update: {},
+    update: {
+      password: hash,
+    },
     create: {
       username: 'admin',
       password: hash,

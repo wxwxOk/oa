@@ -1,4 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test';
+import bcrypt from 'bcryptjs';
 
 import { prisma } from '../../../plugins/prisma';
 import {
@@ -97,6 +98,19 @@ describe('approval permission seed data', () => {
     const adminCodes = await rolePermissionCodes('ADMIN');
 
     expect(adminCodes).toEqual(expect.arrayContaining(APPROVAL_PERMISSION_CODES));
+  });
+
+  it('updates an existing admin password from SEED_ADMIN_PASSWORD', async () => {
+    process.env.SEED_ADMIN_PASSWORD = 'phase19-first-admin-password';
+    await seedDatabase();
+
+    process.env.SEED_ADMIN_PASSWORD = 'phase19-rotated-admin-password';
+    await seedDatabase();
+
+    const admin = await prisma.user.findUniqueOrThrow({ where: { username: 'admin' } });
+
+    expect(bcrypt.compareSync('phase19-rotated-admin-password', admin.password)).toBe(true);
+    expect(bcrypt.compareSync('phase19-first-admin-password', admin.password)).toBe(false);
   });
 
   it('EMPLOYEE receives approval application create and own permissions but not archive operations', async () => {
