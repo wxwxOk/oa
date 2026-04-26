@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 表单驱动 OA 审批中心
 status: executing
-last_updated: "2026-04-26T07:13:08.068Z"
+last_updated: "2026-04-26T07:23:26.894Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 25
-  percent: 78
+  completed_plans: 26
+  percent: 81
 ---
 
 # State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 ## Current Position
 
 Phase: 19 (收集后处理、归档导出统计) — EXECUTING
-Plan: 4 of 10
-Status: Ready to execute plan 4
-Last activity: 2026-04-26 -- Completed 19-03-PLAN.md
+Plan: 5 of 10
+Status: Ready to execute plan 5
+Last activity: 2026-04-26 -- Completed 19-04-PLAN.md
 
 Progress: [######----] 3/5 v2.0 phases complete
 
@@ -39,7 +39,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 
 **Velocity:**
 
-- Total plans completed: 72 (25 v1.0 + 13 v1.1 + 16 v1.2 + 18 v2.0)
+- Total plans completed: 73 (25 v1.0 + 13 v1.1 + 16 v1.2 + 19 v2.0)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
@@ -48,6 +48,7 @@ Progress: [######----] 3/5 v2.0 phases complete
 - Phase 19 Plan 19-01: 580s, 3 tasks, 7 files, completed 2026-04-26
 - Phase 19 Plan 19-02: 370s, 3 tasks, 6 files, completed 2026-04-26
 - Phase 19 Plan 19-03: 612s, 3 tasks, 6 files, completed 2026-04-26
+- Phase 19 Plan 19-04: 345s, 3 tasks, 6 files, completed 2026-04-26
 
 ## Accumulated Context
 
@@ -61,6 +62,9 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 19]: Archive operational state is stored in ArchiveRecordMeta and ArchiveEvent, not in submitted form JSON.
 - [Phase 19]: Archive metadata exact-source invariants are enforced with a PostgreSQL CHECK constraint.
 - [Phase 19]: Phase 19 host-side Prisma verification uses localhost for the Docker PostgreSQL service when .env uses compose DNS.
+- [Phase 19]: Archive operation payload constants export both plan names and Wave 0 compatibility aliases while excluding trusted fields.
+- [Phase 19]: Notification types accept TASK_ASSIGNED as a backend compatibility alias for NEW_TASK.
+- [Phase 19]: Route permAny is additive and preserves the existing single meta.perm guard behavior.
 
 ### Blockers/Concerns
 
