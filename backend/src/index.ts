@@ -17,6 +17,7 @@ import { approvalProcessModule } from './modules/approval/process.route';
 import { approvalApplicationModule } from './modules/approval/application.route';
 import { approvalTaskModule } from './modules/approval/task.route';
 import { approvalArchiveModule } from './modules/approval/archive.route';
+import { notificationModule } from './modules/approval/notification.route';
 
 // 启动前强制校验 JWT_SECRET：长度不足 32 字符直接拒绝启动，
 // 杜绝使用开发默认值或弱 secret 的情况。
@@ -75,6 +76,7 @@ const app = new Elysia()
           .use(approvalApplicationModule)
           .use(approvalTaskModule)
           .use(approvalArchiveModule)
+          .use(notificationModule)
           .use(formTemplateModule)
           .use(submissionModule)
           .use(formStatsModule)
