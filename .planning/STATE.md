@@ -1,46 +1,43 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: 到访信息管理
-status: archived
-last_updated: "2026-05-02T11:30:00.000Z"
-last_activity: "2026-05-02 -- v1.3 archived after manual testing"
+milestone: v1.4
+milestone_name: 报销管理
+status: defining_requirements
+last_updated: "2026-05-02T00:00:00.000Z"
+last_activity: "2026-05-02 -- v1.4 milestone started"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
 
 - Initialized: 2026-04-17
-- Milestone: v1.3 到访信息管理 — COMPLETE
-- Status: v1.3 archived; ready for next milestone definition
+- Milestone: v1.4 报销管理 — DEFINING REQUIREMENTS
+- Status: v1.4 started; requirements and roadmap pending
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** 开箱即用的组织架构管理、表单审批和固定业务台账
-**Current focus:** v1.3 到访信息管理 archived
+**Current focus:** v1.4 报销管理 requirements definition
 
 ## Current Position
 
-Phase: v1.3 milestone — ARCHIVED
-Plan: 10 of 10
-Status: v1.3 shipped, archived, and manually tested
-Last activity: 2026-05-02
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-02 — Milestone v1.4 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Roadmap Summary
 
-- Phase 20: 到访数据模型 + 后端 API (3/3 plans complete)
-- Phase 21: 到访管理页面 + CRUD 筛选 (3/3 plans complete)
-- Phase 22: Excel 导入解析 + 预览入库 (2/2 plans complete)
-- Phase 23: 统计面板 + 转化汇总 (2/2 plans complete)
+- v1.4 roadmap pending; phase list will be generated after requirements are confirmed.
 
 ## Performance Metrics
 
