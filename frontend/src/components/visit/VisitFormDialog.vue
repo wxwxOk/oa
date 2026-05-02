@@ -15,7 +15,7 @@
           </q-btn>
         </q-toolbar>
 
-        <q-card-section class="q-gutter-lg visit-form-body">
+        <q-card-section class="visit-form-body">
           <section v-for="group in fieldGroups" :key="group.title" class="visit-form-group">
             <div class="text-subtitle2 q-mb-sm">{{ group.title }}</div>
             <div class="row q-col-gutter-md">
@@ -256,6 +256,10 @@ function formatDateTime(value?: string | null) {
 .visit-form-body {
   max-height: min(70vh, 720px);
   overflow: auto;
+}
+
+.visit-form-body > .visit-form-group + .visit-form-group {
+  margin-top: 24px;
 }
 
 .visit-form-group {
