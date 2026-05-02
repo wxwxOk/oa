@@ -78,7 +78,7 @@
 
     <!-- 底部放置区 -->
     <div ref="bottomDropRef" class="canvas-drop-zone">
-      <span>拖入字段创建新行</span>
+      <span>拖入字段、分组或动态表格添加到末尾</span>
     </div>
 
     <!-- 空状态 -->
@@ -176,18 +176,24 @@ function onGroupEmptyDrop(idx: number) {
   }
 }
 
-// 底部放置区（创建新行）
-const bottomDropList = ref<SchemaField[]>([]);
+// 底部放置区（同时接受字段和结构项，与顶层 VueDraggable 行为对齐）
+const bottomDropList = ref<Array<SchemaField | SchemaItem>>([]);
 useDraggable(bottomDropRef, bottomDropList, {
-  group: { name: 'fields', pull: false, put: ['fields'] },
+  group: { name: 'canvas-bottom', pull: false, put: ['fields', 'items'] },
   animation: 150,
   onAdd: () => {
-    const field = bottomDropList.value.splice(0, bottomDropList.value.length)[0];
-    if (!field) return;
+    const dropped = bottomDropList.value.splice(0, bottomDropList.value.length)[0];
+    if (!dropped) return;
     const s = ensureSchema();
-    const newRow: SchemaRow = { type: 'row', fields: [field] };
-    compressColSpan(field, newRow.fields);
-    s.items.push(newRow);
+    const t = (dropped as { type?: string }).type;
+    if (t === 'row' || t === 'group' || t === 'dynamic-table') {
+      s.items.push(dropped as SchemaItem);
+    } else {
+      const field = dropped as SchemaField;
+      const newRow: SchemaRow = { type: 'row', fields: [field] };
+      compressColSpan(field, newRow.fields);
+      s.items.push(newRow);
+    }
   },
 });
 

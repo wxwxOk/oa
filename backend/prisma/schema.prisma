@@ -15,45 +15,59 @@ enum UserStatus {
 }
 
 model User {
-  id           Int         @id @default(autoincrement())
-  username     String      @unique
-  password     String
-  realName     String
-  email        String?     @unique
-  phone        String?
-  avatar       String?
-  status       UserStatus  @default(ACTIVE)
-  departmentId Int?
-  department   Department? @relation(fields: [departmentId], references: [id])
-  roles        UserRole[]
-  templates    FormTemplate[]
-  shareLinks   ShareLink[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id                         Int                     @id @default(autoincrement())
+  username                   String                  @unique
+  password                   String
+  realName                   String
+  email                      String?                 @unique
+  phone                      String?
+  avatar                     String?
+  status                     UserStatus              @default(ACTIVE)
+  departmentId               Int?
+  department                 Department?             @relation(fields: [departmentId], references: [id])
+  roles                      UserRole[]
+  templates                  FormTemplate[]
+  shareLinks                 ShareLink[]
+  approvalProcesses          ApprovalProcess[]
+  approvalProcessNodes       ApprovalProcessNode[]   @relation("ApprovalNodeApproverUser")
+  approvalApplications       ApprovalApplication[]
+  approvalTasks              ApprovalTask[]
+  approvalActions            ApprovalAction[]
+  approvalTimelineEvents     ApprovalTimelineEvent[]
+  archiveEvents              ArchiveEvent[]          @relation("ArchiveEventActor")
+  notifications              UserNotification[]      @relation("UserNotifications")
+  defaultApproverDepartments Department[]            @relation("DepartmentDefaultApprover")
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
 
   @@index([departmentId])
 }
 
 model Department {
-  id       Int          @id @default(autoincrement())
-  name     String
-  parentId Int?
-  parent   Department?  @relation("DeptTree", fields: [parentId], references: [id])
-  children Department[] @relation("DeptTree")
-  sort     Int          @default(0)
-  users    User[]
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  parentId             Int?
+  parent               Department?           @relation("DeptTree", fields: [parentId], references: [id])
+  children             Department[]          @relation("DeptTree")
+  sort                 Int                   @default(0)
+  users                User[]
+  defaultApproverId    Int?
+  defaultApprover      User?                 @relation("DepartmentDefaultApprover", fields: [defaultApproverId], references: [id])
+  approvalApplications ApprovalApplication[]
 
   @@index([parentId])
+  @@index([defaultApproverId])
 }
 
 model Role {
-  id          Int              @id @default(autoincrement())
-  code        String           @unique
-  name        String
-  description String?
-  permissions RolePermission[]
-  users       UserRole[]
-  createdAt   DateTime         @default(now())
+  id                   Int                   @id @default(autoincrement())
+  code                 String                @unique
+  name                 String
+  description          String?
+  permissions          RolePermission[]
+  users                UserRole[]
+  approvalProcessNodes ApprovalProcessNode[] @relation("ApprovalNodeApproverRole")
+  createdAt            DateTime              @default(now())
 }
 
 model Permission {
@@ -90,23 +104,304 @@ enum TemplateStatus {
   OFFLINE
 }
 
+enum TemplateBusinessMode {
+  COLLECTION_ONLY
+  APPROVAL_REQUIRED
+}
+
 model FormTemplate {
-  id              Int            @id @default(autoincrement())
-  name            String
-  description     String?
-  schema          Json           @default("[]")
-  schemaVersion   Int            @default(1)
-  status          TemplateStatus @default(DRAFT)
-  requireIdentity Boolean        @default(false)
-  creatorId       Int
-  creator         User           @relation(fields: [creatorId], references: [id])
-  shareLinks      ShareLink[]
-  submissions     Submission[]
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  description          String?
+  schema               Json                  @default("[]")
+  processingSchema     Json                  @default("[]")
+  schemaVersion        Int                   @default(1)
+  status               TemplateStatus        @default(DRAFT)
+  businessMode         TemplateBusinessMode  @default(COLLECTION_ONLY)
+  approvalProcessId    Int?
+  approvalProcess      ApprovalProcess?      @relation(fields: [approvalProcessId], references: [id])
+  requireIdentity      Boolean               @default(false)
+  creatorId            Int
+  creator              User                  @relation(fields: [creatorId], references: [id])
+  shareLinks           ShareLink[]
+  submissions          Submission[]
+  approvalApplications ApprovalApplication[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
   @@index([creatorId])
   @@index([status])
+  @@index([businessMode])
+  @@index([approvalProcessId])
+}
+
+enum ApprovalApplicationStatus {
+  DRAFT
+  SUBMITTED
+  APPROVING
+  APPROVED
+  REJECTED
+  CANCELED
+}
+
+enum ApprovalTaskStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+  SKIPPED
+}
+
+enum ApprovalActionType {
+  SUBMIT
+  ASSIGN
+  APPROVE
+  REJECT
+  CANCEL
+  EDIT
+  MARK
+  COMMENT
+}
+
+enum ApprovalApproverSourceType {
+  USER
+  ROLE
+  DEPARTMENT_MANAGER
+}
+
+enum ArchiveSourceType {
+  APPROVAL
+  COLLECTION
+}
+
+enum ArchiveEventType {
+  TAGS_UPDATED
+  NOTE_ADDED
+  CONTROLLED_EDIT
+  PROCESSING_UPDATED
+}
+
+enum UserNotificationType {
+  NEW_TASK
+  APPROVED
+  REJECTED
+}
+
+model ApprovalProcess {
+  id             Int                   @id @default(autoincrement())
+  name           String
+  description    String?
+  isActive       Boolean               @default(true)
+  creatorId      Int
+  creator        User                  @relation(fields: [creatorId], references: [id])
+  nodes          ApprovalProcessNode[]
+  applications   ApprovalApplication[]
+  boundTemplates FormTemplate[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([creatorId])
+  @@index([isActive])
+}
+
+model ApprovalProcessNode {
+  id                 Int                        @id @default(autoincrement())
+  processId          Int
+  process            ApprovalProcess            @relation(fields: [processId], references: [id], onDelete: Cascade)
+  name               String
+  order              Int
+  approverSourceType ApprovalApproverSourceType
+  approverUserId     Int?
+  approverUser       User?                      @relation("ApprovalNodeApproverUser", fields: [approverUserId], references: [id])
+  approverRoleId     Int?
+  approverRole       Role?                      @relation("ApprovalNodeApproverRole", fields: [approverRoleId], references: [id])
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+
+  @@unique([processId, order])
+  @@index([approverUserId])
+  @@index([approverRoleId])
+}
+
+model ApprovalApplication {
+  id                      Int                       @id @default(autoincrement())
+  applicationNo           String                    @unique
+  status                  ApprovalApplicationStatus @default(DRAFT)
+  formData                Json                      @default("{}")
+  schemaSnapshot          Json
+  processSnapshot         Json
+  templateId              Int
+  template                FormTemplate              @relation(fields: [templateId], references: [id])
+  templateName            String
+  templateVersion         Int
+  processId               Int?
+  process                 ApprovalProcess?          @relation(fields: [processId], references: [id])
+  processName             String?
+  applicantId             Int
+  applicant               User                      @relation(fields: [applicantId], references: [id])
+  applicantName           String
+  applicantDepartmentId   Int?
+  applicantDepartment     Department?               @relation(fields: [applicantDepartmentId], references: [id])
+  applicantDepartmentName String?
+  currentNodeOrder        Int?
+  currentNodeName         String?
+  submittedAt             DateTime?
+  completedAt             DateTime?
+  tasks                   ApprovalTask[]
+  actions                 ApprovalAction[]
+  timelineEvents          ApprovalTimelineEvent[]
+  archiveMeta             ArchiveRecordMeta?
+  archiveEvents           ArchiveEvent[]
+  notifications           UserNotification[]
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  @@index([templateId])
+  @@index([processId])
+  @@index([applicantId])
+  @@index([applicantDepartmentId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([currentNodeOrder])
+}
+
+model ApprovalTask {
+  id                     Int                     @id @default(autoincrement())
+  applicationId          Int
+  application            ApprovalApplication     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  nodeOrder              Int
+  nodeName               String
+  status                 ApprovalTaskStatus      @default(PENDING)
+  assigneeId             Int
+  assignee               User                    @relation(fields: [assigneeId], references: [id])
+  assigneeName           String
+  approverSourceSnapshot Json
+  assignedAt             DateTime                @default(now())
+  handledAt              DateTime?
+  comment                String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  actions                ApprovalAction[]
+  timelineEvents         ApprovalTimelineEvent[]
+  notifications          UserNotification[]
+
+  @@unique([applicationId, nodeOrder, assigneeId])
+  @@index([applicationId])
+  @@index([assigneeId, status])
+  @@index([status])
+}
+
+model ApprovalAction {
+  id            Int                 @id @default(autoincrement())
+  applicationId Int
+  application   ApprovalApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  taskId        Int?
+  task          ApprovalTask?       @relation(fields: [taskId], references: [id])
+  actorId       Int?
+  actor         User?               @relation(fields: [actorId], references: [id])
+  actorName     String
+  nodeOrder     Int?
+  nodeName      String?
+  type          ApprovalActionType
+  comment       String?
+  payload       Json?
+  createdAt     DateTime            @default(now())
+
+  @@index([applicationId, createdAt])
+  @@index([taskId])
+  @@index([actorId])
+  @@index([type])
+}
+
+model ApprovalTimelineEvent {
+  id            Int                 @id @default(autoincrement())
+  applicationId Int
+  application   ApprovalApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  taskId        Int?
+  task          ApprovalTask?       @relation(fields: [taskId], references: [id])
+  actorId       Int?
+  actor         User?               @relation(fields: [actorId], references: [id])
+  actorName     String
+  nodeOrder     Int?
+  nodeName      String?
+  type          ApprovalActionType
+  title         String
+  comment       String?
+  payload       Json?
+  createdAt     DateTime            @default(now())
+
+  @@index([applicationId, createdAt])
+  @@index([taskId])
+  @@index([actorId])
+  @@index([type])
+}
+
+model ArchiveRecordMeta {
+  id                    Int                  @id @default(autoincrement())
+  sourceType            ArchiveSourceType
+  approvalApplicationId Int?                 @unique
+  approvalApplication   ApprovalApplication? @relation(fields: [approvalApplicationId], references: [id], onDelete: Cascade)
+  submissionId          Int?                 @unique
+  submission            Submission?          @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  tags                  String[]             @default([])
+  processingData        Json                 @default("{}")
+  correctionData        Json                 @default("{}")
+  events                ArchiveEvent[]
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@index([sourceType])
+  @@index([sourceType, approvalApplicationId])
+  @@index([sourceType, submissionId])
+  @@index([updatedAt])
+}
+
+model ArchiveEvent {
+  id                    Int                  @id @default(autoincrement())
+  metadataId            Int
+  metadata              ArchiveRecordMeta    @relation(fields: [metadataId], references: [id], onDelete: Cascade)
+  sourceType            ArchiveSourceType
+  approvalApplicationId Int?
+  approvalApplication   ApprovalApplication? @relation(fields: [approvalApplicationId], references: [id], onDelete: SetNull)
+  submissionId          Int?
+  submission            Submission?          @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  actorId               Int?
+  actor                 User?                @relation("ArchiveEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+  actorName             String
+  type                  ArchiveEventType
+  reason                String?
+  comment               String?
+  payload               Json?
+  createdAt             DateTime             @default(now())
+
+  @@index([metadataId, createdAt])
+  @@index([sourceType, createdAt])
+  @@index([approvalApplicationId, createdAt])
+  @@index([submissionId, createdAt])
+  @@index([actorId])
+  @@index([type])
+}
+
+model UserNotification {
+  id                    Int                  @id @default(autoincrement())
+  userId                Int
+  user                  User                 @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  type                  UserNotificationType
+  title                 String
+  summary               String?
+  sourceType            ArchiveSourceType?
+  approvalApplicationId Int?
+  approvalApplication   ApprovalApplication? @relation(fields: [approvalApplicationId], references: [id], onDelete: SetNull)
+  approvalTaskId        Int?
+  approvalTask          ApprovalTask?        @relation(fields: [approvalTaskId], references: [id], onDelete: SetNull)
+  targetRoute           String
+  readAt                DateTime?
+  createdAt             DateTime             @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([approvalApplicationId])
+  @@index([approvalTaskId])
 }
 
 model ShareLink {
@@ -124,16 +419,18 @@ model ShareLink {
 }
 
 model Submission {
-  id             Int          @id @default(autoincrement())
+  id             Int                @id @default(autoincrement())
   data           Json
   schemaVersion  Int
   submitterName  String?
   submitterPhone String?
   templateId     Int
-  template       FormTemplate @relation(fields: [templateId], references: [id])
+  template       FormTemplate       @relation(fields: [templateId], references: [id])
   shareLinkId    Int
-  shareLink      ShareLink    @relation(fields: [shareLinkId], references: [id])
-  createdAt      DateTime     @default(now())
+  shareLink      ShareLink          @relation(fields: [shareLinkId], references: [id])
+  archiveMeta    ArchiveRecordMeta?
+  archiveEvents  ArchiveEvent[]
+  createdAt      DateTime           @default(now())
 
   @@index([templateId])
   @@index([shareLinkId])

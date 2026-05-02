@@ -38,11 +38,45 @@
       <template #default-header="props">
         <div class="row items-center full-width">
           <q-icon name="folder" class="q-mr-sm text-amber" />
-          <div>{{ props.node.name }}</div>
+          <div class="department-node-label">
+            <div>{{ props.node.name }}</div>
+            <div class="text-caption" style="color: var(--oa-text-secondary)">
+              <template v-if="props.node.defaultApprover">负责人：{{ props.node.defaultApprover.realName }}</template>
+              <template v-else>未设置负责人</template>
+            </div>
+          </div>
           <q-space />
-          <q-btn v-perm="'department:create'" size="sm" flat dense icon="add" @click.stop="openEdit({ parentId: props.node.id })" />
-          <q-btn v-perm="'department:update'" size="sm" flat dense icon="edit" @click.stop="openEdit(props.node)" />
-          <q-btn v-perm="'department:delete'" size="sm" flat dense icon="delete" color="negative" @click.stop="onDelete(props.node)" />
+          <q-btn
+            v-perm="'department:create'"
+            size="sm"
+            flat
+            dense
+            icon="add"
+            aria-label="新建子部门"
+            :class="{ 'dept-action-btn--mobile': isMobile }"
+            @click.stop="openEdit({ parentId: props.node.id })"
+          />
+          <q-btn
+            v-perm="'department:update'"
+            size="sm"
+            flat
+            dense
+            icon="edit"
+            aria-label="编辑部门"
+            :class="{ 'dept-action-btn--mobile': isMobile }"
+            @click.stop="openEdit(props.node)"
+          />
+          <q-btn
+            v-perm="'department:delete'"
+            size="sm"
+            flat
+            dense
+            icon="delete"
+            color="negative"
+            aria-label="删除部门"
+            :class="{ 'dept-action-btn--mobile': isMobile }"
+            @click.stop="onDelete(props.node)"
+          />
         </div>
       </template>
     </q-tree>
@@ -74,6 +108,16 @@
             emit-value
             map-options
             clearable
+          />
+          <q-select
+            v-if="auth.hasPerm('department:update')"
+            v-model="form.defaultApproverId"
+            :options="approverOptions"
+            label="负责人/默认审批人"
+            outlined
+            clearable
+            emit-value
+            map-options
           />
           <q-input
             ref="sortRef"
@@ -114,6 +158,8 @@ interface DeptNode {
   name: string;
   parentId: number | null;
   sort: number;
+  defaultApproverId: number | null;
+  defaultApprover: { id: number; username: string; realName: string } | null;
   children: DeptNode[];
 }
 
@@ -121,7 +167,8 @@ const tree = ref<DeptNode[]>([]);
 const dialog = ref(false);
 const loading = ref(false);
 const error = ref(false);
-const form = reactive<any>({ id: null, name: '', parentId: null, sort: 0 });
+const approverOptions = ref<Array<{ label: string; value: number }>>([]);
+const form = reactive<any>({ id: null, name: '', parentId: null, sort: 0, defaultApproverId: null });
 const nameRef = ref<any>(null);
 const sortRef = ref<any>(null);
 
@@ -186,11 +233,30 @@ async function load() {
   }
 }
 
-function openEdit(node: any) {
-  Object.assign(form, { id: null, name: '', parentId: null, sort: 0 });
+async function loadApproverOptions() {
+  if (!auth.hasPerm('department:update')) {
+    approverOptions.value = [];
+    return;
+  }
+  const { data } = await api.get('/departments/approver-options');
+  approverOptions.value = data.map((user: any) => ({
+    label: `${user.realName}（${user.username}）`,
+    value: user.id,
+  }));
+}
+
+async function openEdit(node: any) {
+  await loadApproverOptions();
+  Object.assign(form, { id: null, name: '', parentId: null, sort: 0, defaultApproverId: null });
   if (node?.id && node?.name) {
     // 编辑模式：填充所有字段包括 parentId
-    Object.assign(form, { id: node.id, name: node.name, parentId: node.parentId ?? null, sort: node.sort ?? 0 });
+    Object.assign(form, {
+      id: node.id,
+      name: node.name,
+      parentId: node.parentId ?? null,
+      sort: node.sort ?? 0,
+      defaultApproverId: node.defaultApproverId ?? null,
+    });
   } else if (node?.parentId) {
     // 新建子部门模式
     form.parentId = node.parentId;
@@ -209,12 +275,14 @@ async function onSave() {
       name: form.name,
       parentId: form.parentId ?? null,
       sort: form.sort,
+      defaultApproverId: form.defaultApproverId ?? null,
     });
   } else {
     await api.post('/departments', {
       name: form.name,
       parentId: form.parentId ?? null,
       sort: form.sort,
+      defaultApproverId: form.defaultApproverId ?? null,
     });
   }
   Notify.create({ type: 'positive', message: '保存成功' });
@@ -237,3 +305,14 @@ function onDelete(node: any) {
 
 onMounted(load);
 </script>
+
+<style scoped>
+.department-node-label {
+  min-width: 0;
+}
+
+.dept-action-btn--mobile {
+  min-height: 44px;
+  min-width: 44px;
+}
+</style>

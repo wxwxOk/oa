@@ -1,10 +1,56 @@
-# Requirements: OA 到访信息管理
+# Requirements: OA 管理系统
 
-**Defined:** 2026-05-02
-**Core Value:** 开箱即用的组织架构管理 + 表单收集
-**Milestone:** v1.3
+**Defined:** 2026-04-25, updated 2026-05-02
+**Core Value:** 中小企业能用自定义表单快速上线可追踪、可审批、可归档的内部业务流程，并能沉淀高频固定业务台账
+**Current Milestone:** v1.3 到访信息管理
 
-## v1.3 Requirements
+## v2.0 Requirements
+
+### 审批数据模型与状态机
+
+- [x] **MODEL-01**: 系统可保存审批流程定义、流程节点、审批实例、审批任务、审批动作和时间线事件
+- [x] **MODEL-02**: 用户提交审批申请时，系统保存表单 schema 快照和审批流程快照，历史申请不受后续模板/流程修改影响
+- [x] **MODEL-03**: 审批实例只允许在 draft、submitted、approving、approved、rejected、canceled 之间按合法状态流转
+- [x] **MODEL-04**: 提交、分配、审批、驳回、撤销、编辑、标记和备注都会追加不可变业务事件，记录操作者、动作、节点、意见和时间
+
+### 流程配置与模板绑定
+
+- [x] **CFG-01**: 管理员可将表单模板设置为 `COLLECTION_ONLY` 或 `APPROVAL_REQUIRED`，保留既有公开收集行为
+- [x] **CFG-02**: 管理员可配置单步审批流程，审批人来源支持固定用户、角色和提交人部门负责人
+- [x] **CFG-03**: 管理员可配置串行多步审批流程，每个节点有名称、顺序、审批人来源和必需动作
+- [x] **CFG-04**: 管理员可为部门配置负责人/默认审批人，用于“提交人部门负责人审批”规则
+- [x] **CFG-05**: 系统提供审批相关 RBAC 权限：流程配置、模板绑定、提交申请、审批任务、查看本人/部门/全部申请、导出审批数据
+- [x] **DYN-01**: 管理员可在模板设计器中配置必填字段，PC 和 Mobile 提交页都执行一致校验
+- [x] **DYN-02**: 模板发布后新增或调整提交字段会形成新的 schema 版本，已有申请继续使用提交时的 schema 快照
+
+### 我的申请与动态提交
+
+- [x] **APP-01**: 登录员工可在 PC 和 Mobile 上打开审批模板并提交内部申请，申请绑定申请人、部门、模板、状态、当前节点和申请编号
+- [x] **APP-02**: 申请人可保存草稿并在提交前继续编辑，草稿不会创建待审批任务
+- [x] **APP-03**: 申请人可查看“我的申请”，按草稿、审批中、已通过、已驳回、已撤销和时间范围筛选
+- [x] **APP-04**: 申请人可查看申请详情，包含表单数据、当前状态、当前节点、审批时间线、意见和内部可见性提示
+- [x] **APP-05**: 申请人可在业务规则允许时撤销未终审申请，撤销动作写入时间线并关闭待办任务
+
+### 待我审批与移动审批
+
+- [x] **APR-01**: 审批人可查看“待我审批”任务列表，并按模板、申请人、部门、状态和日期筛选
+- [x] **APR-02**: 审批人可打开审批详情，查看按 schema 快照渲染的表单数据、当前节点和完整时间线
+- [x] **APR-03**: 审批人可对待办执行通过或驳回，并填写审批意见；系统推进下一节点或进入最终状态
+- [x] **APR-04**: 审批人可查看已处理审批历史，区分已通过、已驳回和已转入后续节点的记录
+- [x] **APR-05**: Mobile 审批详情页提供可读时间线和 sticky 操作区，动态表格、签名和长表单在窄屏可用
+- [x] **APR-06**: 审批人可添加内部处理备注，备注独立于原始提交数据并显示在详情/时间线中
+
+### 收集后处理、标记备注、归档导出统计
+
+- [x] **OPS-01**: 授权人员可给申请或收集记录添加标签/标记，如 `待跟进`、`已核对`、`资料不全`、`重点`
+- [x] **OPS-02**: 授权人员可在规则允许时编辑提交后数据，必须填写原因，并记录字段级 before/after 历史
+- [x] **OPS-03**: 管理员可为模板启用处理字段，如 `跟进结果`、`处理人备注`、`回访时间`，处理字段默认不改变申请人正式提交内容
+- [x] **OPS-04**: 管理员和授权负责人可按模板、部门、申请人、状态、日期、标签/标记查询归档申请和收集记录
+- [x] **OPS-05**: 授权人员可导出列表数据为 Excel，并复用现有 PDF/打印能力导出单个申请详情
+- [x] **OPS-06**: 管理员可查看按模板、状态、部门和月份聚合的基础统计
+- [x] **OPS-07**: 用户可收到站内通知，包括新待办审批、申请通过、申请驳回，并在导航中看到未读数量
+
+## v1.3 Requirements: 到访信息管理
 
 ### 到访记录
 
@@ -41,28 +87,51 @@
 
 ## Future Requirements
 
-### 跟进协同
+### 到访跟进协同
 
 - **FOLLOW-01**: 用户可为到访记录设置下次跟进日期和待办提醒
 - **FOLLOW-02**: 用户可查看个人待跟进到访列表
 
-### 数据治理
+### 到访数据治理
 
 - **DICT-01**: 管理员可维护渠道商、状态类别、咨询后状态等字典
 - **DEDUP-01**: 系统可基于手机号/微信/线索编号自动识别重复线索并合并
 
-### 数据流转
+### 到访数据流转
 
 - **PUBLIC-01**: 外部渠道可通过公开报名页提交线索并进入到访记录
 - **EXPORT-01**: 用户可将到访列表按当前筛选条件导出为 Excel
+
+### 附件与证据材料
+
+- **ATTACH-01**: 用户可上传图片/文件作为申请附件
+- **ATTACH-02**: 附件权限与申请权限一致，导出时可选择包含附件索引
+
+### 高级流程
+
+- **ADVWF-01**: 条件分支按金额、类型、部门或字段值选择审批路径
+- **ADVWF-02**: 并行审批、会签、或签、委托和超时升级
+- **ADVWF-03**: BPMN 风格可视化流程设计器
+- **ADVWF-04**: 驳回后退回申请人修改并重新提交的可配置策略
+
+### 外部通知与企业集成
+
+- **EXT-01**: 企业微信、钉钉、短信或邮件通知
+- **EXT-02**: SSO/LDAP 和多租户企业版能力
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Excel 导出 | PROJECT.md 已明确 v2.0 考虑，本里程碑只解决导入和系统内管理 |
-| 自动去重合并 | 样表缺少手机号、微信或线索编号，自动合并风险高 |
-| 跟进提醒 / 待办 | 需要通知和任务体系，超出固定台账 MVP 范围 |
+| BPMN/Activiti/Camunda 级流程平台 | v2.0 目标是实用审批闭环，复杂流程引擎会拖慢首版交付 |
+| 条件分支、并行、会签、委托、超时升级 | 需要规则引擎和更多异常路径，放入后续高级流程 |
+| 文件/图片上传字段 | 需要存储、权限、预览、清理和导出策略，除非客户确认首版强依赖 |
+| 企业微信/钉钉/SMS/邮件集成 | v2.0 先做站内通知，外部渠道作为集成阶段 |
+| 考勤、工资、绩效等专用业务规则 | 本里程碑建设通用审批中心，不做单一业务域深度规则 |
+| 平台级审计日志 | v2.0 只覆盖审批、编辑、备注、标记等业务审计事件 |
+| 到访 Excel 导出 | v1.3 只解决导入和系统内管理 |
+| 到访自动去重合并 | 样表缺少手机号、微信或线索编号，自动合并风险高 |
+| 到访跟进提醒 / 待办 | 需要通知和任务体系，超出固定台账 MVP 范围 |
 | 渠道商字典管理 | 先从记录中提取筛选项，避免新增维护成本 |
 | 销售阶段工作流 | 当前需求是记录状态，不是强制流程编排 |
 | 公开渠道报名页 | 可由现有表单系统覆盖，不纳入固定到访模块 |
@@ -71,31 +140,58 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VISIT-01 | Phase 15 | Pending |
-| VISIT-02 | Phase 16 | Pending |
-| VISIT-03 | Phase 16 | Pending |
-| VISIT-04 | Phase 16 | Pending |
-| QUERY-01 | Phase 16 | Pending |
-| QUERY-02 | Phase 16 | Pending |
-| QUERY-03 | Phase 16 | Pending |
-| QUERY-04 | Phase 16 | Pending |
-| IMPORT-01 | Phase 17 | Pending |
-| IMPORT-02 | Phase 17 | Pending |
-| IMPORT-03 | Phase 17 | Pending |
-| IMPORT-04 | Phase 17 | Pending |
-| STAT-01 | Phase 18 | Pending |
-| STAT-02 | Phase 18 | Pending |
-| STAT-03 | Phase 18 | Pending |
-| STAT-04 | Phase 18 | Pending |
-| PERM-01 | Phase 15 | Pending |
-| PERM-02 | Phase 15 | Pending |
+| MODEL-01 | Phase 15 | Complete |
+| MODEL-02 | Phase 15 | Complete |
+| MODEL-03 | Phase 15 | Complete |
+| MODEL-04 | Phase 15 | Complete |
+| CFG-01 | Phase 16 | Complete |
+| CFG-02 | Phase 16 | Complete |
+| CFG-03 | Phase 16 | Complete |
+| CFG-04 | Phase 16 | Complete |
+| CFG-05 | Phase 16 | Complete |
+| DYN-01 | Phase 16 | Complete |
+| DYN-02 | Phase 16 | Complete |
+| APP-01 | Phase 17 | Complete |
+| APP-02 | Phase 17 | Complete |
+| APP-03 | Phase 17 | Complete |
+| APP-04 | Phase 17 | Complete |
+| APP-05 | Phase 17 | Complete |
+| APR-01 | Phase 18 | Complete |
+| APR-02 | Phase 18 | Complete |
+| APR-03 | Phase 18 | Complete |
+| APR-04 | Phase 18 | Complete |
+| APR-05 | Phase 18 | Complete |
+| APR-06 | Phase 18 | Complete |
+| OPS-01 | Phase 19 | Complete |
+| OPS-02 | Phase 19 | Complete |
+| OPS-03 | Phase 19 | Complete |
+| OPS-04 | Phase 19 | Complete |
+| OPS-05 | Phase 19 | Complete |
+| OPS-06 | Phase 19 | Complete |
+| OPS-07 | Phase 19 | Complete |
+| VISIT-01 | Phase 20 | Pending |
+| VISIT-02 | Phase 21 | Pending |
+| VISIT-03 | Phase 21 | Pending |
+| VISIT-04 | Phase 21 | Pending |
+| QUERY-01 | Phase 21 | Pending |
+| QUERY-02 | Phase 21 | Pending |
+| QUERY-03 | Phase 21 | Pending |
+| QUERY-04 | Phase 21 | Pending |
+| IMPORT-01 | Phase 22 | Pending |
+| IMPORT-02 | Phase 22 | Pending |
+| IMPORT-03 | Phase 22 | Pending |
+| IMPORT-04 | Phase 22 | Pending |
+| STAT-01 | Phase 23 | Pending |
+| STAT-02 | Phase 23 | Pending |
+| STAT-03 | Phase 23 | Pending |
+| STAT-04 | Phase 23 | Pending |
+| PERM-01 | Phase 20 | Pending |
+| PERM-02 | Phase 20 | Pending |
 
 **Coverage:**
-- v1.3 requirements: 18 total
-- Mapped to phases: 18/18
+- v2.0 requirements: 29 total, 29 complete
+- v1.3 requirements: 18 total, 18 mapped, 18 pending
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-05-02*
-*Last updated: 2026-05-02 after roadmap phase assignment*
-
+*Requirements defined: 2026-04-25; last updated: 2026-05-02 after v1.3 roadmap phase assignment*

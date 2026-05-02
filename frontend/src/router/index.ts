@@ -29,6 +29,12 @@ export default route(function () {
       Notify.create({ type: 'warning', message: '您的权限已更新' });
       return { path: '/403' };
     }
+
+    const permAny = to.meta.permAny as string[] | undefined;
+    if (permAny?.length && !auth.hasAnyPerm(permAny)) {
+      Notify.create({ type: 'warning', message: '您的权限已更新' });
+      return { path: '/403' };
+    }
     return true;
   });
 

@@ -12,6 +12,50 @@
         dense
         class="q-mr-md"
       />
+      <q-select
+        v-if="store.current"
+        v-model="store.current.businessMode"
+        class="template-purpose-select q-mr-sm"
+        outlined
+        dense
+        emit-value
+        map-options
+        label="用途"
+        :options="businessModeOptions"
+        :disable="!canBindApprovalTemplate || saving"
+        @update:model-value="onBusinessModeChange"
+      >
+        <q-tooltip v-if="!canBindApprovalTemplate">缺少权限: approval:template:bind</q-tooltip>
+      </q-select>
+      <q-select
+        v-if="store.current?.businessMode === 'APPROVAL_REQUIRED'"
+        v-model="store.current.approvalProcessId"
+        class="approval-process-select q-mr-md"
+        outlined
+        dense
+        emit-value
+        map-options
+        label="审批流程"
+        :options="approvalProcessOptions"
+        :loading="approvalProcessStore.loading"
+        :disable="!canBindApprovalTemplate || saving"
+        :error="approvalProcessError"
+        error-message="请选择启用且有效的审批流程"
+        @update:model-value="approvalProcessError = false"
+      >
+        <q-tooltip v-if="!canBindApprovalTemplate">缺少权限: approval:template:bind</q-tooltip>
+      </q-select>
+      <q-btn
+        v-if="store.current"
+        outline
+        color="primary"
+        icon="tune"
+        label="处理字段"
+        aria-label="配置处理字段"
+        class="processing-fields-toolbar-btn q-mr-sm"
+        :disable="saving"
+        @click="processingDialogOpen = true"
+      />
       <q-btn flat label="保存设计" :loading="saving" @click="handleSave" />
       <q-btn
         v-if="store.current?.status !== 'PUBLISHED'"
@@ -29,6 +73,164 @@
       />
     </div>
 
+    <q-dialog v-model="processingDialogOpen" persistent>
+      <q-card class="processing-fields-dialog">
+        <q-card-section class="row items-start no-wrap q-gutter-sm">
+          <div>
+            <div class="text-h6">处理字段</div>
+            <div class="text-caption text-grey-7 processing-fields-copy">
+              处理字段仅用于内部后续处理，不会覆盖申请人或填写者的正式提交内容。
+            </div>
+          </div>
+          <q-space />
+          <q-btn v-close-popup flat round icon="close" aria-label="关闭处理字段配置" class="processing-field-icon-btn" />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section class="processing-fields-dialog-body">
+          <div v-if="processingFields.length === 0" class="processing-fields-empty text-grey-7">
+            暂无处理字段。可添加文本、多行文本、日期、单选、多选或手机号字段用于内部运营处理。
+          </div>
+
+          <q-list v-else bordered separator class="processing-fields-list">
+            <q-item
+              v-for="(field, index) in processingFields"
+              :key="field.id"
+              class="processing-field-item"
+            >
+              <q-item-section>
+                <div class="row q-col-gutter-sm">
+                  <q-input
+                    v-model="field.label"
+                    outlined
+                    dense
+                    label="字段名称"
+                    class="col-12 col-sm-4"
+                  />
+                  <q-select
+                    :model-value="field.type"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    label="字段类型"
+                    class="col-12 col-sm-4"
+                    :options="processingFieldTypeOptions"
+                    @update:model-value="updateProcessingFieldType(field, $event)"
+                  />
+                  <q-input
+                    v-model="field.placeholder"
+                    outlined
+                    dense
+                    label="占位提示"
+                    class="col-12 col-sm-4"
+                  />
+                </div>
+
+                <div class="row items-center q-gutter-sm q-mt-sm">
+                  <q-toggle v-model="field.required" dense label="必填" />
+                  <span class="text-caption text-grey-7">
+                    {{ processingFieldTypeLabel(field.type) }}
+                  </span>
+                </div>
+
+                <div v-if="usesProcessingOptions(field)" class="processing-field-options q-mt-sm">
+                  <div class="text-caption text-grey-7 q-mb-xs">选项</div>
+                  <div
+                    v-for="(_, optionIndex) in field.options"
+                    :key="`${field.id}-option-${optionIndex}`"
+                    class="processing-field-option-row row items-center q-gutter-sm q-mb-xs"
+                  >
+                    <q-input
+                      :model-value="field.options?.[optionIndex] ?? ''"
+                      outlined
+                      dense
+                      label="选项"
+                      class="col"
+                      @update:model-value="updateProcessingOption(field, optionIndex, $event)"
+                    />
+                    <q-btn
+                      flat
+                      round
+                      icon="remove_circle_outline"
+                      aria-label="删除处理字段选项"
+                      class="processing-field-icon-btn"
+                      :disable="(field.options?.length ?? 0) <= 1"
+                      @click="removeProcessingOption(field, optionIndex)"
+                    />
+                  </div>
+                  <q-btn
+                    flat
+                    color="primary"
+                    icon="add"
+                    label="添加选项"
+                    class="processing-field-action-btn"
+                    @click="addProcessingOption(field)"
+                  />
+                </div>
+              </q-item-section>
+
+              <q-item-section side top>
+                <div class="column q-gutter-xs">
+                  <q-btn
+                    flat
+                    round
+                    icon="arrow_upward"
+                    aria-label="上移处理字段"
+                    class="processing-field-icon-btn"
+                    :disable="index === 0"
+                    @click="moveProcessingField(index, -1)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="arrow_downward"
+                    aria-label="下移处理字段"
+                    class="processing-field-icon-btn"
+                    :disable="index === processingFields.length - 1"
+                    @click="moveProcessingField(index, 1)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    color="negative"
+                    icon="delete_outline"
+                    aria-label="删除处理字段"
+                    class="processing-field-icon-btn"
+                    @click="removeProcessingField(index)"
+                  />
+                </div>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="between" class="processing-fields-actions">
+          <q-btn
+            flat
+            color="primary"
+            icon="add"
+            label="新增处理字段"
+            class="processing-field-action-btn"
+            @click="addProcessingField"
+          />
+          <div class="row items-center q-gutter-sm">
+            <q-btn v-close-popup flat label="取消" class="processing-field-action-btn" />
+            <q-btn
+              color="primary"
+              label="保存设计"
+              class="processing-field-action-btn"
+              :loading="saving"
+              @click="handleProcessingSave"
+            />
+          </div>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- 3-panel layout -->
     <div v-if="loading" class="flex flex-center" style="flex: 1">
       <q-spinner color="primary" size="3em" />
@@ -42,27 +244,76 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useTemplateStore } from 'src/stores/template';
+import { useApprovalProcessStore } from 'src/stores/approvalProcess';
+import { useAuthStore } from 'src/stores/auth';
+import type { TemplateBusinessMode } from 'src/stores/template';
+import {
+  SUPPORTED_PROCESSING_FIELD_TYPES,
+  type ArchiveProcessingField,
+  type ArchiveProcessingFieldType,
+} from 'src/types/approvalArchive';
 import FieldPalette from 'src/components/designer/FieldPalette.vue';
 import DesignerCanvas from 'src/components/designer/DesignerCanvas.vue';
 import PropertyEditor from 'src/components/designer/PropertyEditor.vue';
+
+const APPROVAL_TEMPLATE_BIND_PERM = 'approval:template:bind';
+const MISSING_PROCESS_MESSAGE = '请选择启用且有效的审批流程';
 
 const route = useRoute();
 const router = useRouter();
 const $q = useQuasar();
 const store = useTemplateStore();
+const approvalProcessStore = useApprovalProcessStore();
+const auth = useAuthStore();
 
 const loading = ref(true);
 const saving = ref(false);
+const processingDialogOpen = ref(false);
+const approvalProcessError = ref(false);
+const originalBusinessMode = ref<TemplateBusinessMode>('COLLECTION_ONLY');
+const originalApprovalProcessId = ref<number | null>(null);
+type ProcessingFieldDraft = Omit<ArchiveProcessingField, 'options'> & { options?: string[] };
 
 const templateId = Number(route.params.id);
+
+const businessModeOptions = [
+  { label: '仅收集', value: 'COLLECTION_ONLY' },
+  { label: '需审批', value: 'APPROVAL_REQUIRED' },
+];
+
+const processingFieldTypeOptions: Array<{ label: string; value: ArchiveProcessingFieldType }> = [
+  { label: '文本', value: 'text' },
+  { label: '多行文本', value: 'textarea' },
+  { label: '日期', value: 'date' },
+  { label: '单选', value: 'radio' },
+  { label: '多选', value: 'checkbox' },
+  { label: '手机号', value: 'phone' },
+];
+
+const canBindApprovalTemplate = computed(() => auth.hasPerm(APPROVAL_TEMPLATE_BIND_PERM));
+
+const approvalProcessOptions = computed(() =>
+  approvalProcessStore.rows
+    .filter((process) => process.isActive)
+    .map((process) => ({ label: process.name, value: process.id })),
+);
+
+const processingFields = computed(() => ensureProcessingFields());
 
 onMounted(async () => {
   try {
     await store.fetchOne(templateId);
+    ensureProcessingFields();
+    syncOriginalBinding();
+    if (canBindApprovalTemplate.value) {
+      approvalProcessStore.page = 1;
+      approvalProcessStore.size = 100;
+      await approvalProcessStore.fetchList({ isActive: true });
+    }
   } catch {
     $q.notify({ type: 'negative', message: '模板加载失败' });
     router.push('/templates');
@@ -71,19 +322,221 @@ onMounted(async () => {
   }
 });
 
-async function handleSave() {
+function syncOriginalBinding() {
+  if (!store.current) return;
+  originalBusinessMode.value = store.current.businessMode;
+  originalApprovalProcessId.value = store.current.approvalProcessId;
+}
+
+function restoreOriginalBinding() {
+  if (!store.current) return;
+  store.current.businessMode = originalBusinessMode.value;
+  store.current.approvalProcessId = originalApprovalProcessId.value;
+  approvalProcessError.value = false;
+}
+
+function onBusinessModeChange(mode: TemplateBusinessMode) {
+  approvalProcessError.value = false;
+  if (mode === 'COLLECTION_ONLY' && store.current) {
+    store.current.approvalProcessId = null;
+  }
+}
+
+function validateApprovalProcessSelection() {
+  if (store.current?.businessMode !== 'APPROVAL_REQUIRED') {
+    approvalProcessError.value = false;
+    return true;
+  }
+  approvalProcessError.value = store.current.approvalProcessId == null;
+  if (approvalProcessError.value) {
+    $q.notify({ type: 'negative', message: MISSING_PROCESS_MESSAGE });
+    return false;
+  }
+  return true;
+}
+
+function isProcessingFieldType(value: unknown): value is ArchiveProcessingFieldType {
+  return (
+    typeof value === 'string' &&
+    SUPPORTED_PROCESSING_FIELD_TYPES.includes(value as ArchiveProcessingFieldType)
+  );
+}
+
+function usesProcessingOptionsType(type: ArchiveProcessingFieldType) {
+  return type === 'radio' || type === 'checkbox';
+}
+
+function usesProcessingOptions(field: ProcessingFieldDraft) {
+  return usesProcessingOptionsType(field.type);
+}
+
+function processingFieldTypeLabel(type: ArchiveProcessingFieldType) {
+  return processingFieldTypeOptions.find((option) => option.value === type)?.label ?? '文本';
+}
+
+function createProcessingFieldId() {
+  return `processing_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function toProcessingOptionValues(options: ArchiveProcessingField['options']): string[] {
+  if (!Array.isArray(options)) return [];
+  return options
+    .map((option) => (typeof option === 'string' ? option : option.value))
+    .filter((option): option is string => typeof option === 'string')
+    .map((option) => option.trim())
+    .filter(Boolean);
+}
+
+function toEditableProcessingOptionValues(options: ArchiveProcessingField['options']): string[] {
+  if (!Array.isArray(options)) return [];
+  return options
+    .map((option) => (typeof option === 'string' ? option : option.value))
+    .filter((option): option is string => typeof option === 'string');
+}
+
+function ensureProcessingFields(): ProcessingFieldDraft[] {
+  if (!store.current) return [];
+  if (!Array.isArray(store.current.processingSchema)) {
+    store.current.processingSchema = [];
+  }
+
+  const fields = store.current.processingSchema as ProcessingFieldDraft[];
+  for (const field of fields) {
+    if (!isProcessingFieldType(field.type)) {
+      field.type = 'text';
+    }
+    if (usesProcessingOptions(field)) {
+      const options = toEditableProcessingOptionValues(field.options);
+      field.options = options.length > 0 ? options : ['选项一', '选项二'];
+    } else {
+      delete field.options;
+    }
+  }
+  return fields;
+}
+
+function addProcessingField() {
+  const fields = ensureProcessingFields();
+  fields.push({
+    id: createProcessingFieldId(),
+    label: `处理字段 ${fields.length + 1}`,
+    type: 'text',
+    required: false,
+    placeholder: '',
+  });
+}
+
+function removeProcessingField(index: number) {
+  ensureProcessingFields().splice(index, 1);
+}
+
+function moveProcessingField(index: number, offset: -1 | 1) {
+  const fields = ensureProcessingFields();
+  const nextIndex = index + offset;
+  if (nextIndex < 0 || nextIndex >= fields.length) return;
+  const [field] = fields.splice(index, 1);
+  fields.splice(nextIndex, 0, field);
+}
+
+function updateProcessingFieldType(field: ProcessingFieldDraft, value: unknown) {
+  if (!isProcessingFieldType(value)) return;
+  field.type = value;
+  if (usesProcessingOptions(field)) {
+    field.options = toEditableProcessingOptionValues(field.options);
+    if (field.options.length === 0) {
+      field.options = ['选项一', '选项二'];
+    }
+  } else {
+    delete field.options;
+  }
+}
+
+function addProcessingOption(field: ProcessingFieldDraft) {
+  if (!usesProcessingOptions(field)) return;
+  field.options = toEditableProcessingOptionValues(field.options);
+  field.options.push(`选项 ${field.options.length + 1}`);
+}
+
+function updateProcessingOption(field: ProcessingFieldDraft, index: number, value: unknown) {
+  if (!usesProcessingOptions(field)) return;
+  field.options = toEditableProcessingOptionValues(field.options);
+  field.options[index] = typeof value === 'string' ? value : '';
+}
+
+function removeProcessingOption(field: ProcessingFieldDraft, index: number) {
+  if (!usesProcessingOptions(field)) return;
+  field.options = toEditableProcessingOptionValues(field.options);
+  if (field.options.length <= 1) return;
+  field.options.splice(index, 1);
+}
+
+function validateProcessingSchema() {
+  const fields = ensureProcessingFields();
+  for (const [index, field] of fields.entries()) {
+    if (!field.label.trim()) {
+      $q.notify({ type: 'negative', message: `第 ${index + 1} 个处理字段缺少名称` });
+      return false;
+    }
+    if (!isProcessingFieldType(field.type)) {
+      $q.notify({ type: 'negative', message: `第 ${index + 1} 个处理字段类型不支持` });
+      return false;
+    }
+    if (usesProcessingOptions(field) && toProcessingOptionValues(field.options).length === 0) {
+      $q.notify({ type: 'negative', message: `第 ${index + 1} 个处理字段至少需要一个选项` });
+      return false;
+    }
+  }
+  return true;
+}
+
+function normalizeProcessingSchemaForSave(): ArchiveProcessingField[] {
+  return ensureProcessingFields().map((field) => {
+    const normalized: ArchiveProcessingField = {
+      id: field.id || createProcessingFieldId(),
+      label: field.label.trim(),
+      type: field.type,
+    };
+    if (field.required === true) {
+      normalized.required = true;
+    }
+    const placeholder = field.placeholder?.trim();
+    if (placeholder) {
+      normalized.placeholder = placeholder;
+    }
+    if (usesProcessingOptions(field)) {
+      normalized.options = toProcessingOptionValues(field.options);
+    }
+    return normalized;
+  });
+}
+
+function shouldConfirmPublicDisconnect() {
+  return (
+    store.current?.status === 'PUBLISHED' &&
+    originalBusinessMode.value === 'COLLECTION_ONLY' &&
+    store.current.businessMode === 'APPROVAL_REQUIRED'
+  );
+}
+
+async function saveTemplate(disconnectPublicCollection = false) {
   if (!store.current) return;
   saving.value = true;
   try {
     const prev = store.current.schemaVersion;
+    const processingSchema = normalizeProcessingSchemaForSave();
     await store.update(templateId, {
       schema: store.current.schema,
+      processingSchema: processingSchema,
       requireIdentity: store.current.requireIdentity,
+      businessMode: store.current.businessMode,
+      approvalProcessId: store.current.approvalProcessId,
+      ...(disconnectPublicCollection ? { disconnectPublicCollection: true } : {}),
     });
     $q.notify({ type: 'positive', message: '保存成功' });
     if (store.current.schemaVersion > prev) {
       $q.notify({ type: 'info', message: `模板已更新至 v${store.current.schemaVersion}` });
     }
+    syncOriginalBinding();
   } catch {
     $q.notify({ type: 'negative', message: '保存失败' });
   } finally {
@@ -91,10 +544,44 @@ async function handleSave() {
   }
 }
 
+async function handleSave() {
+  if (!store.current) return;
+  if (!validateProcessingSchema()) return;
+  if (!validateApprovalProcessSelection()) return;
+  if (shouldConfirmPublicDisconnect()) {
+    $q.dialog({
+      title: '切换为需审批',
+      message: '切换后将断开公开收集入口，已有分享链接不可继续填写。确认切换为需审批？',
+      cancel: true,
+      persistent: true,
+      ok: { label: '断开公开收集并切换', color: 'primary' },
+    })
+      .onOk(() => {
+        void saveTemplate(true);
+      })
+      .onCancel(() => {
+        restoreOriginalBinding();
+      });
+    return;
+  }
+  await saveTemplate();
+}
+
+async function handleProcessingSave() {
+  await handleSave();
+}
+
 function handlePublish() {
+  if (!store.current) return;
+  if (store.current.businessMode === 'APPROVAL_REQUIRED' && !validateApprovalProcessSelection()) {
+    return;
+  }
+  const message = store.current.businessMode === 'APPROVAL_REQUIRED'
+    ? '发布后员工可提交审批申请。请确认已绑定启用且有效的审批流程。'
+    : '发布后模板可用于生成分享链接。确认发布？';
   $q.dialog({
     title: '发布模板',
-    message: '发布后模板可用于生成分享链接。确认发布？',
+    message,
     cancel: true,
     ok: { label: '确认发布', color: 'primary' },
   }).onOk(async () => {
@@ -136,8 +623,60 @@ function handleOffline() {
   border-bottom: 1px solid var(--oa-border);
   flex-shrink: 0;
 }
+.template-purpose-select {
+  width: 140px;
+}
+.approval-process-select {
+  width: 220px;
+}
+.processing-fields-toolbar-btn {
+  min-height: 44px;
+}
 .designer-body {
   flex: 1;
   overflow: hidden;
+}
+.processing-fields-dialog {
+  width: min(960px, calc(100vw - 32px));
+  max-width: 960px;
+  border-radius: 8px;
+}
+.processing-fields-dialog-body {
+  max-height: min(68vh, 680px);
+  overflow: auto;
+}
+.processing-fields-copy,
+.processing-fields-empty,
+.processing-field-item {
+  overflow-wrap: anywhere;
+}
+.processing-fields-empty {
+  padding: 24px 0;
+  line-height: 1.5;
+}
+.processing-field-item {
+  align-items: flex-start;
+  min-height: 56px;
+  padding: 16px;
+}
+.processing-field-option-row {
+  min-height: 44px;
+}
+.processing-field-icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+.processing-field-action-btn {
+  min-height: 44px;
+}
+.processing-fields-actions {
+  gap: 8px;
+  padding: 12px 16px;
+}
+@media (max-width: 900px) {
+  .processing-fields-toolbar-btn {
+    min-width: 44px;
+    padding: 0 8px;
+  }
 }
 </style>
