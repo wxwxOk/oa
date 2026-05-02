@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 到访信息管理
-status: ready-to-plan
-last_updated: "2026-05-02T08:00:00.000Z"
-last_activity: 2026-05-02 -- Phase 21 frontend CRUD complete; Phase 22 ready for planning
+status: ready
+last_updated: "2026-05-02T09:25:39.107Z"
+last_activity: 2026-05-02
 progress:
   total_phases: 9
-  completed_phases: 7
-  total_plans: 38
-  completed_plans: 38
-  percent: 78
+  completed_phases: 8
+  total_plans: 40
+  completed_plans: 40
+  percent: 89
 ---
 
 # State
@@ -24,23 +24,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** 开箱即用的组织架构管理 + 表单收集
-**Current focus:** Phase 22 — visit Excel import
+**Current focus:** Phase 23 — 统计面板 + 转化汇总
 
 ## Current Position
 
-Phase: 22 (visit import) — READY TO PLAN
-Plan: 0 of 2
-Status: Phase 21 frontend CRUD complete; ready for Phase 22 planning
-Last activity: 2026-05-02 -- Phase 21 frontend CRUD complete; Phase 22 ready for planning
+Phase: 23 (统计面板 + 转化汇总)
+Plan: Not started
+Status: Ready for Phase 23 planning
+Last activity: 2026-05-02
 
-Progress: [████████░░] 78%
+Progress: [█████████░] 89%
 
 ## Roadmap Summary
 
 - Phase 20: 到访数据模型 + 后端 API (3/3 plans complete)
 - Phase 21: 到访管理页面 + CRUD 筛选 (3/3 plans complete)
-- Phase 22: Excel 导入解析 + 预览入库 (2 plans) — next
-- Phase 23: 统计面板 + 转化汇总 (2 plans)
+- Phase 22: Excel 导入解析 + 预览入库 (2/2 plans complete)
+- Phase 23: 统计面板 + 转化汇总 (2 plans) — next
 
 ## Performance Metrics
 
@@ -68,6 +68,8 @@ Progress: [████████░░] 78%
 - Phase 21 Plan 21-01: same session, 3 tasks, 3 files, completed 2026-05-02
 - Phase 21 Plan 21-02: same session, 3 tasks, 4 files, completed 2026-05-02
 - Phase 21 Plan 21-03: same session, 4 tasks, 2 files, completed 2026-05-02
+- Phase 22 Plan 22-01: same session, 3 tasks, 6 files, completed 2026-05-02
+- Phase 22 Plan 22-02: same session, 4 tasks, 5 files, completed 2026-05-02
 
 ## Accumulated Context
 
@@ -112,15 +114,18 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 21]: Visit 前端 API 调用集中在 Pinia store，列表请求自动忽略空筛选条件。
 - [Phase 21]: 到访业务日期统一按 `YYYY-MM-DD` 展示，避免 locale/timezone 漂移。
 - [Phase 21]: 到访列表 PC 使用 QTable、移动端使用卡片，长文本只在详情/编辑弹窗完整展示。
+- [Phase 22]: 到访 Excel 导入使用前端 `xlsx`/FileReader 解析首个 sheet，严格按第 2 行 15 列表头校验并从第 3 行解析数据。
+- [Phase 22]: 导入预览区分有效行、无效行和错误原因；潜在重复只按「姓名 + 接待日期 + 咨询师」提示，不自动跳过、合并或 upsert。
+- [Phase 22]: 导入确认只通过 visit store 提交 `{ rows: VisitWritePayload[] }` 到 `/visits/import`，后端继续二次校验并派生 `creatorId`。
 
 ### Blockers/Concerns
 
 Client open questions remain around first-delivery form examples, approval levels, rejection behavior, attachment requirement, external notification channel, department/company-wide data visibility, and post-submit edit permissions. v2.0 assumes a practical MVP: single/serial approvals, department-manager approval, in-app notifications, no attachments unless confirmed.
 
-v1.3 has no active blocker. Watch Excel date parsing, header-row offset, and duplicate-detection false positives during Phase 22 planning.
+v1.3 has no active blocker. Phase 23 should preserve the Phase 20 stats API contract, add only `visit:stats`-gated frontend controls, and keep Excel export/follow-up workflow out of scope.
 
 ## Session
 
 - Last session: 2026-05-02
-- Stopped At: Phase 22 context gathered
-- Resume File: .planning/phases/22-excel/22-CONTEXT.md
+- Stopped At: Phase 23 context gathered
+- Resume File: .planning/phases/23-stats/23-CONTEXT.md
