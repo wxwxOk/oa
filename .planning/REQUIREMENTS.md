@@ -169,7 +169,7 @@
 | OPS-05 | Phase 19 | Complete |
 | OPS-06 | Phase 19 | Complete |
 | OPS-07 | Phase 19 | Complete |
-| VISIT-01 | Phase 20 | Pending |
+| VISIT-01 | Phase 20 (backend create API/model) + Phase 21 (user-facing create UI) | Pending |
 | VISIT-02 | Phase 21 | Pending |
 | VISIT-03 | Phase 21 | Pending |
 | VISIT-04 | Phase 21 | Pending |
@@ -185,8 +185,12 @@
 | STAT-02 | Phase 23 | Pending |
 | STAT-03 | Phase 23 | Pending |
 | STAT-04 | Phase 23 | Pending |
-| PERM-01 | Phase 20 | Pending |
-| PERM-02 | Phase 20 | Pending |
+| PERM-01 | Phase 20 (permission codes/seed) + Phase 21 (independent menu) | Pending |
+| PERM-02 | Phase 20 (backend endpoint guards) + Phase 21/22/23 (frontend button visibility for CRUD/import/stats) | Pending |
+
+**Traceability Notes:**
+- Phase 20 closes only the backend portions of `VISIT-01`, `PERM-01`, and `PERM-02`: fixed data model, create API, permission seed, and endpoint guards.
+- User-facing creation, independent menu navigation, and frontend button visibility are completed by Phases 21-23 according to their UI/import/stats scope.
 
 **Coverage:**
 - v2.0 requirements: 29 total, 29 complete

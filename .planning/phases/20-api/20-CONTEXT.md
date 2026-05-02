@@ -32,7 +32,7 @@
 - **D-12:** 列表接口返回 `{ rows, total, page, size }`，支持分页和多维筛选：关键词/姓名、渠道商、咨询师、接待人、接待状态、咨询后状态、状态类别、接待日期区间。
 - **D-13:** 日期区间筛选以 `receptionDate` 为准；结束日期按当天结束时间处理，避免只查到 00:00 的记录。
 - **D-14:** `GET /filter-options` 从 `VisitRecord` 中提取非空 distinct 值，至少返回渠道商、咨询师、接待人、接待状态、咨询后状态、状态类别；不新增渠道商或状态字典维护。
-- **D-15:** `GET /stats` 使用 `visit:stats` 单独鉴权，支持接待日期区间，并返回渠道商、咨询师、接待人、接待状态、咨询后状态、状态类别等维度的分组数量。意向/签约类等转化口径保持字符串规则的轻量实现，Phase 23 可在此契约上细化展示。
+- **D-15:** `GET /stats` 使用 `visit:stats` 单独鉴权，支持接待日期区间，并返回 `total`、`intentCount`、`signedCount`、`byChannelPartner`、`byConsultant`、`byReceptionist`、`byReceptionStatus`、`byConsultationStatus`、`byStatusCategory`、`byTrialStatus`。意向/签约类等转化口径保持字符串规则的轻量实现，Phase 23 可在此契约上细化展示。
 
 ### 导入端点边界
 - **D-16:** `POST /api/v1/visits/import` 只接收前端已解析、已标准化的 JSON rows，不接收 Excel 文件上传，也不新增后端文件存储或解析依赖。
