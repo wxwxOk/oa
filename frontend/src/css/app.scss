@@ -27,6 +27,8 @@ body {
   --oa-login-gradient-start: #4F46E5;
   --oa-login-gradient-end: #6366F1;
   --oa-stat-icon-bg: #EEF2FF;
+  --oa-scrollbar-thumb: rgba(148, 163, 184, 0.55);
+  --oa-scrollbar-thumb-hover: rgba(100, 116, 139, 0.85);
 }
 
 // CSS 自定义属性 — Dark Mode
@@ -45,6 +47,8 @@ body {
   --oa-login-gradient-start: #312E81;
   --oa-login-gradient-end: #3730A3;
   --oa-stat-icon-bg: #1E1B4B;
+  --oa-scrollbar-thumb: rgba(100, 116, 139, 0.65);
+  --oa-scrollbar-thumb-hover: rgba(148, 163, 184, 0.9);
 }
 
 // Typography 覆盖 — 对话框标题 20px/600
@@ -108,4 +112,35 @@ body {
 // 暗色模式过渡（避免闪烁）
 body {
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+// 页面滚动条
+html,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--oa-scrollbar-thumb) transparent;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background-color: var(--oa-scrollbar-thumb);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--oa-scrollbar-thumb-hover);
 }
