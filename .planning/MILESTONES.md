@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.3 到访信息管理 (Shipped: 2026-05-02)
+
+**Phases:** 4 | **Plans:** 10 | **Validation:** automated smoke/build checks + manual testing
+**Timeline:** 2026-05-02 (same-day delivery)
+**Stack additions:** xlsx
+
+**Key accomplishments:**
+
+1. Fixed `VisitRecord` data model, migration, permission seed and guarded `/api/v1/visits` backend module
+2. Responsive visit management page with PC table, mobile cards, filters, detail and CRUD dialogs
+3. Frontend Excel parser and import preview for the 15-column `渠道往来测试表.xlsx` format
+4. Duplicate-warning import workflow that posts normalized JSON and avoids unsafe auto-merge/upsert
+5. Stats panel for channel, consultant, receptionist and status dimensions with backend-owned conversion rates
+
+**Archive:** [v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md) | [v1.3-REQUIREMENTS.md](milestones/v1.3-REQUIREMENTS.md)
+
+---
+
 ## v1.2 模板管理优化 (Shipped: 2026-04-22)
 
 **Phases:** 5 | **Plans:** 16 | **Commits:** ~50 | **LOC:** +17,172 / -1,200

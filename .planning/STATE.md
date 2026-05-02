@@ -2,51 +2,51 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 到访信息管理
-status: ready
-last_updated: "2026-05-02T09:25:39.107Z"
-last_activity: 2026-05-02
+status: archived
+last_updated: "2026-05-02T11:30:00.000Z"
+last_activity: "2026-05-02 -- v1.3 archived after manual testing"
 progress:
-  total_phases: 9
-  completed_phases: 8
-  total_plans: 40
-  completed_plans: 40
-  percent: 89
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
+  percent: 100
 ---
 
 # State
 
 - Initialized: 2026-04-17
-- Milestone: v1.3 到访信息管理 — READY TO PLAN
-- Status: Roadmap created, ready for Phase 15 planning
+- Milestone: v1.3 到访信息管理 — COMPLETE
+- Status: v1.3 archived; ready for next milestone definition
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-02)
 
-**Core value:** 开箱即用的组织架构管理 + 表单收集
-**Current focus:** Phase 23 — 统计面板 + 转化汇总
+**Core value:** 开箱即用的组织架构管理、表单审批和固定业务台账
+**Current focus:** v1.3 到访信息管理 archived
 
 ## Current Position
 
-Phase: 23 (统计面板 + 转化汇总)
-Plan: Not started
-Status: Ready for Phase 23 planning
+Phase: v1.3 milestone — ARCHIVED
+Plan: 10 of 10
+Status: v1.3 shipped, archived, and manually tested
 Last activity: 2026-05-02
 
-Progress: [█████████░] 89%
+Progress: [██████████] 100%
 
 ## Roadmap Summary
 
 - Phase 20: 到访数据模型 + 后端 API (3/3 plans complete)
 - Phase 21: 到访管理页面 + CRUD 筛选 (3/3 plans complete)
 - Phase 22: Excel 导入解析 + 预览入库 (2/2 plans complete)
-- Phase 23: 统计面板 + 转化汇总 (2 plans) — next
+- Phase 23: 统计面板 + 转化汇总 (2/2 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 86 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0)
+- Total plans completed: 96 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
@@ -70,6 +70,8 @@ Progress: [█████████░] 89%
 - Phase 21 Plan 21-03: same session, 4 tasks, 2 files, completed 2026-05-02
 - Phase 22 Plan 22-01: same session, 3 tasks, 6 files, completed 2026-05-02
 - Phase 22 Plan 22-02: same session, 4 tasks, 5 files, completed 2026-05-02
+- Phase 23 Plan 23-01: same session, 3 tasks, 2 files, completed 2026-05-02
+- Phase 23 Plan 23-02: same session, 5 tasks, 8 files, completed 2026-05-02
 
 ## Accumulated Context
 
@@ -117,6 +119,9 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 22]: 到访 Excel 导入使用前端 `xlsx`/FileReader 解析首个 sheet，严格按第 2 行 15 列表头校验并从第 3 行解析数据。
 - [Phase 22]: 导入预览区分有效行、无效行和错误原因；潜在重复只按「姓名 + 接待日期 + 咨询师」提示，不自动跳过、合并或 upsert。
 - [Phase 22]: 导入确认只通过 visit store 提交 `{ rows: VisitWritePayload[] }` 到 `/visits/import`，后端继续二次校验并派生 `creatorId`。
+- [Phase 23]: 后端 `/visits/stats` 继续由 `visit:stats` 鉴权，并统一产出意向/签约计数与转化率，前端只负责格式化展示。
+- [Phase 23]: 统计聚合中的空值统一归入 `未填写`，避免渠道/人员/状态维度 totals 难以解释。
+- [Phase 23]: 到访统计入口保留在 `/visits` 页面工具区并仅用 `visit:stats` 显示；统计日期筛选独立于列表筛选，不引入导出、字典、自动合并或跟进工作流。
 
 ### Blockers/Concerns
 
@@ -127,5 +132,5 @@ v1.3 has no active blocker. Phase 23 should preserve the Phase 20 stats API cont
 ## Session
 
 - Last session: 2026-05-02
-- Stopped At: Phase 23 context gathered
-- Resume File: .planning/phases/23-stats/23-CONTEXT.md
+- Stopped At: v1.3 archived after manual testing
+- Resume File: .planning/milestones/v1.3-ROADMAP.md

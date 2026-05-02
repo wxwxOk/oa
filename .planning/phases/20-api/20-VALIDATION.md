@@ -1,10 +1,11 @@
 ---
 phase: 20
 slug: api
-status: draft
+status: complete
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-02
+completed: 2026-05-02
 ---
 
 # Phase 20 - Validation Strategy
@@ -38,22 +39,31 @@ created: 2026-05-02
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 20-00-01 | 01 | 0 | PERM-01, PERM-02 | T-20-PERM | Six visit permission codes exist, ADMIN gets them, EMPLOYEE does not by default | backend seed | `cd backend && bun test src/modules/role/__tests__/visit-permissions.seed.test.ts` | No - Wave 0 creates | pending |
-| 20-00-02 | 01 | 0 | VISIT-01 | T-20-DATA-MODEL | VisitRecord fixed fields and trusted audit fields are pinned before implementation | route/model contract | `cd backend && bun test src/modules/visit/__tests__/visit.route.test.ts` | No - Wave 0 creates | pending |
-| 20-00-03 | 01 | 0 | PERM-02 | T-20-TAMPER | Write schemas reject trusted fields and route signatures use exact permission gates | route contract | `cd backend && bun test src/modules/visit/__tests__/visit.route.test.ts` | No - Wave 0 creates | pending |
-| 20-00-04 | 02 | 1 | VISIT-01, PERM-01 | T-20-PERM / T-20-TAMPER | Prisma schema and permission seed can generate and validate | Prisma + seed | `cd backend && bun --env-file=../.env prisma validate && bun --env-file=../.env prisma generate && bun test src/modules/role/__tests__/visit-permissions.seed.test.ts` | Created by 20-01/20-02 | pending |
-| 20-00-05 | 03 | 2 | VISIT-01, PERM-02 | T-20-IDOR / T-20-TAMPER | List/detail/create/update/delete/filter-options use exact guards and explicit writable fields | route + DB behavior | `cd backend && bun test src/modules/visit/__tests__/visit.route.test.ts` | Created by 20-01 | pending |
-| 20-00-06 | 03 | 2 | VISIT-01, PERM-02 | T-20-IMPORT | Import validates all rows, derives creatorId from JWT, and avoids dedupe/merge side effects | route + helper | `cd backend && bun test src/modules/visit/__tests__/visit-import.test.ts` | Created by 20-01 | pending |
-| 20-00-07 | 03 | 2 | PERM-02 | T-20-STATS | Stats use `visit:stats`, date filters use receptionDate, and grouped counts are deterministic | route + helper | `cd backend && bun test src/modules/visit/__tests__/visit-stats.test.ts` | Created by 20-01 | pending |
+| 20-00-01 | 01 | 0 | PERM-01, PERM-02 | T-20-PERM | Six visit permission codes exist, ADMIN gets them, EMPLOYEE does not by default | backend seed | `cd backend && bun test src/modules/role/__tests__/visit-permissions.seed.test.ts` | Yes | passed |
+| 20-00-02 | 01 | 0 | VISIT-01 | T-20-DATA-MODEL | VisitRecord fixed fields and trusted audit fields are pinned before implementation | route/model contract | `cd backend && bun test src/modules/visit/__tests__/visit.route.test.ts` | Yes | passed |
+| 20-00-03 | 01 | 0 | PERM-02 | T-20-TAMPER | Write schemas reject trusted fields and route signatures use exact permission gates | route contract | `cd backend && bun test src/modules/visit/__tests__/visit.route.test.ts` | Yes | passed |
+| 20-00-04 | 02 | 1 | VISIT-01, PERM-01 | T-20-PERM / T-20-TAMPER | Prisma schema and permission seed can generate and validate | Prisma + seed | local Prisma 5 validate/generate + `bun test src/modules/role/__tests__/visit-permissions.seed.test.ts` | Yes | passed |
+| 20-00-05 | 03 | 2 | VISIT-01, PERM-02 | T-20-IDOR / T-20-TAMPER | List/detail/create/update/delete/filter-options use exact guards and explicit writable fields | route + DB behavior | `cd backend && bun test src/modules/visit/__tests__/visit.route.test.ts` | Yes | passed |
+| 20-00-06 | 03 | 2 | VISIT-01, PERM-02 | T-20-IMPORT | Import validates all rows, derives creatorId from JWT, and avoids dedupe/merge side effects | route + helper | `cd backend && bun test src/modules/visit/__tests__/visit-import.test.ts` | Yes | passed |
+| 20-00-07 | 03 | 2 | PERM-02 | T-20-STATS | Stats use `visit:stats`, date filters use receptionDate, and grouped counts are deterministic | route + helper | `cd backend && bun test src/modules/visit/__tests__/visit-stats.test.ts` | Yes | passed |
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `backend/src/modules/visit/__tests__/visit.route.test.ts` - route prefix, static route order, schemas, CRUD/list/filter-options contract, trusted-field rejection.
-- [ ] `backend/src/modules/visit/__tests__/visit-import.test.ts` - import all-or-nothing validation, creator attribution, no dedupe/merge behavior.
-- [ ] `backend/src/modules/visit/__tests__/visit-stats.test.ts` - grouped counts, intent/signed string rules, receptionDate date-range behavior, separate stats permission.
-- [ ] `backend/src/modules/role/__tests__/visit-permissions.seed.test.ts` - six visit permissions, ADMIN inheritance, EMPLOYEE exclusion.
+- [x] `backend/src/modules/visit/__tests__/visit.route.test.ts` - route prefix, static route order, schemas, CRUD/list/filter-options contract, trusted-field rejection.
+- [x] `backend/src/modules/visit/__tests__/visit-import.test.ts` - import all-or-nothing validation, creator attribution, no dedupe/merge behavior.
+- [x] `backend/src/modules/visit/__tests__/visit-stats.test.ts` - grouped counts, intent/signed string rules, receptionDate date-range behavior, separate stats permission.
+- [x] `backend/src/modules/role/__tests__/visit-permissions.seed.test.ts` - six visit permissions, ADMIN inheritance, EMPLOYEE exclusion.
+
+---
+
+## Execution Evidence
+
+- Prisma schema validation and client generation passed with the project-local Prisma 5 executable.
+- Focused Phase 20 Bun tests passed for seed, route, import and stats contracts.
+- Backend build passed after installing already-declared local dependencies.
+- Full backend test execution emitted existing local database migration-lag Prisma errors from older suites; no Phase 20 contract failures were observed.
 
 ---
 

@@ -22,6 +22,15 @@ export const APPROVAL_PERMISSION_CODES = [
   'approval:archive:stats',
 ];
 
+export const VISIT_PERMISSION_CODES = [
+  'visit:list',
+  'visit:create',
+  'visit:update',
+  'visit:delete',
+  'visit:import',
+  'visit:stats',
+];
+
 export const EMPLOYEE_PERMISSION_CODES = [
   'user:list',
   'department:list',
@@ -33,7 +42,7 @@ export const EMPLOYEE_PERMISSION_CODES = [
 ];
 
 // 权限定义：按模块分组
-const PERMISSIONS = [
+export const PERMISSIONS = [
   // 用户模块
   { code: 'user:list', name: '用户列表', module: 'user' },
   { code: 'user:create', name: '创建用户', module: 'user' },
@@ -77,6 +86,13 @@ const PERMISSIONS = [
   { code: 'approval:archive:edit', name: '归档受控编辑', module: 'approval' },
   { code: 'approval:archive:mark', name: '归档标记备注', module: 'approval' },
   { code: 'approval:archive:stats', name: '归档统计', module: 'approval' },
+  // 到访模块
+  { code: 'visit:list', name: '到访列表', module: 'visit' },
+  { code: 'visit:create', name: '创建到访', module: 'visit' },
+  { code: 'visit:update', name: '编辑到访', module: 'visit' },
+  { code: 'visit:delete', name: '删除到访', module: 'visit' },
+  { code: 'visit:import', name: '导入到访', module: 'visit' },
+  { code: 'visit:stats', name: '到访统计', module: 'visit' },
 ];
 
 function resolveAdminPassword(): string {

@@ -13,6 +13,7 @@ import { submissionModule } from './modules/submission/submission.route';
 import { formStatsModule } from './modules/form-stats/form-stats.route';
 import { shareLinkStatsModule } from './modules/share-link-stats/share-link-stats.route';
 import { publicFillModule } from './modules/public/public.route';
+import { visitModule } from './modules/visit/visit.route';
 import { approvalProcessModule } from './modules/approval/process.route';
 import { approvalApplicationModule } from './modules/approval/application.route';
 import { approvalTaskModule } from './modules/approval/task.route';
@@ -80,7 +81,8 @@ const app = new Elysia()
           .use(formTemplateModule)
           .use(submissionModule)
           .use(formStatsModule)
-          .use(shareLinkStatsModule),
+          .use(shareLinkStatsModule)
+          .use(visitModule),
       )
       .use(publicFillModule),
   )

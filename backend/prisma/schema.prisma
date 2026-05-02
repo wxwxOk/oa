@@ -36,6 +36,7 @@ model User {
   approvalTimelineEvents     ApprovalTimelineEvent[]
   archiveEvents              ArchiveEvent[]          @relation("ArchiveEventActor")
   notifications              UserNotification[]      @relation("UserNotifications")
+  visitRecords               VisitRecord[]
   defaultApproverDepartments Department[]            @relation("DepartmentDefaultApprover")
   createdAt                  DateTime                @default(now())
   updatedAt                  DateTime                @updatedAt
@@ -435,4 +436,37 @@ model Submission {
   @@index([templateId])
   @@index([shareLinkId])
   @@index([createdAt])
+}
+
+model VisitRecord {
+  id                 Int       @id @default(autoincrement())
+  name               String
+  age                Int?
+  education          String?
+  gender             String?
+  channelPartner     String?
+  consultant         String?
+  receptionStatus    String?
+  receptionist       String?
+  receptionDate      DateTime?
+  consultationStatus String?
+  statusCategory     String?
+  statusDescription  String?
+  trialStatus        String?
+  solution           String?
+  trialDate          DateTime?
+  creatorId          Int
+  creator            User      @relation(fields: [creatorId], references: [id])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([name])
+  @@index([channelPartner])
+  @@index([consultant])
+  @@index([receptionist])
+  @@index([receptionStatus])
+  @@index([receptionDate])
+  @@index([consultationStatus])
+  @@index([statusCategory])
+  @@index([creatorId])
 }

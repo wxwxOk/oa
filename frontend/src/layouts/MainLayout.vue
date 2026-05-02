@@ -333,6 +333,7 @@ const allMenus: MenuConfig[] = [
   { path: '/departments', title: '部门', icon: 'account_tree', perm: 'department:list' },
   { path: '/users', title: '用户', icon: 'people', perm: 'user:list' },
   { path: '/roles', title: '角色', icon: 'security', perm: 'role:list' },
+  { path: '/visits', title: '到访管理', icon: 'groups', perm: 'visit:list' },
   {
     title: '收集统计表', icon: 'assessment',
     children: [
