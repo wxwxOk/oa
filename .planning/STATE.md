@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 到访信息管理
 status: ready-to-plan
-last_updated: "2026-05-02T00:00:00.000Z"
-last_activity: 2026-05-02 -- Milestone v1.3 roadmap created
+last_updated: "2026-05-02T08:00:00.000Z"
+last_activity: 2026-05-02 -- Phase 21 frontend CRUD complete; Phase 22 ready for planning
 progress:
-  total_phases: 4
-  completed_phases: 0
-  total_plans: 10
-  completed_plans: 0
-  percent: 0
+  total_phases: 9
+  completed_phases: 7
+  total_plans: 38
+  completed_plans: 38
+  percent: 78
 ---
 
 # State
@@ -24,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** 开箱即用的组织架构管理 + 表单收集
-**Current focus:** 到访信息管理
+**Current focus:** Phase 22 — visit Excel import
 
 ## Current Position
 
-Phase: 20 — 到访数据模型 + 后端 API
-Plan: —
-Status: Ready to plan Phase 20
-Last activity: 2026-05-02 -- Milestone v1.3 roadmap created
+Phase: 22 (visit import) — READY TO PLAN
+Plan: 0 of 2
+Status: Phase 21 frontend CRUD complete; ready for Phase 22 planning
+Last activity: 2026-05-02 -- Phase 21 frontend CRUD complete; Phase 22 ready for planning
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████░░] 78%
 
 ## Roadmap Summary
 
-- Phase 20: 到访数据模型 + 后端 API (3 plans)
-- Phase 21: 到访管理页面 + CRUD 筛选 (3 plans)
-- Phase 22: Excel 导入解析 + 预览入库 (2 plans)
+- Phase 20: 到访数据模型 + 后端 API (3/3 plans complete)
+- Phase 21: 到访管理页面 + CRUD 筛选 (3/3 plans complete)
+- Phase 22: Excel 导入解析 + 预览入库 (2 plans) — next
 - Phase 23: 统计面板 + 转化汇总 (2 plans)
 
 ## Performance Metrics
@@ -62,6 +62,12 @@ Progress: [░░░░░░░░░░] 0%
 - Phase 19 Plan 19-08: 1080s, 3 tasks, 6 files, completed 2026-04-26
 - Phase 19 Plan 19-09: 624s, 2 tasks, 4 files, completed 2026-04-26
 - Phase 19 Plan 19-10: 395s, 2 tasks, 2 files, completed 2026-04-26
+- Phase 20 Plan 20-01: same session, 3 tasks, 4 files, completed 2026-05-02
+- Phase 20 Plan 20-02: same session, 3 tasks, 4 files, completed 2026-05-02
+- Phase 20 Plan 20-03: same session, 3 tasks, 5 files, completed 2026-05-02
+- Phase 21 Plan 21-01: same session, 3 tasks, 3 files, completed 2026-05-02
+- Phase 21 Plan 21-02: same session, 3 tasks, 4 files, completed 2026-05-02
+- Phase 21 Plan 21-03: same session, 4 tasks, 2 files, completed 2026-05-02
 
 ## Accumulated Context
 
@@ -99,6 +105,13 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 19]: Notification target navigation is constrained to approval task/application routes before marking a row read.
 - [v1.3]: 到访信息管理采用固定业务模块，不复用自定义表单模板作为主数据模型。
 - [v1.3]: Excel 导入由前端解析第 2 行表头并提交标准化 JSON，后端二次校验后批量创建。
+- [Phase 20]: VisitRecord 使用固定业务表、nullable string 状态字段和筛选索引，不引入字典、枚举或自动去重约束。
+- [Phase 20]: `/api/v1/visits` 后端端点按 `visit:*` 权限拆分鉴权，写入只接受显式业务字段，`creatorId` 从当前登录用户派生。
+- [Phase 20]: 到访导入后端只接收标准化 JSON rows；Excel 解析、预览和重复提示保留在 Phase 22 前端范围。
+- [Phase 21]: `/visits` 使用独立顶层菜单和 `visit:list` 路由权限，CRUD 按钮分别按 `visit:create/update/delete` 显隐。
+- [Phase 21]: Visit 前端 API 调用集中在 Pinia store，列表请求自动忽略空筛选条件。
+- [Phase 21]: 到访业务日期统一按 `YYYY-MM-DD` 展示，避免 locale/timezone 漂移。
+- [Phase 21]: 到访列表 PC 使用 QTable、移动端使用卡片，长文本只在详情/编辑弹窗完整展示。
 
 ### Blockers/Concerns
 
@@ -109,5 +122,5 @@ v1.3 has no active blocker. Watch Excel date parsing, header-row offset, and dup
 ## Session
 
 - Last session: 2026-05-02
-- Stopped At: v1.3 roadmap created and ready for Phase 20 planning
-- Resume File: None
+- Stopped At: Phase 22 context gathered
+- Resume File: .planning/phases/22-excel/22-CONTEXT.md
