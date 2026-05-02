@@ -10,9 +10,18 @@
 ✅ v1.0 MVP shipped (2026-04-20)
 ✅ v1.1 自定义表单收集 shipped (2026-04-20)
 ✅ v1.2 模板管理优化 shipped (2026-04-22)
+◆ v1.3 到访信息管理 planning (2026-05-02)
 
-## Next Milestone Goals
-待规划 — 使用 `/gsd:new-milestone` 启动下一个里程碑
+## Current Milestone: v1.3 到访信息管理
+
+**Goal:** 新增固定的到访信息管理模块，承接渠道往来测试表中的学员到访、咨询接待、试听跟进和成交状态管理。
+
+**Target features:**
+- 到访记录 CRUD：登记、编辑、删除、详情查看学员到访记录
+- Excel 导入：支持导入当前《渠道往来测试表.xlsx》的 15 列格式
+- 列表筛选：按渠道商、咨询师、接待人、接待日期、咨询后状态、状态类别筛选
+- 跟进管理：维护状态说明、试听课后状态、解决方案、试听课时间
+- 基础统计：按渠道商、咨询师、接待人和状态汇总到访与转化情况
 
 ## Requirements
 
@@ -42,7 +51,11 @@
 - ✓ FR-19 填写页响应式布局还原 — v1.2
 
 ### Active
-(待下一里程碑定义)
+- [ ] 到访记录固定业务模块，独立菜单与权限控制
+- [ ] Excel 导入渠道往来测试表格式并生成到访记录
+- [ ] 到访列表支持常用业务维度筛选与分页
+- [ ] 到访详情可维护咨询、接待、试听后的跟进信息
+- [ ] 到访统计支持渠道、人员、状态维度汇总
 
 ### Out of Scope
 - 考勤打卡、请假审批、工作流引擎 — v2.0+ 考虑
@@ -66,6 +79,7 @@ Vue3 + Quasar + TS / Bun + Elysia + Prisma / PostgreSQL 16 / JWT / Docker Compos
 v1.0 以 2,404 LOC (TS/Vue) 在 3 天内完成，113 commits。
 v1.1 新增 15,228 LOC，73 commits，1 天内完成（3 phases, 13 plans）。
 v1.2 新增 17,172 LOC，~50 commits，2 天内完成（5 phases, 16 plans）。
+v1.3 以《渠道往来测试表.xlsx》为业务样本，表格标题为「学员到访跟踪表」，字段包括姓名、年龄、学历、性别、渠道商、咨询师、接待状态、接待人、接待日期、咨询后状态、状态类别、状态说明、试听课后状态、解决方案、试听课时间；本里程碑采用固定业务模块，不复用自定义表单模板作为主数据模型。
 技术亮点：Bun 全链路构建、Quasar 双布局响应式、Prisma ORM、vue-draggable-plus 表单设计器、signature_pad 手写签名、html2canvas PDF 导出、vue-chartjs 统计图表、12 列栅格布局引擎、智能分页 PDF、QExpansionItem 移动端卡片。
 
 ## Key Decisions
@@ -96,4 +110,4 @@ v1.2 新增 17,172 LOC，~50 commits，2 天内完成（5 phases, 16 plans）。
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-22 after v1.2 milestone completed*
+*Last updated: 2026-05-02 after milestone v1.3 started*
