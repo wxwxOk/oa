@@ -49,9 +49,13 @@ export interface VisitListFilters {
   dateTo: string;
 }
 
+export type VisitListSortBy = 'receptionDate' | 'updatedAt';
+
 export type VisitListRequest = Partial<VisitListFilters> & {
   page?: number;
   size?: number;
+  sortBy?: VisitListSortBy;
+  descending?: boolean;
 };
 
 export interface VisitFilterOptions {

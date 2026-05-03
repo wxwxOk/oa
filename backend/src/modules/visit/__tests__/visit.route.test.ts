@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 
 import {
+  buildVisitOrderBy,
   serializeVisitListResponse,
   visitFilterOptionKeys,
   visitListQuery,
@@ -98,6 +99,8 @@ describe('visit route contract', () => {
       expect.arrayContaining([
         'page',
         'size',
+        'sortBy',
+        'descending',
         'keyword',
         'name',
         'channelPartner',
@@ -110,6 +113,19 @@ describe('visit route contract', () => {
         'dateTo',
       ]),
     );
+  });
+
+  it('builds safe list ordering for visit table sorting', () => {
+    expect(buildVisitOrderBy({})).toEqual([{ receptionDate: { sort: 'desc', nulls: 'last' } }, { id: 'desc' }]);
+    expect(buildVisitOrderBy({ sortBy: 'receptionDate', descending: 'false' })).toEqual([
+      { receptionDate: { sort: 'asc', nulls: 'last' } },
+      { id: 'desc' },
+    ]);
+    expect(buildVisitOrderBy({ sortBy: 'updatedAt', descending: true })).toEqual([{ updatedAt: 'desc' }, { id: 'desc' }]);
+    expect(buildVisitOrderBy({ sortBy: 'name', descending: 'false' })).toEqual([
+      { receptionDate: { sort: 'asc', nulls: 'last' } },
+      { id: 'desc' },
+    ]);
   });
 
   it('hardens write schemas against trusted-field tampering', () => {

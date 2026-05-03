@@ -49,10 +49,16 @@ export const VISIT_STATS_EMPTY_BUCKET = '未填写';
 
 const optionalString = () => t.Optional(t.Union([t.String(), t.Null()]));
 const optionalDateString = () => t.Optional(t.Union([t.String(), t.Date(), t.Null()]));
+const visitSortableFields = ['receptionDate', 'updatedAt'] as const;
+
+type VisitSortableField = (typeof visitSortableFields)[number];
+type PrismaSortDirection = 'asc' | 'desc';
 
 export const visitListQuery = t.Object({
   page: t.Optional(t.String()),
   size: t.Optional(t.String()),
+  sortBy: t.Optional(t.String()),
+  descending: t.Optional(t.String()),
   keyword: t.Optional(t.String()),
   name: t.Optional(t.String()),
   channelPartner: t.Optional(t.String()),
@@ -371,6 +377,27 @@ function buildVisitWhere(query: any) {
   return where;
 }
 
+function isVisitSortableField(value: unknown): value is VisitSortableField {
+  return typeof value === 'string' && visitSortableFields.includes(value as VisitSortableField);
+}
+
+function parseDescending(value: unknown) {
+  if (value === undefined || value === null || value === '') return true;
+  if (typeof value === 'boolean') return value;
+  const text = String(value).trim().toLowerCase();
+  if (text === 'false') return false;
+  if (text === 'true') return true;
+  return true;
+}
+
+export function buildVisitOrderBy(query: any) {
+  const sortBy = isVisitSortableField(query.sortBy) ? query.sortBy : 'receptionDate';
+  const direction: PrismaSortDirection = parseDescending(query.descending) ? 'desc' : 'asc';
+  const primary =
+    sortBy === 'receptionDate' ? { receptionDate: { sort: direction, nulls: 'last' } } : { updatedAt: direction };
+  return [primary, { id: 'desc' }];
+}
+
 async function distinctValues(field: string) {
   const rows = await visitRecord().findMany({
     where: { [field]: { not: null } },
@@ -418,7 +445,7 @@ export const visitModule = new Elysia({ prefix: '/visits' })
             visitRecord().findMany({
               where,
               select: visitSelect,
-              orderBy: { createdAt: 'desc' },
+              orderBy: buildVisitOrderBy(query),
               skip: (page - 1) * size,
               take: size,
             }),

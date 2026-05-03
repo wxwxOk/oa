@@ -26,12 +26,14 @@ function mergeFilters(base: VisitListFilters, filters?: VisitListRequest): Visit
   return next;
 }
 
-function buildListParams(filters: VisitListFilters, page: number, size: number) {
+function buildListParams(filters: VisitListFilters, page: number, size: number, request?: VisitListRequest) {
   const params: Record<string, unknown> = { page, size };
   for (const key of VISIT_LIST_FILTER_KEYS) {
     const value = filters[key]?.trim();
     if (value) params[key] = value;
   }
+  if (request?.sortBy) params.sortBy = request.sortBy;
+  if (request?.descending !== undefined) params.descending = request.descending;
   return params;
 }
 
@@ -67,7 +69,7 @@ export const useVisitStore = defineStore('visit', {
         const page = Number(filters?.page ?? this.page) || 1;
         const size = Number(filters?.size ?? this.size) || 10;
         const nextFilters = mergeFilters(this.filters, filters);
-        const { data } = await api.get('/visits', { params: buildListParams(nextFilters, page, size) });
+        const { data } = await api.get('/visits', { params: buildListParams(nextFilters, page, size, filters) });
         const response = data as VisitListResponse;
         this.rows = response.rows;
         this.total = Number(response.total) || 0;

@@ -180,8 +180,12 @@
         flat
         bordered
         dense
+        binary-state-sort
         @request="onRequest"
       >
+        <template #body-cell-index="props">
+          <q-td :props="props">{{ (store.page - 1) * store.size + props.rowIndex + 1 }}</q-td>
+        </template>
         <template #body-cell-name="props">
           <q-td :props="props">
             <div class="text-body2 wrap-text">{{ props.row.name }}</div>
@@ -382,9 +386,25 @@ import VisitStatsPanel from 'src/components/visit/VisitStatsPanel.vue';
 import { useResponsive } from 'src/composables/useResponsive';
 import { useAuthStore } from 'src/stores/auth';
 import { useVisitStore } from 'src/stores/visit';
-import { createEmptyVisitFilters, formatVisitDate, type VisitListFilters, type VisitRow, type VisitWritePayload } from 'src/types/visit';
+import {
+  createEmptyVisitFilters,
+  formatVisitDate,
+  type VisitListFilters,
+  type VisitListSortBy,
+  type VisitRow,
+  type VisitWritePayload,
+} from 'src/types/visit';
 
 type FormMode = 'create' | 'edit' | 'detail';
+type VisitRequestPagination = {
+  page: number;
+  rowsPerPage: number;
+  sortBy?: string | null;
+  descending?: boolean;
+};
+
+const DEFAULT_VISIT_SORT_BY: VisitListSortBy = 'receptionDate';
+const DEFAULT_VISIT_DESCENDING = true;
 
 const store = useVisitStore();
 const auth = useAuthStore();
@@ -400,17 +420,20 @@ const formMode = ref<FormMode>('create');
 const selectedVisit = ref<VisitRow | null>(null);
 const filters = reactive<VisitListFilters>(createEmptyVisitFilters());
 const filterDraft = reactive<VisitListFilters>(createEmptyVisitFilters());
+const currentSortBy = ref<VisitListSortBy>(DEFAULT_VISIT_SORT_BY);
+const currentDescending = ref(DEFAULT_VISIT_DESCENDING);
 
 const columns = [
+  { name: 'index', label: '序号', field: 'id', align: 'center' as const, style: 'width:70px' },
   { name: 'name', label: '姓名', field: 'name', align: 'left' as const, style: 'width:100px' },
   { name: 'channelPartner', label: '渠道商', field: 'channelPartner', align: 'left' as const },
   { name: 'consultant', label: '咨询师', field: 'consultant', align: 'left' as const, style: 'width:110px' },
   { name: 'receptionist', label: '接待人', field: 'receptionist', align: 'left' as const, style: 'width:110px' },
-  { name: 'receptionDate', label: '接待日期', field: 'receptionDate', align: 'left' as const, style: 'width:120px' },
+  { name: 'receptionDate', label: '接待日期', field: 'receptionDate', align: 'left' as const, sortable: true, style: 'width:120px' },
   { name: 'receptionStatus', label: '接待状态', field: 'receptionStatus', align: 'center' as const, style: 'width:110px' },
   { name: 'consultationStatus', label: '咨询后状态', field: 'consultationStatus', align: 'center' as const, style: 'width:120px' },
   { name: 'statusCategory', label: '状态类别', field: 'statusCategory', align: 'left' as const, style: 'width:110px' },
-  { name: 'updatedAt', label: '更新时间', field: 'updatedAt', align: 'left' as const, style: 'width:150px' },
+  { name: 'updatedAt', label: '更新时间', field: 'updatedAt', align: 'left' as const, sortable: true, style: 'width:150px' },
   { name: 'actions', label: '操作', field: 'id', align: 'center' as const, style: 'width:190px' },
 ];
 
@@ -418,15 +441,24 @@ const pagination = computed(() => ({
   page: store.page,
   rowsPerPage: store.size,
   rowsNumber: store.total,
+  sortBy: currentSortBy.value,
+  descending: currentDescending.value,
 }));
 
 function optionValues(values: string[]) {
   return values;
 }
 
-async function loadVisits(page = store.page, size = store.size) {
+async function loadVisits(
+  page = store.page,
+  size = store.size,
+  sortBy = currentSortBy.value,
+  descending = currentDescending.value,
+) {
+  currentSortBy.value = sortBy;
+  currentDescending.value = descending;
   try {
-    await store.fetchList({ ...filters, page, size });
+    await store.fetchList({ ...filters, page, size, sortBy, descending });
     error.value = false;
   } catch {
     error.value = true;
@@ -472,8 +504,19 @@ function applyMobileFilters() {
   queryVisits();
 }
 
-function onRequest(props: { pagination: { page: number; rowsPerPage: number } }) {
-  void loadVisits(props.pagination.page, props.pagination.rowsPerPage);
+function normalizeVisitSortBy(value?: string | null): VisitListSortBy {
+  if (value === 'updatedAt') return 'updatedAt';
+  if (value === 'receptionDate') return 'receptionDate';
+  return currentSortBy.value;
+}
+
+function onRequest(props: { pagination: VisitRequestPagination }) {
+  void loadVisits(
+    props.pagination.page,
+    props.pagination.rowsPerPage,
+    normalizeVisitSortBy(props.pagination.sortBy),
+    props.pagination.descending ?? currentDescending.value,
+  );
 }
 
 function openCreate() {

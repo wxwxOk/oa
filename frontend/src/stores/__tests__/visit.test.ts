@@ -59,12 +59,12 @@ const visitStats: VisitStats = {
   byTrialStatus: [{ name: '已试听', count: 2 }],
 };
 
-beforeEach(() => {
-  setActivePinia(createPinia());
-  vi.clearAllMocks();
-});
-
 describe('useVisitStore', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
+
   it('fetches visits with Phase 20 filter params', async () => {
     mockedApi.get.mockResolvedValueOnce({ data: { rows: [visitRow], total: 1, page: 2, size: 20 } });
     const store = useVisitStore();
@@ -102,6 +102,17 @@ describe('useVisitStore', () => {
     expect(store.total).toBe(1);
     expect(store.page).toBe(2);
     expect(store.size).toBe(20);
+  });
+
+  it('passes visit list sort params', async () => {
+    mockedApi.get.mockResolvedValueOnce({ data: { rows: [], total: 0, page: 1, size: 10 } });
+    const store = useVisitStore();
+
+    await store.fetchList({ page: 1, size: 10, sortBy: 'updatedAt', descending: false });
+
+    expect(mockedApi.get).toHaveBeenCalledWith('/visits', {
+      params: { page: 1, size: 10, sortBy: 'updatedAt', descending: false },
+    });
   });
 
   it('omits empty filters from list params', async () => {
