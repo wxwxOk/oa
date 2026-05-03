@@ -219,7 +219,13 @@ Plans:
   3. 财务复核通过后申请进入已通过并记录最终通过时间，驳回后记录财务节点驳回信息
   4. 两个通过节点均必须采集 Canvas 手写签名，并保存签名图片、审核人、动作、意见和时间
   5. 申请详情展示提交、部门初审、财务复核、签字和驳回的完整审核轨迹
-**Plans:** TBD
+**Plans:** 0/4 planned
+
+Plans:
+- [ ] 26-01-PLAN.md — Wave 0 review/signature contracts
+- [ ] 26-02-PLAN.md — Backend review queues/actions/signature routes
+- [ ] 26-03-PLAN.md — Frontend review types/store/signature/timeline
+- [ ] 26-04-PLAN.md — Reviewer queue/detail UX and final validation
 **UI hint**: yes
 
 ### Phase 27: 报销导出 + 验证收尾
@@ -259,7 +265,7 @@ Plans:
 | 23. 统计面板 + 转化汇总 | v1.3 | 2/2 | Complete | 2026-05-02 |
 | 24. 报销数据模型 + 附件上传 API | v1.4 | 4/4 | Complete | 2026-05-03 |
 | 25. 员工报销申请与详情页面 | v1.4 | 4/4 | Complete | 2026-05-03 |
-| 26. 两级审核与手写签字 | v1.4 | 0/TBD | Not Started |  |
+| 26. 两级审核与手写签字 | v1.4 | 0/4 | Planned |  |
 | 27. 报销导出 + 验证收尾 | v1.4 | 0/TBD | Not Started |  |
 
 ## Current Coverage
