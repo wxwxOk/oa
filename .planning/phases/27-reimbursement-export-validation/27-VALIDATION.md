@@ -1,9 +1,9 @@
 ---
 phase: 27
 slug: reimbursement-export-validation
-status: planned
+status: completed
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-03
 ---
 
@@ -38,18 +38,18 @@ created: 2026-05-03
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 27-01-01 | 01 | 0 | EXPORT-01/EXPORT-02/EXPORT-03/PERM-02 | backend export service contract | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts` | ❌ W0 | ⬜ pending |
-| 27-01-02 | 01 | 0 | EXPORT-01/PERM-01/PERM-02 | backend route contract | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.route.test.ts` | ✅ | ⬜ pending |
-| 27-01-03 | 01 | 0 | EXPORT-01/PERM-02/UX-02 | frontend store/page contract | `cd frontend && bun test src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts` | ✅ | ⬜ pending |
-| 27-02-01 | 02 | 1 | EXPORT-02/EXPORT-03 | workbook implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts` | ✅ after W0 | ⬜ pending |
-| 27-02-02 | 02 | 1 | EXPORT-01/PERM-02 | export paging/filter implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts` | ✅ after W0 | ⬜ pending |
-| 27-02-03 | 02 | 1 | EXPORT-01/PERM-01/PERM-02/UX-02 | route/header implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts && bun run build` | ✅ | ⬜ pending |
-| 27-03-01 | 03 | 2 | EXPORT-01/UX-02 | frontend store implementation | `cd frontend && bun test src/stores/__tests__/reimbursement.test.ts` | ✅ | ⬜ pending |
-| 27-03-02 | 03 | 2 | EXPORT-01/PERM-02/UX-02 | export toolbar UX | `cd frontend && bun test src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts` | ✅ | ⬜ pending |
-| 27-03-03 | 03 | 2 | EXPORT-03/PERM-02/UX-02 | frontend build and negative scope | `cd frontend && bun test src/types/__tests__/reimbursement.test.ts src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts && bun run build` | ✅ | ⬜ pending |
-| 27-04-01 | 04 | 3 | all Phase 27 IDs | final focused gate | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts && bun run build; cd ../frontend && bun test src/types/__tests__/reimbursement.test.ts src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts && bun run build` | ✅ | ⬜ pending |
-| 27-04-02 | 04 | 3 | EXPORT-01/EXPORT-02/EXPORT-03/PERM-01/PERM-02/UX-02 | UAT and coverage docs | Manual evidence plus source review | ✅ docs | ⬜ pending |
-| 27-04-03 | 04 | 3 | v1.4 closeout | archive/state docs | Source review | ✅ docs | ⬜ pending |
+| 27-01-01 | 01 | 0 | EXPORT-01/EXPORT-02/EXPORT-03/PERM-02 | backend export service contract | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts` | ✅ | ✅ green |
+| 27-01-02 | 01 | 0 | EXPORT-01/PERM-01/PERM-02 | backend route contract | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.route.test.ts` | ✅ | ✅ green |
+| 27-01-03 | 01 | 0 | EXPORT-01/PERM-02/UX-02 | frontend store/page contract | `cd frontend && bun test src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts` | ✅ | ✅ green |
+| 27-02-01 | 02 | 1 | EXPORT-02/EXPORT-03 | workbook implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts` | ✅ | ✅ green |
+| 27-02-02 | 02 | 1 | EXPORT-01/PERM-02 | export paging/filter implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts` | ✅ | ✅ green |
+| 27-02-03 | 02 | 1 | EXPORT-01/PERM-01/PERM-02/UX-02 | route/header implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts && bun run build` | ✅ | ✅ green |
+| 27-03-01 | 03 | 2 | EXPORT-01/UX-02 | frontend store implementation | `cd frontend && bun test src/stores/__tests__/reimbursement.test.ts` | ✅ | ✅ green |
+| 27-03-02 | 03 | 2 | EXPORT-01/PERM-02/UX-02 | export toolbar UX | `cd frontend && bun test src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts` | ✅ | ✅ green |
+| 27-03-03 | 03 | 2 | EXPORT-03/PERM-02/UX-02 | frontend build and negative scope | `cd frontend && bun test src/types/__tests__/reimbursement.test.ts src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts && bun run build` | ✅ | ✅ green |
+| 27-04-01 | 04 | 3 | all Phase 27 IDs | final focused gate | `Set-Location backend/frontend and run focused tests plus builds` | ✅ | ✅ green |
+| 27-04-02 | 04 | 3 | EXPORT-01/EXPORT-02/EXPORT-03/PERM-01/PERM-02/UX-02 | UAT and coverage docs | Manual evidence plus source review | ✅ docs | ✅ passed |
+| 27-04-03 | 04 | 3 | v1.4 closeout | Source review | ✅ docs | ✅ complete |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -57,10 +57,10 @@ created: 2026-05-03
 
 ## Wave 0 Requirements
 
-- [ ] `backend/src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts` — pins export cap, formula sanitization, fixed headers, review-result derivation and filter paging.
-- [ ] `backend/src/modules/reimbursement/__tests__/reimbursement.route.test.ts` — pins `/export` route order, `authGuard('reimbursement:export')`, XLSX headers and list query schema reuse.
-- [ ] `frontend/src/stores/__tests__/reimbursement.test.ts` — pins `exportLoading`, `/reimbursements/export`, blob response and current-filter params.
-- [ ] `frontend/src/pages/__tests__/ReimbursementPage.test.ts` — pins permission-gated `导出 Excel`, object URL cleanup, feedback copy and negative scope boundaries.
+- [x] `backend/src/modules/reimbursement/__tests__/reimbursement-export.service.test.ts` — pins export cap, formula sanitization, fixed headers, review-result derivation and filter paging.
+- [x] `backend/src/modules/reimbursement/__tests__/reimbursement.route.test.ts` — pins `/export` route order, `authGuard('reimbursement:export')`, XLSX headers and list query schema reuse.
+- [x] `frontend/src/stores/__tests__/reimbursement.test.ts` — pins `exportLoading`, `/reimbursements/export`, blob response and current-filter params.
+- [x] `frontend/src/pages/__tests__/ReimbursementPage.test.ts` — pins permission-gated `导出 Excel`, object URL cleanup, feedback copy and negative scope boundaries.
 
 ---
 
@@ -110,3 +110,11 @@ created: 2026-05-03
 - [x] `nyquist_compliant: true` set in frontmatter.
 
 **Approval:** planned 2026-05-03
+
+## Final Gate Result
+
+- [x] Backend focused reimbursement tests and backend build passed on 2026-05-03: 26 pass, 0 fail, 153 expect() calls.
+- [x] Frontend focused reimbursement tests and frontend build passed on 2026-05-03: 21 pass, 0 fail, 230 expect() calls.
+- [x] `27-VERIFICATION.md` records commands, evidence, caveats and requirement coverage.
+- [x] `27-UAT.md` records UAT-1 through UAT-6 as passed by user confirmation.
+- [x] Manual UAT passed; Phase 27/v1.4 is complete.

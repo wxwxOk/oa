@@ -20,6 +20,20 @@
         <q-tooltip>刷新报销列表</q-tooltip>
       </q-btn>
       <q-btn
+        v-if="auth.hasPerm('reimbursement:export')"
+        color="primary"
+        icon="download"
+        :label="isMobile ? '' : '导出 Excel'"
+        :round="isMobile"
+        aria-label="导出报销 Excel"
+        :loading="store.exportLoading"
+        :disable="store.exportLoading"
+        :style="isMobile ? 'min-width:44px;min-height:44px' : ''"
+        @click="exportReimbursements"
+      >
+        <q-tooltip>导出报销 Excel</q-tooltip>
+      </q-btn>
+      <q-btn
         v-if="auth.hasPerm('reimbursement:create')"
         color="primary"
         icon="add"
@@ -338,6 +352,8 @@ const pagination = computed(() => ({
   rowsNumber: store.total,
 }));
 
+const currentFilters = computed<ReimbursementListFilters>(() => ({ ...filters }));
+
 async function loadList(page = store.page, size = store.size) {
   try {
     const request = { ...filters, page, size };
@@ -411,6 +427,35 @@ function goDetail(row: ReimbursementRow) {
 function goEdit(row: ReimbursementRow) {
   if (!canMutateDraft(row)) return;
   router.push(`/reimbursements/${row.id}/edit`);
+}
+
+function exportErrorMessage(error: unknown) {
+  const responseData = (error as { response?: { data?: unknown } })?.response?.data;
+  const message =
+    typeof responseData === 'object' && responseData !== null && 'message' in responseData
+      ? String((responseData as { message?: unknown }).message ?? '')
+      : typeof responseData === 'string'
+        ? responseData
+        : String((error as { message?: unknown })?.message ?? '');
+  if (message.includes('当前筛选结果超过导出上限')) return '当前筛选结果超过导出上限，请缩小筛选范围后重试。';
+  return '导出失败，请稍后重试。';
+}
+
+async function exportReimbursements() {
+  let url = '';
+  try {
+    const blob = await store.exportExcel(currentFilters.value);
+    url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `reimbursements-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    link.click();
+    Notify.create({ type: 'positive', message: 'Excel 导出已开始' });
+  } catch (error) {
+    Notify.create({ type: 'negative', message: exportErrorMessage(error) });
+  } finally {
+    if (url) URL.revokeObjectURL(url);
+  }
 }
 
 async function submitDraft(row: ReimbursementRow) {

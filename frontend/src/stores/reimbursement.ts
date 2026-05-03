@@ -34,6 +34,15 @@ function buildListParams(filters: ReimbursementListFilters, page: number, size: 
   return params;
 }
 
+function buildExportParams(filters: Partial<ReimbursementListFilters> = {}) {
+  const params: Record<string, unknown> = {};
+  for (const key of REIMBURSEMENT_LIST_FILTER_KEYS) {
+    const value = filters[key]?.trim();
+    if (value) params[key] = value;
+  }
+  return params;
+}
+
 function buildReviewFormData(payload: ReimbursementReviewPayload) {
   const formData = new FormData();
   formData.append('signature', payload.signature);
@@ -59,6 +68,7 @@ export const useReimbursementStore = defineStore('reimbursement', {
     actionLoading: false,
     uploadLoading: false,
     downloadLoading: false,
+    exportLoading: false,
   }),
   actions: {
     async fetchList(filters?: ReimbursementListRequest) {
@@ -115,6 +125,20 @@ export const useReimbursementStore = defineStore('reimbursement', {
         return response;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async exportExcel(filters?: ReimbursementListRequest) {
+      this.exportLoading = true;
+      try {
+        const activeFilters = filters ? mergeFilters(createEmptyReimbursementFilters(), filters) : this.filters;
+        const { data } = await api.get('/reimbursements/export', {
+          params: buildExportParams(activeFilters),
+          responseType: 'blob',
+        });
+        return data as Blob;
+      } finally {
+        this.exportLoading = false;
       }
     },
 

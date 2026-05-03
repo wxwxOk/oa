@@ -1,5 +1,25 @@
 # Milestones
 
+## v1.4 报销管理 (Shipped: 2026-05-03)
+
+**Phases:** 4 | **Plans:** 16 | **Validation:** automated focused tests/builds + manual UAT passed
+**Timeline:** 2026-05-03 (same-day closeout)
+**Stack additions:** ExcelJS-backed reimbursement detail export; protected local image/PDF attachment storage
+
+**Key accomplishments:**
+
+1. Fixed reimbursement domain model, migration and RBAC seed data for application, attachment, review and export permissions
+2. Employee reimbursement workflow with draft-first submission, required-field validation, own/list visibility and PC/Mobile list/detail UI
+3. Protected image/PDF invoice attachment upload, preview, download and delete flow with backend file safety checks
+4. Department initial review and finance final review queues with Canvas signature evidence, reject reasons and complete audit timeline
+5. Current-filter Excel detail export with backend permission guard, fixed columns, formula-injection protection and frontend download feedback
+6. v1.4 closeout evidence captured: focused backend/frontend gates passed and manual UAT confirmed passed
+
+**Archive:** [v1.4-ROADMAP.md](milestones/v1.4-ROADMAP.md) | [v1.4-REQUIREMENTS.md](milestones/v1.4-REQUIREMENTS.md)
+
+
+---
+
 ## v1.3 到访信息管理 (Shipped: 2026-05-02)
 
 **Phases:** 4 | **Plans:** 10 | **Validation:** automated smoke/build checks + manual testing
