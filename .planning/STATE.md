@@ -3,21 +3,21 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: 报销管理
 status: executing
-last_updated: "2026-05-03T09:30:00.000Z"
-last_activity: 2026-05-03 -- Phase 27 Plan 27-01 contracts completed
+last_updated: "2026-05-03T09:45:00.000Z"
+last_activity: 2026-05-03 -- Phase 27 Plan 27-02 backend export completed
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 48
-  completed_plans: 45
-  percent: 94
+  completed_plans: 46
+  percent: 96
 ---
 
 # State
 
 - Initialized: 2026-04-17
 - Milestone: v1.4 报销管理 — ACTIVE
-- Status: Phase 27 Plan 27-01 complete; ready to execute Plan 27-02
+- Status: Phase 27 Plan 27-02 complete; ready to execute Plan 27-03
 
 ## Project Reference
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 ## Current Position
 
 Phase: 27 (reimbursement-export-validation) — EXECUTING
-Plan: 2 of 4
-Status: Plan 27-01 complete; executing Plan 27-02
-Last activity: 2026-05-03 -- Phase 27 Plan 27-01 contracts completed
+Plan: 3 of 4
+Status: Plan 27-02 complete; executing Plan 27-03
+Last activity: 2026-05-03 -- Phase 27 Plan 27-02 backend export completed
 
-Progress: [█████████░] 94%
+Progress: [██████████] 96%
 
 ## Roadmap Summary
 
@@ -46,7 +46,7 @@ Progress: [█████████░] 94%
 
 **Velocity:**
 
-- Total plans completed: 105 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3 + 4 v1.4 Phase 25 + 4 v1.4 Phase 26 + 1 v1.4 Phase 27)
+- Total plans completed: 106 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3 + 4 v1.4 Phase 25 + 4 v1.4 Phase 26 + 2 v1.4 Phase 27)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
@@ -85,7 +85,7 @@ Progress: [█████████░] 94%
 - Phase 26 Plan 26-03: same session, 3 tasks, frontend review store/signature/timeline support, completed 2026-05-03
 - Phase 26 Plan 26-04: same session, 3 tasks, reviewer queue/detail UI and validation closeout, completed 2026-05-03
 - Phase 27 Plan 27-01: same session, 3 tasks, backend/frontend export contracts, completed 2026-05-03
-- Phase 27 Plan 27-02: planned, backend export service and route
+- Phase 27 Plan 27-02: same session, 3 tasks, backend export service and route, completed 2026-05-03
 - Phase 27 Plan 27-03: planned, frontend export store and toolbar UX
 - Phase 27 Plan 27-04: planned, final validation, UAT and v1.4 archive closeout
 

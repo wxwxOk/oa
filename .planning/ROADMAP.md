@@ -238,11 +238,11 @@ Plans:
   3. 导出功能复用既有 Excel 工具链，返回文件名和错误信息清晰
   4. UAT 覆盖提交、附件访问、部门通过/驳回、财务通过/驳回和导出权限
   5. 完成 v1.4 需求覆盖检查、里程碑归档材料和后续需求记录
-**Plans:** 1/4 complete
+**Plans:** 2/4 complete
 
 Plans:
 - [x] 27-01-PLAN.md — Wave 0 export contracts
-- [ ] 27-02-PLAN.md — Backend export service and route
+- [x] 27-02-PLAN.md — Backend export service and route
 - [ ] 27-03-PLAN.md — Frontend export store and toolbar UX
 - [ ] 27-04-PLAN.md — Final validation, UAT and v1.4 archive closeout
 **UI hint**: yes
@@ -272,7 +272,7 @@ Plans:
 | 24. 报销数据模型 + 附件上传 API | v1.4 | 4/4 | Complete | 2026-05-03 |
 | 25. 员工报销申请与详情页面 | v1.4 | 4/4 | Complete | 2026-05-03 |
 | 26. 两级审核与手写签字 | v1.4 | 4/4 | Complete | 2026-05-03 |
-| 27. 报销导出 + 验证收尾 | v1.4 | 1/4 | Executing |  |
+| 27. 报销导出 + 验证收尾 | v1.4 | 2/4 | Executing |  |
 
 ## Current Coverage
 

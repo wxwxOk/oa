@@ -33,6 +33,7 @@ import {
   resolveSafeReimbursementPath,
   writeReimbursementFile,
 } from './reimbursement-file.service';
+import { exportReimbursementsExcel } from './reimbursement-export.service';
 
 export const reimbursementListQuery = t.Object({
   page: t.Optional(t.String()),
@@ -189,6 +190,22 @@ export const reimbursementModule = new Elysia({ prefix: '/reimbursements' })
         const actor = toActor(currentUser);
         assertCanReadReimbursements(actor);
         return serializeReimbursementListResponse(await listReimbursements(actor, query as ReimbursementListFilters));
+      },
+      { query: reimbursementListQuery },
+    ),
+  )
+  .guard({}, (app) =>
+    app.use(authGuard('reimbursement:export')).get(
+      '/export',
+      async ({ query, currentUser, set }: any) => {
+        const workbook = await exportReimbursementsExcel(toActor(currentUser), query as ReimbursementListFilters);
+        const buffer = await workbook.xlsx.writeBuffer();
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+        set.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        set.headers['Content-Disposition'] = `attachment; filename="reimbursements-export-${timestamp}.xlsx"`;
+
+        return buffer;
       },
       { query: reimbursementListQuery },
     ),
