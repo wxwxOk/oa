@@ -13,6 +13,7 @@ import {
   listDepartmentReviewReimbursements,
   listFinanceReviewReimbursements,
   listReimbursements,
+  loadActorDepartmentReviewScope,
   rejectDepartmentReimbursement,
   rejectFinanceReimbursement,
   serializeReimbursementRow,
@@ -132,11 +133,6 @@ function routeDateToBoundary(dateTo?: string) {
   return dateTo ? new Date(dateTo + 'T23:59:59.999Z') : undefined;
 }
 
-async function loadActorDepartmentId(actor: ReimbursementActor) {
-  const user = await prisma.user.findUnique({ where: { id: actor.id }, select: { departmentId: true } });
-  return user?.departmentId ?? null;
-}
-
 async function loadApplication(id: number) {
   const application = await (prisma as any).reimbursementApplication.findUnique({ where: { id } });
   if (!application) throw notFound('报销申请不存在');
@@ -152,13 +148,25 @@ async function loadAttachment(applicationId: number, attachmentId: number) {
 async function loadVisibleAttachment(actor: ReimbursementActor, applicationId: number, attachmentId: number) {
   const application = await loadApplication(applicationId);
   const attachment = await loadAttachment(application.id, attachmentId);
-  assertCanViewReimbursement(actor, application, await loadActorDepartmentId(actor));
+  const actorDepartmentScope = await loadActorDepartmentReviewScope(actor.id);
+  assertCanViewReimbursement(
+    actor,
+    application,
+    actorDepartmentScope.actorDepartmentId,
+    actorDepartmentScope.departmentReviewScopeIds,
+  );
   return { application, attachment };
 }
 
 async function loadVisibleSignature(actor: ReimbursementActor, applicationId: number, actionId: number) {
   const application = await loadApplication(applicationId);
-  assertCanViewReimbursement(actor, application, await loadActorDepartmentId(actor));
+  const actorDepartmentScope = await loadActorDepartmentReviewScope(actor.id);
+  assertCanViewReimbursement(
+    actor,
+    application,
+    actorDepartmentScope.actorDepartmentId,
+    actorDepartmentScope.departmentReviewScopeIds,
+  );
 
   const action = await (prisma as any).reimbursementAction.findUnique({ where: { id: actionId } });
   if (!action || action.applicationId !== applicationId || !action.signatureRelativePath) {

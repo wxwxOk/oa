@@ -7,6 +7,7 @@ import {
   assertReimbursementTransition,
 } from '../reimbursement.state';
 import {
+  buildDepartmentReviewScopeIds,
   canDepartmentReviewReimbursement,
   canFinanceReviewReimbursement,
   canViewReimbursement,
@@ -97,11 +98,35 @@ describe('reimbursement service helpers', () => {
     ).toBe(true);
     expect(
       canViewReimbursement(
+        actor({ id: 3, permissions: ['reimbursement:department-review'] }),
+        application,
+        20,
+        [20, 10],
+      ),
+    ).toBe(true);
+    expect(
+      canViewReimbursement(
         actor({ id: 4, permissions: ['reimbursement:finance-review'] }),
         { ...application, status: 'FINANCE_REVIEW' },
       ),
     ).toBe(true);
     expect(canViewReimbursement(actor({ id: 5 }), application, 99)).toBe(false);
+  });
+
+  it('builds department review scope from same-level and lower departments', () => {
+    const departments = [
+      { id: 1, parentId: null },
+      { id: 2, parentId: 1 },
+      { id: 3, parentId: 2 },
+      { id: 4, parentId: 2 },
+      { id: 5, parentId: 3 },
+      { id: 6, parentId: 5 },
+      { id: 7, parentId: 1 },
+    ];
+
+    expect(buildDepartmentReviewScopeIds(2, departments).sort((a, b) => a - b)).toEqual([2, 3, 4, 5, 6, 7]);
+    expect(buildDepartmentReviewScopeIds(3, departments).sort((a, b) => a - b)).toEqual([3, 4, 5, 6]);
+    expect(buildDepartmentReviewScopeIds(null, departments)).toEqual([]);
   });
 
   it('checks department and finance review permissions', () => {
@@ -114,6 +139,14 @@ describe('reimbursement service helpers', () => {
     expect(
       canDepartmentReviewReimbursement(actor({ permissions: ['reimbursement:department-review'] }), departmentApplication, 99),
     ).toBe(false);
+    expect(
+      canDepartmentReviewReimbursement(
+        actor({ permissions: ['reimbursement:department-review'] }),
+        departmentApplication,
+        99,
+        [99, 10],
+      ),
+    ).toBe(true);
     expect(canDepartmentReviewReimbursement(actor({ roleCodes: ['ADMIN'] }), departmentApplication)).toBe(true);
     expect(canDepartmentReviewReimbursement(actor({ permissions: ['reimbursement:finance-review'] }), financeApplication)).toBe(false);
 
