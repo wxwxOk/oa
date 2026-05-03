@@ -164,7 +164,7 @@
               <q-tooltip>下线模板</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="props.row.status === 'DRAFT'"
+              v-if="props.row.status === 'DRAFT' || props.row.status === 'OFFLINE'"
               v-perm="'form:template:delete'"
               size="sm" flat dense icon="delete" color="negative"
               @click="onDelete(props.row)"
@@ -254,7 +254,7 @@
               <q-tooltip>下线模板</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="t.status === 'DRAFT'"
+              v-if="t.status === 'DRAFT' || t.status === 'OFFLINE'"
               v-perm="'form:template:delete'"
               flat dense icon="delete" color="negative"
               aria-label="删除模板"
@@ -409,7 +409,7 @@ async function onCreate() {
 function onDelete(row: Template) {
   Dialog.create({
     title: '删除模板',
-    message: `将永久删除模板「${row.name}」。此操作不可恢复。`,
+    message: `将从模板管理中隐藏模板「${row.name}」，历史统计和提交数据会保留。`,
     cancel: true,
     ok: { label: '确认删除', color: 'negative' },
   }).onOk(async () => {

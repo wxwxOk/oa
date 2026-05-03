@@ -133,11 +133,13 @@ model FormTemplate {
   approvalApplications ApprovalApplication[]
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
 
   @@index([creatorId])
   @@index([status])
   @@index([businessMode])
   @@index([approvalProcessId])
+  @@index([deletedAt])
 }
 
 enum ApprovalApplicationStatus {

@@ -3,6 +3,8 @@ import { afterAll, beforeEach, describe, expect, it } from 'bun:test';
 import { prisma } from '../../../plugins/prisma';
 import {
   createTemplateShareLink,
+  deleteTemplate,
+  listTemplates,
   publishTemplate,
   updateTemplate,
 } from '../template.route';
@@ -269,5 +271,46 @@ describe('template approval mode behavior', () => {
         processingSchema: [{ id: 'sign', type: 'signature', label: '签名' }],
       }),
     ).rejects.toMatchObject({ code: 'INVALID_PROCESSING_FIELD_TYPE' });
+  });
+
+  it('soft deletes draft or offline templates while keeping history', async () => {
+    const creator = await createCreator();
+    const template = await createTemplate(creator.id, {
+      businessMode: 'COLLECTION_ONLY',
+      status: 'OFFLINE',
+    });
+    const link = await prisma.shareLink.create({
+      data: {
+        code: 'soft-delete-public-1',
+        templateId: template.id,
+        creatorId: creator.id,
+      },
+    });
+    await prisma.submission.create({
+      data: {
+        data: { reason: '历史提交' },
+        schemaVersion: 1,
+        templateId: template.id,
+        shareLinkId: link.id,
+      },
+    });
+
+    const deleted = await deleteTemplate(template.id);
+    const list = await listTemplates({});
+
+    expect(deleted.deletedAt).toBeInstanceOf(Date);
+    expect(list.rows.some((row) => row.id === template.id)).toBe(false);
+    expect(await prisma.shareLink.count({ where: { templateId: template.id } })).toBe(1);
+    expect(await prisma.submission.count({ where: { templateId: template.id } })).toBe(1);
+  });
+
+  it('published templates must be offline before soft delete', async () => {
+    const creator = await createCreator();
+    const template = await createTemplate(creator.id, {
+      businessMode: 'COLLECTION_ONLY',
+      status: 'PUBLISHED',
+    });
+
+    await expect(deleteTemplate(template.id)).rejects.toThrow('仅可删除草稿或已下线状态的模板');
   });
 });

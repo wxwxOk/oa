@@ -8,6 +8,7 @@ import { validateProcessDefinition } from '../approval/process-config.service';
 import { SchemaV2Body } from './schema.validation';
 
 type TemplateBusinessMode = 'COLLECTION_ONLY' | 'APPROVAL_REQUIRED';
+type TemplateStatus = 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
 
 export const SUPPORTED_PROCESSING_FIELD_TYPES = [
   'text',
@@ -157,13 +158,43 @@ async function assertValidApprovalProcess(processId: number | null | undefined):
   }
 }
 
+function activeTemplateWhere(id: number): Prisma.FormTemplateWhereInput {
+  return { id, deletedAt: null };
+}
+
+export async function listTemplates(query: {
+  page?: number | string;
+  size?: number | string;
+  status?: TemplateStatus | '';
+  businessMode?: TemplateBusinessMode | '';
+}) {
+  const page = Number(query.page) || 1;
+  const size = Number(query.size) || 10;
+  const where: Prisma.FormTemplateWhereInput = { deletedAt: null };
+  if (query.status) where.status = query.status;
+  if (query.businessMode) where.businessMode = query.businessMode;
+
+  const [rows, total] = await Promise.all([
+    prisma.formTemplate.findMany({
+      where,
+      include: templateInclude,
+      orderBy: { updatedAt: 'desc' },
+      skip: (page - 1) * size,
+      take: size,
+    }),
+    prisma.formTemplate.count({ where }),
+  ]);
+
+  return { rows, total, page, size };
+}
+
 export async function updateTemplate(
   id: number,
   body: TemplateUpdateBody,
   currentUser?: CurrentUser,
 ) {
-  const tpl = await prisma.formTemplate.findUnique({
-    where: { id },
+  const tpl = await prisma.formTemplate.findFirst({
+    where: activeTemplateWhere(id),
     include: { _count: { select: { shareLinks: true } } },
   });
   if (!tpl) throw notFound('模板不存在');
@@ -228,7 +259,7 @@ export async function updateTemplate(
 }
 
 export async function publishTemplate(id: number) {
-  const tpl = await prisma.formTemplate.findUnique({ where: { id } });
+  const tpl = await prisma.formTemplate.findFirst({ where: activeTemplateWhere(id) });
   if (!tpl) throw notFound('模板不存在');
 
   const transitions: Record<string, string> = {
@@ -254,7 +285,7 @@ export async function updateTemplateStatus(id: number, action: 'publish' | 'offl
     return publishTemplate(id);
   }
 
-  const tpl = await prisma.formTemplate.findUnique({ where: { id } });
+  const tpl = await prisma.formTemplate.findFirst({ where: activeTemplateWhere(id) });
   if (!tpl) throw notFound('模板不存在');
   if (tpl.status !== 'PUBLISHED') {
     throw new BizError(`当前状态 ${tpl.status} 不可转为 OFFLINE`);
@@ -268,7 +299,7 @@ export async function updateTemplateStatus(id: number, action: 'publish' | 'offl
 }
 
 export async function createTemplateShareLink(templateId: number, creatorId: number) {
-  const tpl = await prisma.formTemplate.findUnique({ where: { id: templateId } });
+  const tpl = await prisma.formTemplate.findFirst({ where: activeTemplateWhere(templateId) });
   if (!tpl) throw notFound('模板不存在');
   if (tpl.businessMode === 'APPROVAL_REQUIRED') {
     throw new BizError(
@@ -288,29 +319,26 @@ export async function createTemplateShareLink(templateId: number, creatorId: num
   });
 }
 
+export async function deleteTemplate(id: number) {
+  const tpl = await prisma.formTemplate.findFirst({ where: activeTemplateWhere(id) });
+  if (!tpl) throw notFound('模板不存在');
+  if (tpl.status === 'PUBLISHED') {
+    throw new BizError('仅可删除草稿或已下线状态的模板');
+  }
+
+  return prisma.formTemplate.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+    include: templateInclude,
+  });
+}
+
 export const formTemplateModule = new Elysia({ prefix: '/templates' })
   .use(authGuard('form:template:list'))
-  .get('/', async ({ query }: any) => {
-    const page = Number(query.page) || 1;
-    const size = Number(query.size) || 10;
-    const where: any = {};
-    if (query.status) where.status = query.status;
-    if (query.businessMode) where.businessMode = query.businessMode;
-    const [rows, total] = await Promise.all([
-      prisma.formTemplate.findMany({
-        where,
-        include: templateInclude,
-        orderBy: { updatedAt: 'desc' },
-        skip: (page - 1) * size,
-        take: size,
-      }),
-      prisma.formTemplate.count({ where }),
-    ]);
-    return { rows, total, page, size };
-  })
+  .get('/', async ({ query }: any) => listTemplates(query))
   .get('/:id', async ({ params }: any) => {
-    const tpl = await prisma.formTemplate.findUnique({
-      where: { id: Number(params.id) },
+    const tpl = await prisma.formTemplate.findFirst({
+      where: activeTemplateWhere(Number(params.id)),
       include: templateInclude,
     });
     if (!tpl) throw notFound('模板不存在');
@@ -352,14 +380,10 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
       },
     ),
   )
-  // Delete (DRAFT only)
+  // Delete (soft delete)
   .guard({}, (app) =>
     app.use(authGuard('form:template:delete')).delete('/:id', async ({ params }: any) => {
-      const id = Number(params.id);
-      const tpl = await prisma.formTemplate.findUnique({ where: { id } });
-      if (!tpl) throw notFound('模板不存在');
-      if (tpl.status !== 'DRAFT') throw new BizError('仅可删除草稿状态的模板');
-      await prisma.formTemplate.delete({ where: { id } });
+      await deleteTemplate(Number(params.id));
       return { ok: true };
     }),
   )
