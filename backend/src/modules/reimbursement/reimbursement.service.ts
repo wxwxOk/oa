@@ -67,6 +67,11 @@ type ReimbursementAccessRow = {
   status: string;
 };
 
+type DepartmentReviewScopeNode = {
+  id: number;
+  parentId: number | null;
+};
+
 type ReviewActionOptions = {
   actionType: 'DEPARTMENT_APPROVE' | 'DEPARTMENT_REJECT' | 'FINANCE_APPROVE' | 'FINANCE_REJECT';
   fromStatus: ReimbursementStatusValue;
@@ -176,6 +181,52 @@ async function loadActorDepartmentId(actorId: number): Promise<number | null> {
   return user?.departmentId ?? null;
 }
 
+export function buildDepartmentReviewScopeIds(
+  actorDepartmentId: number | null | undefined,
+  departments: DepartmentReviewScopeNode[],
+): number[] {
+  if (actorDepartmentId == null) return [];
+
+  const parentById = new Map<number, number | null>();
+  const childrenByParent = new Map<number | null, number[]>();
+  for (const department of departments) {
+    parentById.set(department.id, department.parentId);
+    const siblings = childrenByParent.get(department.parentId) ?? [];
+    siblings.push(department.id);
+    childrenByParent.set(department.parentId, siblings);
+  }
+
+  const scopeIds = new Set<number>([actorDepartmentId]);
+  if (parentById.has(actorDepartmentId)) {
+    const actorParentId = parentById.get(actorDepartmentId) ?? null;
+    for (const siblingDepartmentId of childrenByParent.get(actorParentId) ?? []) {
+      scopeIds.add(siblingDepartmentId);
+    }
+  }
+
+  const stack = [...(childrenByParent.get(actorDepartmentId) ?? [])];
+  while (stack.length > 0) {
+    const departmentId = stack.pop();
+    if (departmentId == null || scopeIds.has(departmentId)) continue;
+    scopeIds.add(departmentId);
+    stack.push(...(childrenByParent.get(departmentId) ?? []));
+  }
+
+  return [...scopeIds];
+}
+
+async function loadDepartmentReviewScopeIds(actorDepartmentId: number | null): Promise<number[]> {
+  if (actorDepartmentId == null) return [];
+  const departments = await prisma.department.findMany({ select: { id: true, parentId: true } });
+  return buildDepartmentReviewScopeIds(actorDepartmentId, departments);
+}
+
+export async function loadActorDepartmentReviewScope(actorId: number) {
+  const actorDepartmentId = await loadActorDepartmentId(actorId);
+  const departmentReviewScopeIds = await loadDepartmentReviewScopeIds(actorDepartmentId);
+  return { actorDepartmentId, departmentReviewScopeIds };
+}
+
 export function normalizeReimbursementWriteInput(input: ReimbursementWriteInput) {
   const payeeInfo = normalizeOptionalText(input.payeeInfo);
   const remark = normalizeOptionalText(input.remark);
@@ -206,14 +257,15 @@ export function canViewReimbursement(
   actor: ReimbursementActor,
   application: ReimbursementAccessRow,
   actorDepartmentId?: number | null,
+  departmentReviewScopeIds: number[] = actorDepartmentId == null ? [] : [actorDepartmentId],
 ): boolean {
   if (isAdmin(actor) || hasPermission(actor, 'reimbursement:list')) return true;
   if (application.applicantId === actor.id) return true;
   if (
     hasPermission(actor, 'reimbursement:department-review') &&
     application.status === 'DEPARTMENT_REVIEW' &&
-    actorDepartmentId != null &&
-    actorDepartmentId === application.applicantDepartmentId
+    application.applicantDepartmentId != null &&
+    departmentReviewScopeIds.includes(application.applicantDepartmentId)
   ) {
     return true;
   }
@@ -227,8 +279,9 @@ export function assertCanViewReimbursement(
   actor: ReimbursementActor,
   application: ReimbursementAccessRow,
   actorDepartmentId?: number | null,
+  departmentReviewScopeIds?: number[],
 ) {
-  if (!canViewReimbursement(actor, application, actorDepartmentId)) {
+  if (!canViewReimbursement(actor, application, actorDepartmentId, departmentReviewScopeIds)) {
     throw new BizError('无权查看该报销申请', 403, 'REIMBURSEMENT_VIEW_FORBIDDEN');
   }
 }
@@ -246,13 +299,14 @@ export function canDepartmentReviewReimbursement(
   actor: ReimbursementActor,
   application: ReimbursementAccessRow,
   actorDepartmentId?: number | null,
+  departmentReviewScopeIds: number[] = actorDepartmentId == null ? [] : [actorDepartmentId],
 ): boolean {
   if (application.status !== 'DEPARTMENT_REVIEW') return false;
   if (isAdmin(actor)) return true;
   return (
     hasPermission(actor, 'reimbursement:department-review') &&
-    actorDepartmentId != null &&
-    actorDepartmentId === application.applicantDepartmentId
+    application.applicantDepartmentId != null &&
+    departmentReviewScopeIds.includes(application.applicantDepartmentId)
   );
 }
 
@@ -341,12 +395,12 @@ export function serializeReimbursementDetail(row: any) {
   };
 }
 
-function buildVisibilityWhere(actor: ReimbursementActor, actorDepartmentId: number | null) {
+function buildVisibilityWhere(actor: ReimbursementActor, departmentReviewScopeIds: number[]) {
   if (isAdmin(actor) || hasPermission(actor, 'reimbursement:list')) return {};
 
   const or: Record<string, unknown>[] = [{ applicantId: actor.id }];
-  if (hasPermission(actor, 'reimbursement:department-review') && actorDepartmentId != null) {
-    or.push({ status: 'DEPARTMENT_REVIEW', applicantDepartmentId: actorDepartmentId });
+  if (hasPermission(actor, 'reimbursement:department-review') && departmentReviewScopeIds.length > 0) {
+    or.push({ status: 'DEPARTMENT_REVIEW', applicantDepartmentId: { in: departmentReviewScopeIds } });
   }
   if (hasPermission(actor, 'reimbursement:finance-review')) {
     or.push({ status: { in: ['FINANCE_REVIEW', 'APPROVED', 'REJECTED'] } });
@@ -376,8 +430,8 @@ function buildFilterWhere(filters: ReturnType<typeof normalizeReimbursementListF
 
 export async function listReimbursements(actor: ReimbursementActor, input: ReimbursementListFilters = {}) {
   const filters = normalizeReimbursementListFilters(input);
-  const actorDepartmentId = await loadActorDepartmentId(actor.id);
-  const and = [buildVisibilityWhere(actor, actorDepartmentId), ...buildFilterWhere(filters)].filter(
+  const { departmentReviewScopeIds } = await loadActorDepartmentReviewScope(actor.id);
+  const and = [buildVisibilityWhere(actor, departmentReviewScopeIds), ...buildFilterWhere(filters)].filter(
     (item) => Object.keys(item).length > 0,
   );
   const where = and.length > 0 ? { AND: and } : {};
@@ -402,12 +456,13 @@ async function listReviewReimbursements(
   stage: ReimbursementReviewStage,
 ) {
   const filters = normalizeReimbursementListFilters(input);
-  const actorDepartmentId = stage === 'department' ? await loadActorDepartmentId(actor.id) : null;
+  const departmentReviewScopeIds =
+    stage === 'department' ? (await loadActorDepartmentReviewScope(actor.id)).departmentReviewScopeIds : [];
   const scopeWhere =
     stage === 'department'
       ? {
           status: 'DEPARTMENT_REVIEW',
-          ...(!isAdmin(actor) ? { applicantDepartmentId: actorDepartmentId ?? -1 } : {}),
+          ...(!isAdmin(actor) ? { applicantDepartmentId: { in: departmentReviewScopeIds.length > 0 ? departmentReviewScopeIds : [-1] } } : {}),
         }
       : { status: 'FINANCE_REVIEW' };
   const and = [scopeWhere, ...buildFilterWhere(filters)].filter((item) => Object.keys(item).length > 0);
@@ -442,7 +497,7 @@ export async function listFinanceReviewReimbursements(actor: ReimbursementActor,
 }
 
 export async function getReimbursementDetail(actor: ReimbursementActor, id: number) {
-  const [application, actorDepartmentId] = await Promise.all([
+  const [application, actorDepartmentScope] = await Promise.all([
     reimbursementApplication().findUnique({
       where: { id },
       include: {
@@ -450,10 +505,15 @@ export async function getReimbursementDetail(actor: ReimbursementActor, id: numb
         actions: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
       },
     }),
-    loadActorDepartmentId(actor.id),
+    loadActorDepartmentReviewScope(actor.id),
   ]);
   if (!application) throw notFound('报销申请不存在');
-  assertCanViewReimbursement(actor, application, actorDepartmentId);
+  assertCanViewReimbursement(
+    actor,
+    application,
+    actorDepartmentScope.actorDepartmentId,
+    actorDepartmentScope.departmentReviewScopeIds,
+  );
   return serializeReimbursementDetail(application);
 }
 
@@ -525,10 +585,18 @@ async function applyReviewAction(actor: ReimbursementActor, id: number, input: R
         throw new BizError('当前报销状态不可审核', 400, 'INVALID_REIMBURSEMENT_REVIEW_STATUS');
       }
 
-      const actorDepartmentId = options.fromStatus === 'DEPARTMENT_REVIEW' ? await loadActorDepartmentId(actor.id) : null;
+      const actorDepartmentScope =
+        options.fromStatus === 'DEPARTMENT_REVIEW'
+          ? await loadActorDepartmentReviewScope(actor.id)
+          : { actorDepartmentId: null, departmentReviewScopeIds: [] };
       const canReview =
         options.fromStatus === 'DEPARTMENT_REVIEW'
-          ? canDepartmentReviewReimbursement(actor, application, actorDepartmentId)
+          ? canDepartmentReviewReimbursement(
+              actor,
+              application,
+              actorDepartmentScope.actorDepartmentId,
+              actorDepartmentScope.departmentReviewScopeIds,
+            )
           : canFinanceReviewReimbursement(actor, application);
       if (!canReview) {
         throw new BizError('无权审核该报销申请', 403, 'REIMBURSEMENT_REVIEW_FORBIDDEN');
