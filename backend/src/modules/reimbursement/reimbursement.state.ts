@@ -8,6 +8,7 @@ export type ReimbursementStatusValue =
   | 'REJECTED';
 
 export const REIMBURSEMENT_DEPARTMENT_REVIEW_NODE = '部门初审';
+export const REIMBURSEMENT_FINANCE_REVIEW_NODE = '财务复核';
 export const TERMINAL_REIMBURSEMENT_STATUSES = ['APPROVED', 'REJECTED'] as const;
 
 const REIMBURSEMENT_TRANSITIONS: Record<ReimbursementStatusValue, ReimbursementStatusValue[]> = {

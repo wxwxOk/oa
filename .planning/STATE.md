@@ -3,50 +3,50 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: 报销管理
 status: executing
-last_updated: "2026-05-03T05:00:00.000Z"
-last_activity: 2026-05-03 -- Phase 26 plans created; ready to execute
+last_updated: "2026-05-03T08:20:00.000Z"
+last_activity: 2026-05-03 -- Phase 26 completed
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 44
-  completed_plans: 40
-  percent: 91
+  completed_plans: 44
+  percent: 100
 ---
 
 # State
 
 - Initialized: 2026-04-17
 - Milestone: v1.4 报销管理 — ACTIVE
-- Status: Phase 26 plans created; ready to execute
+- Status: Phase 26 complete; Phase 27 ready
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** 开箱即用的组织架构管理、表单审批和固定业务台账
-**Current focus:** Phase 26 — two-level reimbursement review and signatures implementation
+**Current focus:** Phase 27 — reimbursement-export-validation
 
 ## Current Position
 
-Phase: 26 (reimbursement-review-signature) — PLANS READY
-Plan: 0 of 4
-Status: Phase 26 plans created; ready to execute
-Last activity: 2026-05-03 -- Phase 26 plans created
+Phase: 27 (reimbursement-export-validation) — READY
+Plan: pending
+Status: Phase 26 complete; ready to plan/execute Phase 27
+Last activity: 2026-05-03 -- Phase 26 completed
 
-Progress: [█████████░] 91%
+Progress: [██████████] 100%
 
 ## Roadmap Summary
 
 - Phase 24: 报销数据模型 + 附件上传 API — complete
 - Phase 25: 员工报销申请与详情页面 — complete
-- Phase 26: 两级审核与手写签字 — plans created; ready to execute
+- Phase 26: 两级审核与手写签字 — complete
 - Phase 27: 报销导出 + 验证收尾
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 100 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3 + 4 v1.4 Phase 25)
+- Total plans completed: 104 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3 + 4 v1.4 Phase 25 + 4 v1.4 Phase 26)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
@@ -80,6 +80,10 @@ Progress: [█████████░] 91%
 - Phase 25 Plan 25-02: same session, 3 tasks, 4 frontend shell files, completed 2026-05-03
 - Phase 25 Plan 25-03: same session, 3 tasks, 3 form/attachment UI files, completed 2026-05-03
 - Phase 25 Plan 25-04: same session, 4 tasks, 5 list/detail/validation files, completed 2026-05-03
+- Phase 26 Plan 26-01: same session, 3 tasks, backend/frontend reimbursement review contracts, completed 2026-05-03
+- Phase 26 Plan 26-02: same session, 3 tasks, backend review queues/actions/signatures/routes, completed 2026-05-03
+- Phase 26 Plan 26-03: same session, 3 tasks, frontend review store/signature/timeline support, completed 2026-05-03
+- Phase 26 Plan 26-04: same session, 3 tasks, reviewer queue/detail UI and validation closeout, completed 2026-05-03
 
 ## Accumulated Context
 
@@ -98,6 +102,11 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 25]: 附件上传必须先保存草稿获得申请 ID；图片预览和下载统一通过 `useReimbursementStore` 的 authenticated blob 请求和 object URL。
 - [Phase 25]: Phase 25 仅交付员工创建、我的报销、详情和附件操作；部门/财务审核、签名和导出继续留给 Phase 26/27。
 - [Phase 25]: Focused reimbursement frontend contracts and Quasar build are green；full frontend suite still has existing `localStorage`/`document` test environment failures outside Phase 25 scope.
+- [Phase 26]: 报销审核固定为部门初审到财务复核两级流转，状态流为 `DEPARTMENT_REVIEW -> FINANCE_REVIEW -> APPROVED/REJECTED`。
+- [Phase 26]: 审核签名作为 `ReimbursementAction` 证据保存，使用独立 signature 相对路径和受保护预览端点，不写入普通附件表。
+- [Phase 26]: 部门/财务审核队列使用 `/reimbursements/review/department` 与 `/reimbursements/review/finance`，和普通可见列表保持边界清晰。
+- [Phase 26]: 前端签名预览通过 authenticated blob 请求和 object URL 渲染，不在模板中直连受保护文件 URL。
+- [Phase 26]: Phase 26 focused backend/frontend suites and backend/frontend builds are green; export remains Phase 27 scope.
 
 - [Phase 19]: Phase 19 Wave 0 tests intentionally fail until future archive, export, stats, and notification modules are implemented.
 - [Phase 19]: Archive route contracts reject trusted fields and only accept operation payload fields for tags, notes, processing data, corrections, and reasons.
@@ -152,5 +161,5 @@ Keep out of scope for v1.4: OCR, invoice verification, automatic duplicate check
 ## Session
 
 - Last session: 2026-05-03
-- Stopped At: Phase 26 plans created
-- Resume File: .planning/phases/26-reimbursement-review-signature/26-01-PLAN.md
+- Stopped At: Phase 26 completed; Phase 27 ready
+- Resume File: .planning/phases/27-reimbursement-export-validation/27-01-PLAN.md

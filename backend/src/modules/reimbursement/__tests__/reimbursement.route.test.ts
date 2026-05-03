@@ -3,6 +3,8 @@ import { describe, expect, it } from 'bun:test';
 import {
   reimbursementListQuery,
   reimbursementModule,
+  reimbursementReviewApproveBody,
+  reimbursementReviewRejectBody,
   reimbursementWriteBody,
   serializeReimbursementListResponse,
 } from '../reimbursement.route';
@@ -73,15 +75,25 @@ describe('reimbursement route contract', () => {
       expect.arrayContaining([
         'GET /',
         'GET /:id',
+        'GET /review/department',
+        'GET /review/finance',
         'POST /',
         'PUT /:id',
         'POST /:id/submit',
         'POST /:id/attachments',
+        'POST /:id/department-review/approve',
+        'POST /:id/department-review/reject',
+        'POST /:id/finance-review/approve',
+        'POST /:id/finance-review/reject',
         'GET /:id/attachments/:attachmentId/preview',
         'GET /:id/attachments/:attachmentId/download',
+        'GET /:id/actions/:actionId/signature',
         'DELETE /:id/attachments/:attachmentId',
       ]),
     );
+
+    expect(routeSignatures().indexOf('GET /review/department')).toBeLessThan(routeSignatures().indexOf('GET /:id'));
+    expect(routeSignatures().indexOf('GET /:id/actions/:actionId/signature')).toBeLessThan(routeSignatures().indexOf('GET /:id'));
   });
 
   it('exposes controlled list query filters and pagination fields', () => {
@@ -97,6 +109,13 @@ describe('reimbursement route contract', () => {
     for (const field of trustedFields) {
       expect(schemaPropertyNames(reimbursementWriteBody)).not.toContain(field);
     }
+  });
+
+  it('declares minimal review action body schemas', () => {
+    expect(schemaPropertyNames(reimbursementReviewApproveBody)).toEqual(['signature', 'comment']);
+    expect(schemaPropertyNames(reimbursementReviewRejectBody)).toEqual(['comment']);
+    expect((reimbursementReviewApproveBody as { additionalProperties?: boolean }).additionalProperties).toBe(false);
+    expect((reimbursementReviewRejectBody as { additionalProperties?: boolean }).additionalProperties).toBe(false);
   });
 
   it('serializes list responses as rows/total/page/size', () => {
@@ -125,10 +144,21 @@ describe('reimbursement route contract', () => {
     expect(source).toContain("authGuard('reimbursement:create')");
     expect(source).toContain("authGuard('reimbursement:list')");
     expect(source).toContain("authGuard('reimbursement:attachment')");
+    expect(source).toContain("authGuard('reimbursement:department-review')");
+    expect(source).toContain("authGuard('reimbursement:finance-review')");
+    expect(source).toContain('/review/department');
+    expect(source).toContain('/review/finance');
+    expect(source).toContain('/:id/department-review/approve');
+    expect(source).toContain('/:id/department-review/reject');
+    expect(source).toContain('/:id/finance-review/approve');
+    expect(source).toContain('/:id/finance-review/reject');
+    expect(source).toContain('/:id/actions/:actionId/signature');
+    expect(source).toContain('buildReimbursementSignaturePreviewHeaders');
     expect(source).toContain('currentUser.id');
     expect(source).toContain('assertCanViewReimbursement');
     expect(source).toContain('assertCanMutateDraftReimbursement');
     expect(source).toContain('dateTo + \'T23:59:59.999Z\'');
+    expect(source).not.toContain('responseType');
     expect(source).not.toMatch(/data:\s*body|applicantId:\s*body/);
   });
 });

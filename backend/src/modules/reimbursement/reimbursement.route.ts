@@ -4,11 +4,17 @@ import { authGuard } from '../../middlewares/auth';
 import { prisma } from '../../plugins/prisma';
 import { BizError, notFound } from '../../utils/errors';
 import {
+  approveDepartmentReimbursement,
+  approveFinanceReimbursement,
   assertCanMutateDraftReimbursement,
   assertCanViewReimbursement,
   createReimbursementDraft,
   getReimbursementDetail,
+  listDepartmentReviewReimbursements,
+  listFinanceReviewReimbursements,
   listReimbursements,
+  rejectDepartmentReimbursement,
+  rejectFinanceReimbursement,
   serializeReimbursementRow,
   submitReimbursementDraft,
   updateReimbursementDraft,
@@ -21,6 +27,7 @@ import {
   buildReimbursementDownloadHeaders,
   buildReimbursementPreviewHeaders,
   buildReimbursementRelativePath,
+  buildReimbursementSignaturePreviewHeaders,
   deleteReimbursementFile,
   getSafeReimbursementStoredName,
   resolveSafeReimbursementPath,
@@ -66,8 +73,24 @@ export const reimbursementAttachmentUploadBody = t.Object(
   { additionalProperties: false },
 );
 
+export const reimbursementReviewApproveBody = t.Object(
+  {
+    signature: t.File(),
+    comment: t.Optional(t.String()),
+  },
+  { additionalProperties: false },
+);
+
+export const reimbursementReviewRejectBody = t.Object(
+  {
+    comment: t.String({ minLength: 1 }),
+  },
+  { additionalProperties: false },
+);
+
 const idParams = t.Object({ id: t.String() });
 const attachmentParams = t.Object({ id: t.String(), attachmentId: t.String() });
+const actionParams = t.Object({ id: t.String(), actionId: t.String() });
 
 function toActor(currentUser: {
   id: number;
@@ -130,6 +153,17 @@ async function loadVisibleAttachment(actor: ReimbursementActor, applicationId: n
   const attachment = await loadAttachment(application.id, attachmentId);
   assertCanViewReimbursement(actor, application, await loadActorDepartmentId(actor));
   return { application, attachment };
+}
+
+async function loadVisibleSignature(actor: ReimbursementActor, applicationId: number, actionId: number) {
+  const application = await loadApplication(applicationId);
+  assertCanViewReimbursement(actor, application, await loadActorDepartmentId(actor));
+
+  const action = await (prisma as any).reimbursementAction.findUnique({ where: { id: actionId } });
+  if (!action || action.applicationId !== applicationId || !action.signatureRelativePath) {
+    throw notFound('报销签名不存在');
+  }
+  return action;
 }
 
 function assertCanReadReimbursements(actor: ReimbursementActor) {
@@ -250,6 +284,68 @@ export const reimbursementModule = new Elysia({ prefix: '/reimbursements' })
         },
         { params: attachmentParams },
       ),
+  )
+  .guard({}, (app) =>
+    app.use(authGuard('reimbursement:department-review')).get(
+      '/review/department',
+      async ({ query, currentUser }: any) =>
+        serializeReimbursementListResponse(
+          await listDepartmentReviewReimbursements(toActor(currentUser), query as ReimbursementListFilters),
+        ),
+      { query: reimbursementListQuery },
+    ),
+  )
+  .guard({}, (app) =>
+    app.use(authGuard('reimbursement:finance-review')).get(
+      '/review/finance',
+      async ({ query, currentUser }: any) =>
+        serializeReimbursementListResponse(
+          await listFinanceReviewReimbursements(toActor(currentUser), query as ReimbursementListFilters),
+        ),
+      { query: reimbursementListQuery },
+    ),
+  )
+  .guard({}, (app) =>
+    app.use(authGuard('reimbursement:department-review'))
+      .post(
+        '/:id/department-review/approve',
+        async ({ params, body, currentUser }: any) =>
+          serializeReimbursementRow(await approveDepartmentReimbursement(toActor(currentUser), Number(params.id), body)),
+        { params: idParams, body: reimbursementReviewApproveBody },
+      )
+      .post(
+        '/:id/department-review/reject',
+        async ({ params, body, currentUser }: any) =>
+          serializeReimbursementRow(await rejectDepartmentReimbursement(toActor(currentUser), Number(params.id), body)),
+        { params: idParams, body: reimbursementReviewRejectBody },
+      ),
+  )
+  .guard({}, (app) =>
+    app.use(authGuard('reimbursement:finance-review'))
+      .post(
+        '/:id/finance-review/approve',
+        async ({ params, body, currentUser }: any) =>
+          serializeReimbursementRow(await approveFinanceReimbursement(toActor(currentUser), Number(params.id), body)),
+        { params: idParams, body: reimbursementReviewApproveBody },
+      )
+      .post(
+        '/:id/finance-review/reject',
+        async ({ params, body, currentUser }: any) =>
+          serializeReimbursementRow(await rejectFinanceReimbursement(toActor(currentUser), Number(params.id), body)),
+        { params: idParams, body: reimbursementReviewRejectBody },
+      ),
+  )
+  .guard({}, (app) =>
+    app.use(authGuard()).get(
+      '/:id/actions/:actionId/signature',
+      async ({ params, currentUser }: any) => {
+        const action = await loadVisibleSignature(toActor(currentUser), Number(params.id), Number(params.actionId));
+        return new Response(Bun.file(resolveSafeReimbursementPath(action.signatureRelativePath)), {
+          headers: buildReimbursementSignaturePreviewHeaders(),
+        });
+      },
+      { params: actionParams },
+    ),
   )
   .guard({}, (app) =>
     app.use(authGuard()).get(

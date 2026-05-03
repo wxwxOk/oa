@@ -77,6 +77,26 @@ export type ReimbursementListRequest = Partial<ReimbursementListFilters> & {
   size?: number;
 };
 
+export const REIMBURSEMENT_REVIEW_SCOPES = ['all', 'department', 'finance'] as const;
+export type ReimbursementReviewScope = (typeof REIMBURSEMENT_REVIEW_SCOPES)[number];
+
+export const REIMBURSEMENT_REVIEW_ACTIONS = [
+  'departmentApprove',
+  'departmentReject',
+  'financeApprove',
+  'financeReject',
+] as const;
+export type ReimbursementReviewAction = (typeof REIMBURSEMENT_REVIEW_ACTIONS)[number];
+
+export interface ReimbursementReviewPayload {
+  comment?: string | null;
+  signature: File;
+}
+
+export interface ReimbursementRejectPayload {
+  comment: string;
+}
+
 export interface ReimbursementWritePayload {
   title: string;
   category: string;
@@ -146,6 +166,22 @@ export function isDraftReimbursement(row: Pick<ReimbursementRow, 'status'>): boo
   return row.status === 'DRAFT';
 }
 
+export function canReviewDepartmentReimbursement(
+  row: Pick<ReimbursementRow, 'status'>,
+  permissions: string[],
+  isAdmin = false,
+): boolean {
+  return row.status === 'DEPARTMENT_REVIEW' && (isAdmin || permissions.includes('reimbursement:department-review'));
+}
+
+export function canReviewFinanceReimbursement(
+  row: Pick<ReimbursementRow, 'status'>,
+  permissions: string[],
+  isAdmin = false,
+): boolean {
+  return row.status === 'FINANCE_REVIEW' && (isAdmin || permissions.includes('reimbursement:finance-review'));
+}
+
 export function formatReimbursementDate(value?: string | null): string {
   if (!value) return '-';
   return value.slice(0, 10);
@@ -179,4 +215,20 @@ export function normalizeReimbursementPayload(payload: ReimbursementWritePayload
     payeeInfo: normalizeOptionalText(payload.payeeInfo),
     remark: normalizeOptionalText(payload.remark),
   };
+}
+
+export function normalizeReimbursementRejectPayload(payload: ReimbursementRejectPayload): ReimbursementRejectPayload {
+  return { comment: payload.comment.trim() };
+}
+
+export function reimbursementSignatureDataUrlToFile(dataUrl: string, filename = 'signature.png'): File {
+  const match = dataUrl.match(/^data:image\/png;base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) throw new Error('手写签名必须是 PNG 图片');
+
+  const binary = atob(match[1]);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new File([bytes], filename, { type: 'image/png' });
 }

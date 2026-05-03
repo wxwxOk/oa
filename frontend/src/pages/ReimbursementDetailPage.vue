@@ -1,5 +1,5 @@
 <template>
-  <q-page padding class="reimbursement-detail-page">
+  <q-page padding :class="['reimbursement-detail-page', { 'has-mobile-review-actions': isMobile && canShowReviewActions }]">
     <div class="detail-wrapper">
       <div class="row items-center q-mb-md q-gutter-sm">
         <q-btn flat dense round icon="arrow_back" aria-label="返回" @click="goBack">
@@ -27,11 +27,56 @@
           :loading="store.actionLoading"
           @click="submitApplication"
         />
+        <q-btn
+          v-if="isDesktop && canDepartmentReview"
+          color="positive"
+          icon="check_circle"
+          label="部门初审通过"
+          :loading="store.actionLoading"
+          @click="openApproveDialog('departmentApprove')"
+        />
+        <q-btn
+          v-if="isDesktop && canFinanceReview"
+          color="positive"
+          icon="check_circle"
+          label="财务复核通过"
+          :loading="store.actionLoading"
+          @click="openApproveDialog('financeApprove')"
+        />
+        <q-btn
+          v-if="isDesktop && canShowReviewActions"
+          outline
+          color="negative"
+          icon="cancel"
+          label="驳回申请"
+          :loading="store.actionLoading"
+          @click="openCurrentRejectDialog"
+        />
       </div>
 
       <div v-if="isMobile && canMutateDraft" class="mobile-actions q-mb-md">
         <q-btn outline color="primary" icon="edit" label="继续编辑" @click="goEdit" />
         <q-btn color="primary" icon="send" label="提交申请" :loading="store.actionLoading" @click="submitApplication" />
+      </div>
+
+      <div v-if="isMobile && canShowReviewActions" class="mobile-review-actions q-mb-md">
+        <q-btn
+          v-if="canDepartmentReview"
+          color="positive"
+          icon="check_circle"
+          label="部门初审通过"
+          :loading="store.actionLoading"
+          @click="openApproveDialog('departmentApprove')"
+        />
+        <q-btn
+          v-if="canFinanceReview"
+          color="positive"
+          icon="check_circle"
+          label="财务复核通过"
+          :loading="store.actionLoading"
+          @click="openApproveDialog('financeApprove')"
+        />
+        <q-btn outline color="negative" icon="cancel" label="驳回申请" :loading="store.actionLoading" @click="openCurrentRejectDialog" />
       </div>
 
       <div v-if="loading" class="detail-grid">
@@ -107,6 +152,31 @@
         </div>
 
         <div class="detail-side">
+          <q-card v-if="canShowReviewActions" flat bordered class="detail-section q-mb-md review-panel">
+            <q-card-section>
+              <div class="section-title q-mb-md">审核操作</div>
+              <div class="review-actions">
+                <q-btn
+                  v-if="canDepartmentReview"
+                  color="positive"
+                  icon="check_circle"
+                  label="部门初审通过"
+                  :loading="store.actionLoading"
+                  @click="openApproveDialog('departmentApprove')"
+                />
+                <q-btn
+                  v-if="canFinanceReview"
+                  color="positive"
+                  icon="check_circle"
+                  label="财务复核通过"
+                  :loading="store.actionLoading"
+                  @click="openApproveDialog('financeApprove')"
+                />
+                <q-btn outline color="negative" icon="cancel" label="驳回申请" :loading="store.actionLoading" @click="openCurrentRejectDialog" />
+              </div>
+            </q-card-section>
+          </q-card>
+
           <q-card flat bordered class="detail-section q-mb-md">
             <q-card-section>
               <div class="section-title">附件</div>
@@ -118,12 +188,39 @@
           <q-card flat bordered class="detail-section">
             <q-card-section>
               <div class="section-title q-mb-md">审核轨迹</div>
-              <ReimbursementActionTimeline :actions="detail.actions" />
+              <ReimbursementActionTimeline :application-id="detail.id" :actions="detail.actions" />
             </q-card-section>
           </q-card>
         </div>
       </div>
     </div>
+
+    <q-dialog v-model="approveDialog">
+      <q-card class="review-dialog">
+        <q-card-section class="text-h6">{{ approveDialogTitle }}</q-card-section>
+        <q-card-section class="q-gutter-md">
+          <ReimbursementSignaturePad v-model="signatureDataUrl" />
+          <q-input v-model="reviewComment" outlined type="textarea" label="审核意见（选填）" autogrow />
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="取消" @click="closeApproveDialog" />
+          <q-btn color="positive" label="确认通过" :disable="!canSubmitApprove" :loading="store.actionLoading" @click="submitApprove" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="rejectDialog">
+      <q-card class="review-dialog">
+        <q-card-section class="text-h6">确认驳回申请</q-card-section>
+        <q-card-section>
+          <q-input v-model="rejectComment" outlined type="textarea" label="驳回原因" autogrow />
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="取消" @click="closeRejectDialog" />
+          <q-btn color="negative" label="确认驳回" :disable="!canSubmitReject" :loading="store.actionLoading" @click="submitReject" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -133,15 +230,20 @@ import { Notify } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 import ReimbursementActionTimeline from 'src/components/reimbursement/ReimbursementActionTimeline.vue';
 import ReimbursementAttachmentPanel from 'src/components/reimbursement/ReimbursementAttachmentPanel.vue';
+import ReimbursementSignaturePad from 'src/components/reimbursement/ReimbursementSignaturePad.vue';
 import ReimbursementStatusChip from 'src/components/reimbursement/ReimbursementStatusChip.vue';
 import { useResponsive } from 'src/composables/useResponsive';
 import { useAuthStore } from 'src/stores/auth';
 import { useReimbursementStore } from 'src/stores/reimbursement';
 import {
+  canReviewDepartmentReimbursement,
+  canReviewFinanceReimbursement,
   formatReimbursementAmount,
   formatReimbursementDate,
   isDraftReimbursement,
+  reimbursementSignatureDataUrlToFile,
   type ReimbursementDetail,
+  type ReimbursementReviewAction,
 } from 'src/types/reimbursement';
 
 defineOptions({ name: 'ReimbursementDetailPage' });
@@ -155,8 +257,31 @@ const { isDesktop, isMobile } = useResponsive();
 const loading = ref(true);
 const error = ref(false);
 const detail = ref<ReimbursementDetail | null>(null);
+const approveDialog = ref(false);
+const rejectDialog = ref(false);
+const reviewAction = ref<Extract<ReimbursementReviewAction, 'departmentApprove' | 'financeApprove'> | null>(null);
+const rejectAction = ref<Extract<ReimbursementReviewAction, 'departmentReject' | 'financeReject'> | null>(null);
+const reviewComment = ref('');
+const rejectComment = ref('');
+const signatureDataUrl = ref('');
 const applicationId = computed(() => Number(route.params.id));
 const canMutateDraft = computed(() => !!detail.value && isDraftReimbursement(detail.value) && auth.hasPerm('reimbursement:create'));
+const permissions = computed(() => auth.user?.permissions ?? []);
+const canDepartmentReview = computed(
+  () => !!detail.value && canReviewDepartmentReimbursement(detail.value, permissions.value, auth.isAdmin),
+);
+const canFinanceReview = computed(() => !!detail.value && canReviewFinanceReimbursement(detail.value, permissions.value, auth.isAdmin));
+const canShowReviewActions = computed(() => canDepartmentReview.value || canFinanceReview.value);
+const approveDialogTitle = computed(() =>
+  reviewAction.value === 'departmentApprove' ? '确认部门初审通过' : '确认财务复核通过',
+);
+const canSubmitApprove = computed(() => signatureDataUrl.value.startsWith('data:image/png;base64,'));
+const canSubmitReject = computed(() => rejectComment.value.trim().length > 0);
+const currentRejectAction = computed<Extract<ReimbursementReviewAction, 'departmentReject' | 'financeReject'> | null>(() => {
+  if (canDepartmentReview.value) return 'departmentReject';
+  if (canFinanceReview.value) return 'financeReject';
+  return null;
+});
 
 async function load() {
   loading.value = true;
@@ -194,6 +319,84 @@ async function submitApplication() {
     await load();
   } catch {
     Notify.create({ type: 'negative', message: '报销申请提交失败，请检查后重试。' });
+  }
+}
+
+function openApproveDialog(action: Extract<ReimbursementReviewAction, 'departmentApprove' | 'financeApprove'>) {
+  reviewAction.value = action;
+  reviewComment.value = '';
+  signatureDataUrl.value = '';
+  approveDialog.value = true;
+}
+
+function openRejectDialog(action: Extract<ReimbursementReviewAction, 'departmentReject' | 'financeReject'>) {
+  rejectAction.value = action;
+  rejectComment.value = '';
+  rejectDialog.value = true;
+}
+
+function openCurrentRejectDialog() {
+  if (currentRejectAction.value) openRejectDialog(currentRejectAction.value);
+}
+
+function closeApproveDialog() {
+  approveDialog.value = false;
+  reviewAction.value = null;
+  reviewComment.value = '';
+  signatureDataUrl.value = '';
+}
+
+function closeRejectDialog() {
+  rejectDialog.value = false;
+  rejectAction.value = null;
+  rejectComment.value = '';
+}
+
+async function submitApprove() {
+  if (!detail.value || !reviewAction.value) return;
+  if (!signatureDataUrl.value) {
+    Notify.create({ type: 'warning', message: '请先完成手写签名' });
+    return;
+  }
+
+  try {
+    const payload = {
+      comment: reviewComment.value,
+      signature: reimbursementSignatureDataUrlToFile(signatureDataUrl.value),
+    };
+    if (reviewAction.value === 'departmentApprove') {
+      await store.departmentApprove(detail.value.id, payload);
+      Notify.create({ type: 'positive', message: '部门初审已通过，申请进入财务复核' });
+    } else {
+      await store.financeApprove(detail.value.id, payload);
+      Notify.create({ type: 'positive', message: '财务复核已通过，报销申请完成' });
+    }
+    closeApproveDialog();
+    await load();
+  } catch {
+    Notify.create({ type: 'negative', message: '审核操作失败，请检查后重试。' });
+  }
+}
+
+async function submitReject() {
+  if (!detail.value || !rejectAction.value) return;
+  const comment = rejectComment.value.trim();
+  if (!comment) {
+    Notify.create({ type: 'warning', message: '驳回原因不能为空' });
+    return;
+  }
+
+  try {
+    if (rejectAction.value === 'departmentReject') {
+      await store.departmentReject(detail.value.id, { comment });
+    } else {
+      await store.financeReject(detail.value.id, { comment });
+    }
+    Notify.create({ type: 'positive', message: '报销申请已驳回' });
+    closeRejectDialog();
+    await load();
+  } catch {
+    Notify.create({ type: 'negative', message: '审核操作失败，请检查后重试。' });
   }
 }
 
@@ -276,8 +479,36 @@ onMounted(() => {
   gap: 8px;
 }
 
-.mobile-actions .q-btn {
+.mobile-review-actions {
+  position: sticky;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 8px 8px calc(12px + env(safe-area-inset-bottom));
+  border: 1px solid var(--oa-border);
+  border-radius: 8px;
+  background: var(--oa-surface);
+}
+
+.has-mobile-review-actions .detail-wrapper {
+  padding-bottom: 128px;
+}
+
+.mobile-actions .q-btn,
+.mobile-review-actions .q-btn {
   min-height: 44px;
+}
+
+.review-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.review-dialog {
+  width: 520px;
+  max-width: 100vw;
 }
 
 @media (max-width: 1023px) {

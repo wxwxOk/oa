@@ -8,9 +8,10 @@ const detailSource = readFileSync(resolve(__dirname, '../ReimbursementDetailPage
 const statusChipSource = readFileSync(resolve(__dirname, '../../components/reimbursement/ReimbursementStatusChip.vue'), 'utf8');
 const attachmentSource = readFileSync(resolve(__dirname, '../../components/reimbursement/ReimbursementAttachmentPanel.vue'), 'utf8');
 const timelineSource = readFileSync(resolve(__dirname, '../../components/reimbursement/ReimbursementActionTimeline.vue'), 'utf8');
+const signaturePadSource = readFileSync(resolve(__dirname, '../../components/reimbursement/ReimbursementSignaturePad.vue'), 'utf8');
 const routeSource = readFileSync(resolve(__dirname, '../../router/routes.ts'), 'utf8');
 const menuSource = readFileSync(resolve(__dirname, '../../layouts/MainLayout.vue'), 'utf8');
-const uiSource = `${listSource}\n${formSource}\n${detailSource}\n${statusChipSource}\n${attachmentSource}\n${timelineSource}`;
+const uiSource = `${listSource}\n${formSource}\n${detailSource}\n${statusChipSource}\n${attachmentSource}\n${timelineSource}\n${signaturePadSource}`;
 
 const readPermAny = "['reimbursement:own', 'reimbursement:list', 'reimbursement:department-review', 'reimbursement:finance-review']";
 
@@ -34,9 +35,14 @@ describe('Reimbursement UI source contract', () => {
     for (const value of ['我的报销', '新建报销申请', '暂无报销申请', '查询', '重置筛选', '应用筛选']) {
       expect(listSource).toContain(value);
     }
+    for (const value of ['队列', '全部可见', '待部门初审', '待财务复核']) {
+      expect(listSource).toContain(value);
+    }
     for (const key of ['keyword', 'status', 'category', 'dateFrom', 'dateTo']) {
       expect(listSource).toContain(key);
     }
+    expect(listSource).toContain('fetchDepartmentReviewList');
+    expect(listSource).toContain('fetchFinanceReviewList');
     expect(listSource).toContain('q-table');
     expect(listSource).toContain('@request');
     expect(listSource).toContain(':rows-per-page-options="[10, 20, 50]"');
@@ -72,24 +78,51 @@ describe('Reimbursement UI source contract', () => {
     expect(attachmentSource).toContain('URL.revokeObjectURL');
   });
 
-  it('pins detail and timeline display without Phase 26 or Phase 27 scope', () => {
+  it('pins detail review actions, signature capture and timeline previews', () => {
     expect(detailSource).toContain('ReimbursementDetailPage');
     expect(detailSource).toContain('ReimbursementActionTimeline');
     for (const value of ['申请信息', '申请人信息', '报销明细', '附件', '审核轨迹', '继续编辑', '提交申请']) {
       expect(detailSource).toContain(value);
     }
+    for (const value of [
+      '部门初审通过',
+      '财务复核通过',
+      '驳回申请',
+      '确认部门初审通过',
+      '确认财务复核通过',
+      '确认驳回申请',
+      '驳回原因',
+      '确认驳回',
+      '部门初审已通过，申请进入财务复核',
+      '财务复核已通过，报销申请完成',
+      '报销申请已驳回',
+      '审核操作失败，请检查后重试。',
+    ]) {
+      expect(detailSource).toContain(value);
+    }
+    expect(detailSource).toContain('mobile-review-actions');
+    expect(detailSource).toContain('ReimbursementSignaturePad');
+    expect(detailSource).toContain('reimbursementSignatureDataUrlToFile');
+    for (const action of ['departmentApprove', 'departmentReject', 'financeApprove', 'financeReject']) {
+      expect(detailSource).toContain(action);
+    }
+
+    expect(signaturePadSource).toContain('手写签名');
+    expect(signaturePadSource).toContain('点击签名');
+    expect(signaturePadSource).toContain("from 'signature_pad'");
+
     expect(timelineSource).toContain('审核轨迹');
     expect(timelineSource).toContain('暂无审核轨迹');
     expect(timelineSource).toContain('签名附件');
+    expect(timelineSource).toContain('previewSignatureBlob');
+    expect(timelineSource).toContain('URL.createObjectURL');
+    expect(timelineSource).toContain('URL.revokeObjectURL');
+    expect(timelineSource).toContain(':src="signatureUrls[action.id]"');
     expect(detailSource).toContain('detail-grid');
     expect(detailSource).toContain('detail-main');
     expect(detailSource).toContain('detail-side');
 
     for (const forbidden of [
-      '部门初审通过',
-      '财务复核通过',
-      '驳回申请',
-      '手写签名',
       '导出 Excel',
       'OCR',
       '发票验真',

@@ -4,11 +4,14 @@ import {
   REIMBURSEMENT_LIST_FILTER_KEYS,
   createEmptyReimbursementFilters,
   normalizeReimbursementPayload,
+  normalizeReimbursementRejectPayload,
   type ReimbursementAttachment,
   type ReimbursementDetail,
   type ReimbursementListFilters,
   type ReimbursementListRequest,
   type ReimbursementListResponse,
+  type ReimbursementRejectPayload,
+  type ReimbursementReviewPayload,
   type ReimbursementRow,
   type ReimbursementWritePayload,
 } from 'src/types/reimbursement';
@@ -29,6 +32,18 @@ function buildListParams(filters: ReimbursementListFilters, page: number, size: 
     if (value) params[key] = value;
   }
   return params;
+}
+
+function buildReviewFormData(payload: ReimbursementReviewPayload) {
+  const formData = new FormData();
+  formData.append('signature', payload.signature);
+  const comment = payload.comment?.trim();
+  if (comment) formData.append('comment', comment);
+  return formData;
+}
+
+function applyCurrentRow(current: ReimbursementDetail | null, id: number, row: ReimbursementRow) {
+  return current?.id === id ? { ...current, ...row } : current;
 }
 
 export const useReimbursementStore = defineStore('reimbursement', {
@@ -53,6 +68,44 @@ export const useReimbursementStore = defineStore('reimbursement', {
         const size = Number(filters?.size ?? this.size) || 10;
         const nextFilters = mergeFilters(this.filters, filters);
         const { data } = await api.get('/reimbursements', { params: buildListParams(nextFilters, page, size) });
+        const response = data as ReimbursementListResponse;
+        this.rows = response.rows;
+        this.total = Number(response.total) || 0;
+        this.page = Number(response.page) || page;
+        this.size = Number(response.size) || size;
+        this.filters = nextFilters;
+        return response;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchDepartmentReviewList(filters?: ReimbursementListRequest) {
+      this.loading = true;
+      try {
+        const page = Number(filters?.page ?? this.page) || 1;
+        const size = Number(filters?.size ?? this.size) || 10;
+        const nextFilters = mergeFilters(this.filters, filters);
+        const { data } = await api.get('/reimbursements/review/department', { params: buildListParams(nextFilters, page, size) });
+        const response = data as ReimbursementListResponse;
+        this.rows = response.rows;
+        this.total = Number(response.total) || 0;
+        this.page = Number(response.page) || page;
+        this.size = Number(response.size) || size;
+        this.filters = nextFilters;
+        return response;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchFinanceReviewList(filters?: ReimbursementListRequest) {
+      this.loading = true;
+      try {
+        const page = Number(filters?.page ?? this.page) || 1;
+        const size = Number(filters?.size ?? this.size) || 10;
+        const nextFilters = mergeFilters(this.filters, filters);
+        const { data } = await api.get('/reimbursements/review/finance', { params: buildListParams(nextFilters, page, size) });
         const response = data as ReimbursementListResponse;
         this.rows = response.rows;
         this.total = Number(response.total) || 0;
@@ -108,6 +161,54 @@ export const useReimbursementStore = defineStore('reimbursement', {
       }
     },
 
+    async departmentApprove(id: number, payload: ReimbursementReviewPayload) {
+      this.actionLoading = true;
+      try {
+        const { data } = await api.post(`/reimbursements/${id}/department-review/approve`, buildReviewFormData(payload));
+        const row = data as ReimbursementRow;
+        this.current = applyCurrentRow(this.current, id, row);
+        return row;
+      } finally {
+        this.actionLoading = false;
+      }
+    },
+
+    async departmentReject(id: number, payload: ReimbursementRejectPayload) {
+      this.actionLoading = true;
+      try {
+        const { data } = await api.post(`/reimbursements/${id}/department-review/reject`, normalizeReimbursementRejectPayload(payload));
+        const row = data as ReimbursementRow;
+        this.current = applyCurrentRow(this.current, id, row);
+        return row;
+      } finally {
+        this.actionLoading = false;
+      }
+    },
+
+    async financeApprove(id: number, payload: ReimbursementReviewPayload) {
+      this.actionLoading = true;
+      try {
+        const { data } = await api.post(`/reimbursements/${id}/finance-review/approve`, buildReviewFormData(payload));
+        const row = data as ReimbursementRow;
+        this.current = applyCurrentRow(this.current, id, row);
+        return row;
+      } finally {
+        this.actionLoading = false;
+      }
+    },
+
+    async financeReject(id: number, payload: ReimbursementRejectPayload) {
+      this.actionLoading = true;
+      try {
+        const { data } = await api.post(`/reimbursements/${id}/finance-review/reject`, normalizeReimbursementRejectPayload(payload));
+        const row = data as ReimbursementRow;
+        this.current = applyCurrentRow(this.current, id, row);
+        return row;
+      } finally {
+        this.actionLoading = false;
+      }
+    },
+
     async uploadAttachment(id: number, file: File) {
       this.uploadLoading = true;
       try {
@@ -139,6 +240,16 @@ export const useReimbursementStore = defineStore('reimbursement', {
       this.downloadLoading = true;
       try {
         const { data } = await api.get(`/reimbursements/${id}/attachments/${attachmentId}/download`, { responseType: 'blob' });
+        return data as Blob;
+      } finally {
+        this.downloadLoading = false;
+      }
+    },
+
+    async previewSignatureBlob(applicationId: number, actionId: number) {
+      this.downloadLoading = true;
+      try {
+        const { data } = await api.get(`/reimbursements/${applicationId}/actions/${actionId}/signature`, { responseType: 'blob' });
         return data as Blob;
       } finally {
         this.downloadLoading = false;

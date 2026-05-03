@@ -6,14 +6,20 @@ import {
   MAX_REIMBURSEMENT_ATTACHMENTS,
   MAX_REIMBURSEMENT_FILE_SIZE,
   REIMBURSEMENT_LIST_FILTER_KEYS,
+  REIMBURSEMENT_REVIEW_ACTIONS,
+  REIMBURSEMENT_REVIEW_SCOPES,
   REIMBURSEMENT_STATUSES,
   REIMBURSEMENT_WRITE_PAYLOAD_KEYS,
+  canReviewDepartmentReimbursement,
+  canReviewFinanceReimbursement,
   createEmptyReimbursementFilters,
   formatFileSize,
   formatReimbursementAmount,
   formatReimbursementDate,
   isDraftReimbursement,
   normalizeReimbursementPayload,
+  normalizeReimbursementRejectPayload,
+  reimbursementSignatureDataUrlToFile,
   reimbursementStatusColor,
   reimbursementStatusLabel,
 } from '../reimbursement';
@@ -124,10 +130,32 @@ describe('reimbursement type helpers', () => {
     }
   });
 
-  it('does not expose category dictionaries, export, OCR or review helpers', () => {
+  it('pins review scopes, actions, permissions and PNG signature conversion', async () => {
+    expect(REIMBURSEMENT_REVIEW_SCOPES).toEqual(['all', 'department', 'finance']);
+    expect(REIMBURSEMENT_REVIEW_ACTIONS).toEqual([
+      'departmentApprove',
+      'departmentReject',
+      'financeApprove',
+      'financeReject',
+    ]);
+
+    expect(canReviewDepartmentReimbursement({ status: 'DEPARTMENT_REVIEW' }, ['reimbursement:department-review'])).toBe(true);
+    expect(canReviewDepartmentReimbursement({ status: 'FINANCE_REVIEW' }, ['reimbursement:department-review'])).toBe(false);
+    expect(canReviewFinanceReimbursement({ status: 'FINANCE_REVIEW' }, ['reimbursement:finance-review'])).toBe(true);
+    expect(canReviewFinanceReimbursement({ status: 'DEPARTMENT_REVIEW' }, ['reimbursement:finance-review'])).toBe(false);
+    expect(canReviewFinanceReimbursement({ status: 'FINANCE_REVIEW' }, [], true)).toBe(true);
+    expect(normalizeReimbursementRejectPayload({ comment: ' 资料不完整 ' })).toEqual({ comment: '资料不完整' });
+
+    const file = reimbursementSignatureDataUrlToFile('data:image/png;base64,ZGVtbw==');
+    expect(file.name).toBe('signature.png');
+    expect(file.type).toBe('image/png');
+    expect(await file.text()).toBe('demo');
+    expect(() => reimbursementSignatureDataUrlToFile('data:image/jpeg;base64,ZGVtbw==')).toThrow('手写签名必须是 PNG 图片');
+  });
+
+  it('does not expose category dictionaries, export or OCR helpers', () => {
     expect('REIMBURSEMENT_CATEGORY_OPTIONS' in reimbursementTypes).toBe(false);
     expect('REIMBURSEMENT_EXPORT_KEYS' in reimbursementTypes).toBe(false);
     expect('REIMBURSEMENT_OCR_KEYS' in reimbursementTypes).toBe(false);
-    expect('REIMBURSEMENT_REVIEW_ACTIONS' in reimbursementTypes).toBe(false);
   });
 });

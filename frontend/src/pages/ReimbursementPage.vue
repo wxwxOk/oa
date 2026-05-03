@@ -34,6 +34,17 @@
     </div>
 
     <div v-if="isDesktop" class="filter-bar row items-center q-gutter-sm q-mb-md">
+      <q-select
+        v-model="reviewScope"
+        outlined
+        dense
+        emit-value
+        map-options
+        label="队列"
+        class="review-scope-filter"
+        :options="reviewScopeOptions"
+        @update:model-value="queryList"
+      />
       <q-input
         v-model="filters.keyword"
         outlined
@@ -213,6 +224,15 @@
       <q-card class="filter-sheet">
         <q-card-section class="text-h6">筛选报销申请</q-card-section>
         <q-card-section class="q-gutter-md">
+          <q-select
+            v-model="reviewScope"
+            outlined
+            dense
+            emit-value
+            map-options
+            label="队列"
+            :options="reviewScopeOptions"
+          />
           <q-input v-model="filterDraft.keyword" outlined dense clearable label="关键词" />
           <q-select
             v-model="filterDraft.status"
@@ -270,6 +290,7 @@ import {
   isDraftReimbursement,
   reimbursementStatusLabel,
   type ReimbursementListFilters,
+  type ReimbursementReviewScope,
   type ReimbursementRow,
 } from 'src/types/reimbursement';
 
@@ -283,6 +304,7 @@ const { isDesktop, isMobile } = useResponsive();
 const firstLoading = ref(true);
 const error = ref(false);
 const filterDialog = ref(false);
+const reviewScope = ref<ReimbursementReviewScope>('all');
 const filters = reactive<ReimbursementListFilters>(createEmptyReimbursementFilters());
 const filterDraft = reactive<ReimbursementListFilters>(createEmptyReimbursementFilters());
 
@@ -290,6 +312,12 @@ const statusOptions = [
   { label: '全部状态', value: '' },
   ...REIMBURSEMENT_STATUSES.map((status) => ({ label: reimbursementStatusLabel(status), value: status })),
 ];
+
+const reviewScopeOptions = computed(() => [
+  { label: '全部可见', value: 'all' },
+  ...(auth.hasPerm('reimbursement:department-review') ? [{ label: '待部门初审', value: 'department' }] : []),
+  ...(auth.hasPerm('reimbursement:finance-review') ? [{ label: '待财务复核', value: 'finance' }] : []),
+]);
 
 const columns = [
   { name: 'applicationNo', label: '申请编号', field: 'applicationNo', align: 'left' as const, style: 'width:170px' },
@@ -312,7 +340,14 @@ const pagination = computed(() => ({
 
 async function loadList(page = store.page, size = store.size) {
   try {
-    await store.fetchList({ ...filters, page, size });
+    const request = { ...filters, page, size };
+    if (reviewScope.value === 'department') {
+      await store.fetchDepartmentReviewList(request);
+    } else if (reviewScope.value === 'finance') {
+      await store.fetchFinanceReviewList(request);
+    } else {
+      await store.fetchList(request);
+    }
     error.value = false;
   } catch {
     error.value = true;
@@ -413,6 +448,10 @@ onMounted(() => {
 
 .keyword-filter {
   min-width: 220px;
+}
+
+.review-scope-filter {
+  min-width: 140px;
 }
 
 .filter-control {

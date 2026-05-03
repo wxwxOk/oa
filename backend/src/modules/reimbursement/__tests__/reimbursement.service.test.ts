@@ -3,11 +3,15 @@ import { describe, expect, it } from 'bun:test';
 import { BizError } from '../../../utils/errors';
 import {
   REIMBURSEMENT_DEPARTMENT_REVIEW_NODE,
+  REIMBURSEMENT_FINANCE_REVIEW_NODE,
   assertReimbursementTransition,
 } from '../reimbursement.state';
 import {
+  canDepartmentReviewReimbursement,
+  canFinanceReviewReimbursement,
   canViewReimbursement,
   normalizeReimbursementListFilters,
+  normalizeReimbursementReviewInput,
   normalizeReimbursementWriteInput,
   serializeReimbursementDetail,
   type ReimbursementActor,
@@ -37,8 +41,11 @@ function actor(input: Partial<ReimbursementActor>): ReimbursementActor {
 describe('reimbursement service helpers', () => {
   it('guards reimbursement state transitions', () => {
     expect(() => assertReimbursementTransition('DRAFT', 'DEPARTMENT_REVIEW')).not.toThrow();
+    expect(() => assertReimbursementTransition('DEPARTMENT_REVIEW', 'FINANCE_REVIEW')).not.toThrow();
+    expect(() => assertReimbursementTransition('FINANCE_REVIEW', 'APPROVED')).not.toThrow();
     expect(() => assertReimbursementTransition('DEPARTMENT_REVIEW', 'DRAFT')).toThrow(BizError);
     expect(REIMBURSEMENT_DEPARTMENT_REVIEW_NODE).toBe('部门初审');
+    expect(REIMBURSEMENT_FINANCE_REVIEW_NODE).toBe('财务复核');
   });
 
   it('normalizes and validates write input', () => {
@@ -97,6 +104,44 @@ describe('reimbursement service helpers', () => {
     expect(canViewReimbursement(actor({ id: 5 }), application, 99)).toBe(false);
   });
 
+  it('checks department and finance review permissions', () => {
+    const departmentApplication = { applicantId: 1, applicantDepartmentId: 10, status: 'DEPARTMENT_REVIEW' };
+    const financeApplication = { ...departmentApplication, status: 'FINANCE_REVIEW' };
+
+    expect(
+      canDepartmentReviewReimbursement(actor({ permissions: ['reimbursement:department-review'] }), departmentApplication, 10),
+    ).toBe(true);
+    expect(
+      canDepartmentReviewReimbursement(actor({ permissions: ['reimbursement:department-review'] }), departmentApplication, 99),
+    ).toBe(false);
+    expect(canDepartmentReviewReimbursement(actor({ roleCodes: ['ADMIN'] }), departmentApplication)).toBe(true);
+    expect(canDepartmentReviewReimbursement(actor({ permissions: ['reimbursement:finance-review'] }), financeApplication)).toBe(false);
+
+    expect(canFinanceReviewReimbursement(actor({ permissions: ['reimbursement:finance-review'] }), financeApplication)).toBe(true);
+    expect(canFinanceReviewReimbursement(actor({ roleCodes: ['ADMIN'] }), financeApplication)).toBe(true);
+    expect(canFinanceReviewReimbursement(actor({ permissions: ['reimbursement:finance-review'] }), departmentApplication)).toBe(false);
+  });
+
+  it('normalizes review input and requires signatures or rejection comments', () => {
+    const signature = new File(['demo'], 'signature.png', { type: 'image/png' });
+
+    expect(normalizeReimbursementReviewInput({ comment: ' 同意 ', signature }, 'approve')).toEqual({
+      comment: '同意',
+      signature,
+    });
+    expect(normalizeReimbursementReviewInput({ comment: '  ', signature }, 'approve')).toEqual({ comment: null, signature });
+    expect(normalizeReimbursementReviewInput({ comment: ' 资料不完整 ', signature }, 'reject')).toEqual({
+      comment: '资料不完整',
+      signature: null,
+    });
+
+    expect(() => normalizeReimbursementReviewInput({ comment: '同意' }, 'approve')).toThrow(BizError);
+    expect(() =>
+      normalizeReimbursementReviewInput({ signature: new File(['demo'], 'signature.jpg', { type: 'image/jpeg' }) }, 'approve'),
+    ).toThrow(BizError);
+    expect(() => normalizeReimbursementReviewInput({ comment: '   ' }, 'reject')).toThrow(BizError);
+  });
+
   it('serializes detail dates, attachments and actions', () => {
     expect(
       serializeReimbursementDetail({
@@ -119,13 +164,20 @@ describe('reimbursement service helpers', () => {
         createdAt: new Date('2026-05-01T09:00:00.000Z'),
         updatedAt: new Date('2026-05-01T10:00:00.000Z'),
         attachments: [{ id: 11, originalName: 'invoice.pdf', mimeType: 'application/pdf', size: 100, uploaderId: 7, createdAt: new Date('2026-05-01T11:00:00.000Z') }],
-        actions: [{ id: 21, actorId: 7, actorName: '张三', type: 'SUBMIT', nodeName: REIMBURSEMENT_DEPARTMENT_REVIEW_NODE, comment: null, createdAt: new Date('2026-05-01T12:00:00.000Z') }],
+        actions: [{ id: 21, actorId: 7, actorName: '张三', type: 'SUBMIT', nodeName: REIMBURSEMENT_DEPARTMENT_REVIEW_NODE, comment: null, signatureRelativePath: 'signatures/1/DEPARTMENT_APPROVE/demo.png', signatureMimeType: 'image/png', signatureSize: 100, createdAt: new Date('2026-05-01T12:00:00.000Z') }],
       }),
     ).toMatchObject({
       occurredAt: '2026-05-01T08:00:00.000Z',
       createdAt: '2026-05-01T09:00:00.000Z',
       attachments: [expect.objectContaining({ id: 11, originalName: 'invoice.pdf' })],
-      actions: [expect.objectContaining({ id: 21, type: 'SUBMIT', nodeName: REIMBURSEMENT_DEPARTMENT_REVIEW_NODE })],
+      actions: [
+        expect.objectContaining({
+          id: 21,
+          type: 'SUBMIT',
+          nodeName: REIMBURSEMENT_DEPARTMENT_REVIEW_NODE,
+          signatureRelativePath: 'signatures/1/DEPARTMENT_APPROVE/demo.png',
+        }),
+      ],
     });
   });
 });

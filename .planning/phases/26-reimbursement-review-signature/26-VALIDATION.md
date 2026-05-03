@@ -1,10 +1,11 @@
 ---
 phase: 26
 slug: reimbursement-review-signature
-status: draft
+status: completed
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-03
+completed: 2026-05-03
 ---
 
 # Phase 26 — Validation Strategy
@@ -38,18 +39,18 @@ created: 2026-05-03
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 26-01-01 | 01 | 0 | APPROVAL-01/APPROVAL-02/APPROVAL-03/APPROVAL-04/PERM-02 | backend service contract | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts` | ✅ | ⬜ pending |
-| 26-01-02 | 01 | 0 | APPROVAL-01/APPROVAL-02/APPROVAL-03/PERM-02 | backend route/file contract | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts` | ✅ | ⬜ pending |
-| 26-01-03 | 01 | 0 | APPROVAL-03/APPROVAL-05/UX-01/UX-02/PERM-01/PERM-02 | frontend type/store/source contract | `cd frontend && bun test src/types/__tests__/reimbursement.test.ts src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts` | ✅ | ⬜ pending |
-| 26-02-01 | 02 | 1 | APPROVAL-03/APPROVAL-05 | backend file/state implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts src/modules/reimbursement/__tests__/reimbursement.service.test.ts` | ✅ | ⬜ pending |
-| 26-02-02 | 02 | 1 | APPROVAL-01/APPROVAL-02/APPROVAL-04/PERM-02 | backend service implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts` | ✅ | ⬜ pending |
-| 26-02-03 | 02 | 1 | APPROVAL-01/APPROVAL-02/APPROVAL-03/APPROVAL-05/PERM-02 | backend route implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts && bun run build` | ✅ | ⬜ pending |
-| 26-03-01 | 03 | 2 | APPROVAL-03/APPROVAL-05/UX-02 | frontend type/helper implementation | `cd frontend && bun test src/types/__tests__/reimbursement.test.ts` | ✅ | ⬜ pending |
-| 26-03-02 | 03 | 2 | APPROVAL-01/APPROVAL-02/APPROVAL-03/APPROVAL-04/PERM-02/UX-02 | frontend store implementation | `cd frontend && bun test src/stores/__tests__/reimbursement.test.ts` | ✅ | ⬜ pending |
-| 26-03-03 | 03 | 2 | APPROVAL-03/APPROVAL-05/UX-01 | frontend signature/timeline implementation | `cd frontend && bun test src/pages/__tests__/ReimbursementPage.test.ts src/stores/__tests__/reimbursement.test.ts` | ✅ | ⬜ pending |
-| 26-04-01 | 04 | 3 | APPROVAL-01/APPROVAL-02/PERM-01/PERM-02/UX-01 | review queue UI implementation | `cd frontend && bun test src/pages/__tests__/ReimbursementPage.test.ts src/stores/__tests__/reimbursement.test.ts` | ✅ | ⬜ pending |
-| 26-04-02 | 04 | 3 | APPROVAL-01/APPROVAL-02/APPROVAL-03/APPROVAL-04/APPROVAL-05/UX-01/UX-02 | detail review UX implementation | `cd frontend && bun test src/pages/__tests__/ReimbursementPage.test.ts src/stores/__tests__/reimbursement.test.ts && bun run build` | ✅ | ⬜ pending |
-| 26-04-03 | 04 | 3 | all Phase 26 IDs | final focused backend/frontend gate | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts && bun run build; cd ../frontend && bun test src/types/__tests__/reimbursement.test.ts src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts && bun run build` | ✅ | ⬜ pending |
+| 26-01-01 | 01 | 0 | APPROVAL-01/APPROVAL-02/APPROVAL-03/APPROVAL-04/PERM-02 | backend service contract | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts` | ✅ | ✅ green |
+| 26-01-02 | 01 | 0 | APPROVAL-01/APPROVAL-02/APPROVAL-03/PERM-02 | backend route/file contract | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts` | ✅ | ✅ green |
+| 26-01-03 | 01 | 0 | APPROVAL-03/APPROVAL-05/UX-01/UX-02/PERM-01/PERM-02 | frontend type/store/source contract | `cd frontend && bun test src/types/__tests__/reimbursement.test.ts src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts` | ✅ | ✅ green |
+| 26-02-01 | 02 | 1 | APPROVAL-03/APPROVAL-05 | backend file/state implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts src/modules/reimbursement/__tests__/reimbursement.service.test.ts` | ✅ | ✅ green |
+| 26-02-02 | 02 | 1 | APPROVAL-01/APPROVAL-02/APPROVAL-04/PERM-02 | backend service implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts` | ✅ | ✅ green |
+| 26-02-03 | 02 | 1 | APPROVAL-01/APPROVAL-02/APPROVAL-03/APPROVAL-05/PERM-02 | backend route implementation | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts && bun run build` | ✅ | ✅ green |
+| 26-03-01 | 03 | 2 | APPROVAL-03/APPROVAL-05/UX-02 | frontend type/helper implementation | `cd frontend && bun test src/types/__tests__/reimbursement.test.ts` | ✅ | ✅ green |
+| 26-03-02 | 03 | 2 | APPROVAL-01/APPROVAL-02/APPROVAL-03/APPROVAL-04/PERM-02/UX-02 | frontend store implementation | `cd frontend && bun test src/stores/__tests__/reimbursement.test.ts` | ✅ | ✅ green |
+| 26-03-03 | 03 | 2 | APPROVAL-03/APPROVAL-05/UX-01 | frontend signature/timeline implementation | `cd frontend && bun test src/pages/__tests__/ReimbursementPage.test.ts src/stores/__tests__/reimbursement.test.ts` | ✅ | ✅ green |
+| 26-04-01 | 04 | 3 | APPROVAL-01/APPROVAL-02/PERM-01/PERM-02/UX-01 | review queue UI implementation | `cd frontend && bun test src/pages/__tests__/ReimbursementPage.test.ts src/stores/__tests__/reimbursement.test.ts` | ✅ | ✅ green |
+| 26-04-02 | 04 | 3 | APPROVAL-01/APPROVAL-02/APPROVAL-03/APPROVAL-04/APPROVAL-05/UX-01/UX-02 | detail review UX implementation | `cd frontend && bun test src/pages/__tests__/ReimbursementPage.test.ts src/stores/__tests__/reimbursement.test.ts && bun run build` | ✅ | ✅ green |
+| 26-04-03 | 04 | 3 | all Phase 26 IDs | final focused backend/frontend gate | `cd backend && bun test src/modules/reimbursement/__tests__/reimbursement.service.test.ts src/modules/reimbursement/__tests__/reimbursement.route.test.ts src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts && bun run build; cd ../frontend && bun test src/types/__tests__/reimbursement.test.ts src/stores/__tests__/reimbursement.test.ts src/pages/__tests__/ReimbursementPage.test.ts && bun run build` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -57,12 +58,12 @@ created: 2026-05-03
 
 ## Wave 0 Requirements
 
-- [ ] `backend/src/modules/reimbursement/__tests__/reimbursement.service.test.ts` — pins review input normalization, department/finance actionable predicates, legal transitions, signature required and rejection reason required.
-- [ ] `backend/src/modules/reimbursement/__tests__/reimbursement.route.test.ts` — pins review queue/action/signature route signatures and guards.
-- [ ] `backend/src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts` — pins PNG-only signature file constants, safe signature paths and inline preview headers.
-- [ ] `frontend/src/types/__tests__/reimbursement.test.ts` — pins review scope/action payload helpers and signature data URL conversion.
-- [ ] `frontend/src/stores/__tests__/reimbursement.test.ts` — pins review queue endpoints, multipart `signature` key, reject JSON payload and authenticated signature blob preview.
-- [ ] `frontend/src/pages/__tests__/ReimbursementPage.test.ts` — pins list queue labels, detail review buttons/dialog copy, mobile sticky actions, signature preview object URLs and negative scope strings.
+- [x] `backend/src/modules/reimbursement/__tests__/reimbursement.service.test.ts` — pins review input normalization, department/finance actionable predicates, legal transitions, signature required and rejection reason required.
+- [x] `backend/src/modules/reimbursement/__tests__/reimbursement.route.test.ts` — pins review queue/action/signature route signatures and guards.
+- [x] `backend/src/modules/reimbursement/__tests__/reimbursement-file.service.test.ts` — pins PNG-only signature file constants, safe signature paths and inline preview headers.
+- [x] `frontend/src/types/__tests__/reimbursement.test.ts` — pins review scope/action payload helpers and signature data URL conversion.
+- [x] `frontend/src/stores/__tests__/reimbursement.test.ts` — pins review queue endpoints, multipart `signature` key, reject JSON payload and authenticated signature blob preview.
+- [x] `frontend/src/pages/__tests__/ReimbursementPage.test.ts` — pins list queue labels, detail review buttons/dialog copy, mobile sticky actions, signature preview object URLs and negative scope strings.
 
 ---
 
@@ -107,6 +108,13 @@ created: 2026-05-03
 ---
 
 ## Validation Sign-Off
+
+### Automated Verification
+
+- Backend focused suite: `21 pass`, `0 fail`, `113 expect() calls`.
+- Frontend focused suite: `19 pass`, `0 fail`, `203 expect() calls`.
+- Backend build: green (`bun run build`).
+- Frontend build: green (`bun run build`, Quasar SPA build exit code 0).
 
 - [x] All tasks have focused automated verification or Wave 0 contract dependencies.
 - [x] Sampling continuity: no 3 consecutive tasks without automated verification.

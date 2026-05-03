@@ -117,6 +117,50 @@ describe('useReimbursementStore', () => {
     expect(mockedApi.post).toHaveBeenNthCalledWith(2, '/reimbursements/25/submit');
   });
 
+  it('fetches department and finance review queues through fixed endpoints', async () => {
+    mockedApi.get
+      .mockResolvedValueOnce({ data: { rows: [{ ...row, status: 'DEPARTMENT_REVIEW' }], total: 1, page: 1, size: 10 } })
+      .mockResolvedValueOnce({ data: { rows: [{ ...row, status: 'FINANCE_REVIEW' }], total: 1, page: 2, size: 20 } });
+    const store = useReimbursementStore();
+
+    await store.fetchDepartmentReviewList({ page: 1, size: 10, status: 'DEPARTMENT_REVIEW', keyword: '交通' });
+    await store.fetchFinanceReviewList({ page: 2, size: 20, status: 'FINANCE_REVIEW', category: '差旅', keyword: '' });
+
+    expect(mockedApi.get).toHaveBeenNthCalledWith(1, '/reimbursements/review/department', {
+      params: { page: 1, size: 10, status: 'DEPARTMENT_REVIEW', keyword: '交通' },
+    });
+    expect(mockedApi.get).toHaveBeenNthCalledWith(2, '/reimbursements/review/finance', {
+      params: { page: 2, size: 20, status: 'FINANCE_REVIEW', category: '差旅' },
+    });
+  });
+
+  it('submits review actions with signature multipart or reject JSON payloads', async () => {
+    const store = useReimbursementStore();
+    const signature = new File(['png'], 'signature.png', { type: 'image/png' });
+    mockedApi.post
+      .mockResolvedValueOnce({ data: { ...row, status: 'FINANCE_REVIEW' } })
+      .mockResolvedValueOnce({ data: { ...row, status: 'REJECTED' } })
+      .mockResolvedValueOnce({ data: { ...row, status: 'APPROVED' } })
+      .mockResolvedValueOnce({ data: { ...row, status: 'REJECTED' } });
+
+    await store.departmentApprove(25, { signature, comment: ' 同意 ' });
+    await store.departmentReject(25, { comment: ' 资料不完整 ' });
+    await store.financeApprove(25, { signature, comment: '' });
+    await store.financeReject(25, { comment: ' 金额有误 ' });
+
+    const departmentApproveForm = mockedApi.post.mock.calls[0][1] as FormData;
+    expect(mockedApi.post).toHaveBeenNthCalledWith(1, '/reimbursements/25/department-review/approve', expect.any(FormData));
+    expect((departmentApproveForm.get('signature') as File).name).toBe('signature.png');
+    expect(departmentApproveForm.get('comment')).toBe('同意');
+    expect(mockedApi.post).toHaveBeenNthCalledWith(2, '/reimbursements/25/department-review/reject', { comment: '资料不完整' });
+
+    const financeApproveForm = mockedApi.post.mock.calls[2][1] as FormData;
+    expect(mockedApi.post).toHaveBeenNthCalledWith(3, '/reimbursements/25/finance-review/approve', expect.any(FormData));
+    expect((financeApproveForm.get('signature') as File).type).toBe('image/png');
+    expect(financeApproveForm.has('comment')).toBe(false);
+    expect(mockedApi.post).toHaveBeenNthCalledWith(4, '/reimbursements/25/finance-review/reject', { comment: '金额有误' });
+  });
+
   it('uploads attachments with multipart file key and downloads blobs through authenticated paths', async () => {
     const store = useReimbursementStore();
     const file = new File(['demo'], 'invoice.pdf', { type: 'application/pdf' });
@@ -140,6 +184,16 @@ describe('useReimbursementStore', () => {
     expect(mockedApi.delete).toHaveBeenCalledWith('/reimbursements/25/attachments/9');
   });
 
+  it('loads protected action signatures as authenticated blobs', async () => {
+    const store = useReimbursementStore();
+    const blob = new Blob(['signature'], { type: 'image/png' });
+    mockedApi.get.mockResolvedValueOnce({ data: blob });
+
+    await expect(store.previewSignatureBlob(25, 19)).resolves.toBe(blob);
+
+    expect(mockedApi.get).toHaveBeenCalledWith('/reimbursements/25/actions/19/signature', { responseType: 'blob' });
+  });
+
   it('resets loading flags when requests reject', async () => {
     const store = useReimbursementStore();
     mockedApi.get.mockRejectedValueOnce(new Error('list'));
@@ -156,6 +210,9 @@ describe('useReimbursementStore', () => {
 
     mockedApi.get.mockRejectedValueOnce(new Error('preview'));
     await expect(store.previewAttachmentBlob(25, 9)).rejects.toThrow('preview');
+
+    mockedApi.get.mockRejectedValueOnce(new Error('signature'));
+    await expect(store.previewSignatureBlob(25, 19)).rejects.toThrow('signature');
 
     expect(store.loading).toBe(false);
     expect(store.detailLoading).toBe(false);

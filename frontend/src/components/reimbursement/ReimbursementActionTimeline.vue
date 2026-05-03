@@ -24,6 +24,12 @@
           {{ action.signatureMimeType || '-' }} ·
           {{ formatSignatureSize(action.signatureSize) }}
         </div>
+        <img
+          v-if="signatureUrls[action.id]"
+          :src="signatureUrls[action.id]"
+          class="signature-preview"
+          alt="审核签名"
+        />
       </q-timeline-entry>
     </q-timeline>
     <div v-else class="empty-timeline">暂无审核轨迹</div>
@@ -31,14 +37,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useReimbursementStore } from 'src/stores/reimbursement';
 import { formatFileSize, formatReimbursementDate, type ReimbursementAction } from 'src/types/reimbursement';
 
 defineOptions({ name: 'ReimbursementActionTimeline' });
 
 const props = defineProps<{
+  applicationId: number;
   actions: ReimbursementAction[];
 }>();
+
+const store = useReimbursementStore();
+const signatureUrls = ref<Record<number, string>>({});
 
 const orderedActions = computed(() =>
   [...props.actions].sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()),
@@ -69,6 +80,26 @@ function hasSignatureMetadata(action: ReimbursementAction) {
 function formatSignatureSize(size?: number | null) {
   return size ? formatFileSize(size) : '-';
 }
+
+function revokeSignatureUrls() {
+  Object.values(signatureUrls.value).forEach((url) => URL.revokeObjectURL(url));
+  signatureUrls.value = {};
+}
+
+watch(
+  () => [props.applicationId, props.actions] as const,
+  async () => {
+    revokeSignatureUrls();
+    const actionsWithSignature = orderedActions.value.filter((action) => !!action.signatureRelativePath);
+    for (const action of actionsWithSignature) {
+      const blob = await store.previewSignatureBlob(props.applicationId, action.id);
+      signatureUrls.value[action.id] = URL.createObjectURL(blob);
+    }
+  },
+  { immediate: true },
+);
+
+onBeforeUnmount(revokeSignatureUrls);
 </script>
 
 <style scoped>
@@ -99,6 +130,17 @@ function formatSignatureSize(size?: number | null) {
 
 .signature-meta {
   margin-top: 8px;
+}
+
+.signature-preview {
+  display: block;
+  max-width: 220px;
+  max-height: 96px;
+  margin-top: 8px;
+  border: 1px solid var(--oa-border);
+  border-radius: 4px;
+  background: #fff;
+  object-fit: contain;
 }
 
 .muted {

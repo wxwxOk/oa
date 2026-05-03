@@ -4,9 +4,17 @@ import { prisma } from '../../plugins/prisma';
 import { BizError, notFound } from '../../utils/errors';
 import {
   REIMBURSEMENT_DEPARTMENT_REVIEW_NODE,
+  REIMBURSEMENT_FINANCE_REVIEW_NODE,
   assertReimbursementTransition,
   type ReimbursementStatusValue,
 } from './reimbursement.state';
+import {
+  assertAllowedReimbursementSignature,
+  buildReimbursementSignatureRelativePath,
+  deleteReimbursementFile,
+  getSafeReimbursementSignatureStoredName,
+  writeReimbursementFile,
+} from './reimbursement-file.service';
 
 export const MAX_REIMBURSEMENT_PAGE_SIZE = 100;
 
@@ -37,6 +45,14 @@ export type ReimbursementListFilters = {
   keyword?: string;
 };
 
+export type ReimbursementReviewDecision = 'approve' | 'reject';
+export type ReimbursementReviewStage = 'department' | 'finance';
+
+export type ReimbursementReviewInput = {
+  comment?: unknown;
+  signature?: File | null;
+};
+
 const FILTERABLE_REIMBURSEMENT_STATUSES: ReimbursementStatusValue[] = [
   'DRAFT',
   'DEPARTMENT_REVIEW',
@@ -49,6 +65,15 @@ type ReimbursementAccessRow = {
   applicantId: number;
   applicantDepartmentId?: number | null;
   status: string;
+};
+
+type ReviewActionOptions = {
+  actionType: 'DEPARTMENT_APPROVE' | 'DEPARTMENT_REJECT' | 'FINANCE_APPROVE' | 'FINANCE_REJECT';
+  fromStatus: ReimbursementStatusValue;
+  toStatus: ReimbursementStatusValue;
+  nodeName: string;
+  requireSignature?: boolean;
+  completedAt?: Date;
 };
 
 function reimbursementApplication() {
@@ -217,6 +242,44 @@ export function assertCanMutateDraftReimbursement(actor: ReimbursementActor, app
   }
 }
 
+export function canDepartmentReviewReimbursement(
+  actor: ReimbursementActor,
+  application: ReimbursementAccessRow,
+  actorDepartmentId?: number | null,
+): boolean {
+  if (application.status !== 'DEPARTMENT_REVIEW') return false;
+  if (isAdmin(actor)) return true;
+  return (
+    hasPermission(actor, 'reimbursement:department-review') &&
+    actorDepartmentId != null &&
+    actorDepartmentId === application.applicantDepartmentId
+  );
+}
+
+export function canFinanceReviewReimbursement(actor: ReimbursementActor, application: ReimbursementAccessRow): boolean {
+  return application.status === 'FINANCE_REVIEW' && (isAdmin(actor) || hasPermission(actor, 'reimbursement:finance-review'));
+}
+
+export function normalizeReimbursementReviewInput(input: ReimbursementReviewInput, decision: ReimbursementReviewDecision) {
+  const comment = normalizeOptionalText(input.comment) ?? null;
+  if (decision === 'reject') {
+    if (!comment) {
+      throw new BizError('驳回原因不能为空', 400, 'REIMBURSEMENT_REJECT_COMMENT_REQUIRED');
+    }
+    return { comment, signature: null };
+  }
+
+  if (!(input.signature instanceof File)) {
+    throw new BizError('审核通过必须提供手写签名', 400, 'REIMBURSEMENT_SIGNATURE_REQUIRED');
+  }
+  assertAllowedReimbursementSignature({
+    mimeType: input.signature.type,
+    size: input.signature.size,
+    originalName: input.signature.name,
+  });
+  return { comment, signature: input.signature };
+}
+
 function toIso(value: Date | string | null | undefined): string | null {
   if (value == null) return null;
   return value instanceof Date ? value.toISOString() : value;
@@ -333,6 +396,51 @@ export async function listReimbursements(actor: ReimbursementActor, input: Reimb
   return { rows, total, page: filters.page, size: filters.size };
 }
 
+async function listReviewReimbursements(
+  actor: ReimbursementActor,
+  input: ReimbursementListFilters,
+  stage: ReimbursementReviewStage,
+) {
+  const filters = normalizeReimbursementListFilters(input);
+  const actorDepartmentId = stage === 'department' ? await loadActorDepartmentId(actor.id) : null;
+  const scopeWhere =
+    stage === 'department'
+      ? {
+          status: 'DEPARTMENT_REVIEW',
+          ...(!isAdmin(actor) ? { applicantDepartmentId: actorDepartmentId ?? -1 } : {}),
+        }
+      : { status: 'FINANCE_REVIEW' };
+  const and = [scopeWhere, ...buildFilterWhere(filters)].filter((item) => Object.keys(item).length > 0);
+  const where = { AND: and };
+
+  const [rows, total] = await Promise.all([
+    reimbursementApplication().findMany({
+      where,
+      include: { _count: { select: { attachments: true } } },
+      orderBy: { updatedAt: 'desc' },
+      skip: (filters.page - 1) * filters.size,
+      take: filters.size,
+    }),
+    reimbursementApplication().count({ where }),
+  ]);
+
+  return { rows, total, page: filters.page, size: filters.size };
+}
+
+export async function listDepartmentReviewReimbursements(actor: ReimbursementActor, input: ReimbursementListFilters = {}) {
+  if (!isAdmin(actor) && !hasPermission(actor, 'reimbursement:department-review')) {
+    throw new BizError('无权查看部门初审队列', 403, 'REIMBURSEMENT_DEPARTMENT_REVIEW_FORBIDDEN');
+  }
+  return listReviewReimbursements(actor, input, 'department');
+}
+
+export async function listFinanceReviewReimbursements(actor: ReimbursementActor, input: ReimbursementListFilters = {}) {
+  if (!isAdmin(actor) && !hasPermission(actor, 'reimbursement:finance-review')) {
+    throw new BizError('无权查看财务复核队列', 403, 'REIMBURSEMENT_FINANCE_REVIEW_FORBIDDEN');
+  }
+  return listReviewReimbursements(actor, input, 'finance');
+}
+
 export async function getReimbursementDetail(actor: ReimbursementActor, id: number) {
   const [application, actorDepartmentId] = await Promise.all([
     reimbursementApplication().findUnique({
@@ -394,6 +502,104 @@ export async function submitReimbursementDraft(actor: ReimbursementActor, id: nu
       },
     });
     return updated;
+  });
+}
+
+async function applyReviewAction(actor: ReimbursementActor, id: number, input: ReimbursementReviewInput, options: ReviewActionOptions) {
+  const decision: ReimbursementReviewDecision = options.requireSignature ? 'approve' : 'reject';
+  const reviewInput = normalizeReimbursementReviewInput(input, decision);
+  let signatureRelativePath: string | null = null;
+
+  if (reviewInput.signature) {
+    const storedName = getSafeReimbursementSignatureStoredName();
+    signatureRelativePath = buildReimbursementSignatureRelativePath(id, options.actionType, storedName);
+    await writeReimbursementFile(signatureRelativePath, reviewInput.signature);
+  }
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const application = await (tx as any).reimbursementApplication.findUnique({ where: { id } });
+      if (!application) throw notFound('报销申请不存在');
+      assertReimbursementTransition(application.status, options.toStatus);
+      if (application.status !== options.fromStatus) {
+        throw new BizError('当前报销状态不可审核', 400, 'INVALID_REIMBURSEMENT_REVIEW_STATUS');
+      }
+
+      const actorDepartmentId = options.fromStatus === 'DEPARTMENT_REVIEW' ? await loadActorDepartmentId(actor.id) : null;
+      const canReview =
+        options.fromStatus === 'DEPARTMENT_REVIEW'
+          ? canDepartmentReviewReimbursement(actor, application, actorDepartmentId)
+          : canFinanceReviewReimbursement(actor, application);
+      if (!canReview) {
+        throw new BizError('无权审核该报销申请', 403, 'REIMBURSEMENT_REVIEW_FORBIDDEN');
+      }
+
+      const updated = await (tx as any).reimbursementApplication.update({
+        where: { id },
+        data: {
+          status: options.toStatus,
+          ...(options.completedAt ? { completedAt: options.completedAt } : {}),
+        },
+      });
+      await (tx as any).reimbursementAction.create({
+        data: {
+          applicationId: id,
+          actorId: actor.id,
+          actorName: actor.name,
+          type: options.actionType,
+          nodeName: options.nodeName,
+          comment: reviewInput.comment,
+          signatureRelativePath,
+          signatureMimeType: reviewInput.signature?.type ?? null,
+          signatureSize: reviewInput.signature?.size ?? null,
+        },
+      });
+      return updated;
+    });
+  } catch (error) {
+    if (signatureRelativePath) await deleteReimbursementFile(signatureRelativePath);
+    throw error;
+  }
+}
+
+export function approveDepartmentReimbursement(actor: ReimbursementActor, id: number, input: ReimbursementReviewInput) {
+  return applyReviewAction(actor, id, input, {
+    actionType: 'DEPARTMENT_APPROVE',
+    fromStatus: 'DEPARTMENT_REVIEW',
+    toStatus: 'FINANCE_REVIEW',
+    nodeName: REIMBURSEMENT_DEPARTMENT_REVIEW_NODE,
+    requireSignature: true,
+  });
+}
+
+export function rejectDepartmentReimbursement(actor: ReimbursementActor, id: number, input: ReimbursementReviewInput) {
+  return applyReviewAction(actor, id, input, {
+    actionType: 'DEPARTMENT_REJECT',
+    fromStatus: 'DEPARTMENT_REVIEW',
+    toStatus: 'REJECTED',
+    nodeName: REIMBURSEMENT_DEPARTMENT_REVIEW_NODE,
+    completedAt: new Date(),
+  });
+}
+
+export function approveFinanceReimbursement(actor: ReimbursementActor, id: number, input: ReimbursementReviewInput) {
+  return applyReviewAction(actor, id, input, {
+    actionType: 'FINANCE_APPROVE',
+    fromStatus: 'FINANCE_REVIEW',
+    toStatus: 'APPROVED',
+    nodeName: REIMBURSEMENT_FINANCE_REVIEW_NODE,
+    requireSignature: true,
+    completedAt: new Date(),
+  });
+}
+
+export function rejectFinanceReimbursement(actor: ReimbursementActor, id: number, input: ReimbursementReviewInput) {
+  return applyReviewAction(actor, id, input, {
+    actionType: 'FINANCE_REJECT',
+    fromStatus: 'FINANCE_REVIEW',
+    toStatus: 'REJECTED',
+    nodeName: REIMBURSEMENT_FINANCE_REVIEW_NODE,
+    completedAt: new Date(),
   });
 }
 

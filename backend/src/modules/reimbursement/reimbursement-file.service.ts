@@ -12,6 +12,8 @@ export const ALLOWED_REIMBURSEMENT_MIME_TYPES = [
 ];
 export const MAX_REIMBURSEMENT_FILE_SIZE = 10 * 1024 * 1024;
 export const MAX_REIMBURSEMENT_ATTACHMENTS = 20;
+export const ALLOWED_REIMBURSEMENT_SIGNATURE_MIME_TYPES = ['image/png'] as const;
+export const MAX_REIMBURSEMENT_SIGNATURE_SIZE = 2 * 1024 * 1024;
 
 type ReimbursementFileInput = {
   mimeType: string;
@@ -45,9 +47,28 @@ export function assertAllowedReimbursementFile(file: ReimbursementFileInput) {
   }
 }
 
+export function assertAllowedReimbursementSignature(file: ReimbursementFileInput) {
+  if (file.mimeType !== 'image/png') {
+    throw new BizError('仅支持 PNG 格式的手写签名', 400, 'REIMBURSEMENT_SIGNATURE_TYPE_NOT_ALLOWED');
+  }
+  if (!file.originalName?.trim()) {
+    throw new BizError('手写签名文件名不能为空', 400, 'REIMBURSEMENT_SIGNATURE_NAME_REQUIRED');
+  }
+  if (!Number.isFinite(file.size) || file.size <= 0) {
+    throw new BizError('手写签名不能为空', 400, 'REIMBURSEMENT_SIGNATURE_EMPTY');
+  }
+  if (file.size > MAX_REIMBURSEMENT_SIGNATURE_SIZE) {
+    throw new BizError('手写签名不能超过 2MB', 400, 'REIMBURSEMENT_SIGNATURE_TOO_LARGE');
+  }
+}
+
 export function getSafeReimbursementStoredName(originalName: string, mimeType: string) {
   void originalName;
   return `${nanoid(16)}${reimbursementExtensionForMimeType(mimeType)}`;
+}
+
+export function getSafeReimbursementSignatureStoredName() {
+  return `${nanoid(16)}.png`;
 }
 
 export function getReimbursementUploadRoot() {
@@ -70,6 +91,10 @@ export function resolveSafeReimbursementPath(relativePath: string) {
 
 export function buildReimbursementRelativePath(applicationId: number, storedName: string) {
   return `${applicationId}/${storedName}`;
+}
+
+export function buildReimbursementSignatureRelativePath(applicationId: number, actionType: string, storedName: string) {
+  return `signatures/${applicationId}/${actionType}/${storedName}`;
 }
 
 export async function writeReimbursementFile(relativePath: string, file: File) {
@@ -102,5 +127,12 @@ export function buildReimbursementDownloadHeaders(file: ReimbursementHeaderInput
   return {
     'Content-Type': file.mimeType,
     'Content-Disposition': buildContentDisposition('attachment', file.originalName),
+  };
+}
+
+export function buildReimbursementSignaturePreviewHeaders() {
+  return {
+    'Content-Type': 'image/png',
+    'Content-Disposition': buildContentDisposition('inline', 'signature.png'),
   };
 }
