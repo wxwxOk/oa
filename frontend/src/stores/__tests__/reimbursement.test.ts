@@ -194,6 +194,40 @@ describe('useReimbursementStore', () => {
     expect(mockedApi.get).toHaveBeenCalledWith('/reimbursements/25/actions/19/signature', { responseType: 'blob' });
   });
 
+  it('exports current filters as an authenticated blob without pagination or review scope', async () => {
+    const store = useReimbursementStore();
+    const blob = new Blob(['xlsx'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    mockedApi.get.mockResolvedValueOnce({ data: blob });
+
+    await expect(
+      store.exportExcel({
+        status: 'APPROVED',
+        category: '差旅',
+        dateFrom: '2026-05-01',
+        dateTo: '2026-05-31',
+        keyword: '交通',
+        page: 3,
+        size: 50,
+        reviewScope: 'finance',
+      } as never),
+    ).resolves.toBe(blob);
+
+    expect(mockedApi.get).toHaveBeenCalledWith('/reimbursements/export', {
+      params: {
+        status: 'APPROVED',
+        category: '差旅',
+        dateFrom: '2026-05-01',
+        dateTo: '2026-05-31',
+        keyword: '交通',
+      },
+      responseType: 'blob',
+    });
+    expect(mockedApi.get.mock.calls[0][1].params).not.toHaveProperty('page');
+    expect(mockedApi.get.mock.calls[0][1].params).not.toHaveProperty('size');
+    expect(mockedApi.get.mock.calls[0][1].params).not.toHaveProperty('reviewScope');
+    expect(store.exportLoading).toBe(false);
+  });
+
   it('resets loading flags when requests reject', async () => {
     const store = useReimbursementStore();
     mockedApi.get.mockRejectedValueOnce(new Error('list'));
@@ -214,10 +248,14 @@ describe('useReimbursementStore', () => {
     mockedApi.get.mockRejectedValueOnce(new Error('signature'));
     await expect(store.previewSignatureBlob(25, 19)).rejects.toThrow('signature');
 
+    mockedApi.get.mockRejectedValueOnce(new Error('export'));
+    await expect(store.exportExcel()).rejects.toThrow('export');
+
     expect(store.loading).toBe(false);
     expect(store.detailLoading).toBe(false);
     expect(store.actionLoading).toBe(false);
     expect(store.uploadLoading).toBe(false);
     expect(store.downloadLoading).toBe(false);
+    expect(store.exportLoading).toBe(false);
   });
 });

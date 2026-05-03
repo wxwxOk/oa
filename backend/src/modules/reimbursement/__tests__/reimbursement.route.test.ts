@@ -74,6 +74,7 @@ describe('reimbursement route contract', () => {
     expect(routeSignatures()).toEqual(
       expect.arrayContaining([
         'GET /',
+        'GET /export',
         'GET /:id',
         'GET /review/department',
         'GET /review/finance',
@@ -94,6 +95,7 @@ describe('reimbursement route contract', () => {
 
     expect(routeSignatures().indexOf('GET /review/department')).toBeLessThan(routeSignatures().indexOf('GET /:id'));
     expect(routeSignatures().indexOf('GET /:id/actions/:actionId/signature')).toBeLessThan(routeSignatures().indexOf('GET /:id'));
+    expect(routeSignatures().indexOf('GET /export')).toBeLessThan(routeSignatures().indexOf('GET /:id'));
   });
 
   it('exposes controlled list query filters and pagination fields', () => {
@@ -143,6 +145,7 @@ describe('reimbursement route contract', () => {
     expect(source).toContain("authGuard('reimbursement:own')");
     expect(source).toContain("authGuard('reimbursement:create')");
     expect(source).toContain("authGuard('reimbursement:list')");
+    expect(source).toContain("authGuard('reimbursement:export')");
     expect(source).toContain("authGuard('reimbursement:attachment')");
     expect(source).toContain("authGuard('reimbursement:department-review')");
     expect(source).toContain("authGuard('reimbursement:finance-review')");
@@ -160,5 +163,20 @@ describe('reimbursement route contract', () => {
     expect(source).toContain('dateTo + \'T23:59:59.999Z\'');
     expect(source).not.toContain('responseType');
     expect(source).not.toMatch(/data:\s*body|applicantId:\s*body/);
+  });
+
+  it('pins reimbursement XLSX export route contract', async () => {
+    const source = await Bun.file(new URL('../reimbursement.route.ts', import.meta.url)).text();
+
+    expect(source).toContain('exportReimbursementsExcel');
+    expect(source).toContain("authGuard('reimbursement:export')");
+    expect(source).toContain('reimbursementListQuery');
+    expect(source).toContain('workbook.xlsx.writeBuffer()');
+    expect(source).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    expect(source).toContain('Content-Disposition');
+    expect(source).toContain('attachment');
+    expect(source).toContain('reimbursements-export');
+    expect(source).not.toContain('responseType');
+    expect(source).not.toContain('window.open');
   });
 });

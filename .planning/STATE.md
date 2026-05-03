@@ -3,21 +3,21 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: 报销管理
 status: executing
-last_updated: "2026-05-03T08:20:00.000Z"
-last_activity: 2026-05-03 -- Phase 26 completed
+last_updated: "2026-05-03T09:30:00.000Z"
+last_activity: 2026-05-03 -- Phase 27 Plan 27-01 contracts completed
 progress:
   total_phases: 9
-  completed_phases: 7
-  total_plans: 44
-  completed_plans: 44
-  percent: 100
+  completed_phases: 8
+  total_plans: 48
+  completed_plans: 45
+  percent: 94
 ---
 
 # State
 
 - Initialized: 2026-04-17
 - Milestone: v1.4 报销管理 — ACTIVE
-- Status: Phase 26 complete; Phase 27 ready
+- Status: Phase 27 Plan 27-01 complete; ready to execute Plan 27-02
 
 ## Project Reference
 
@@ -28,25 +28,25 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 
 ## Current Position
 
-Phase: 27 (reimbursement-export-validation) — READY
-Plan: pending
-Status: Phase 26 complete; ready to plan/execute Phase 27
-Last activity: 2026-05-03 -- Phase 26 completed
+Phase: 27 (reimbursement-export-validation) — EXECUTING
+Plan: 2 of 4
+Status: Plan 27-01 complete; executing Plan 27-02
+Last activity: 2026-05-03 -- Phase 27 Plan 27-01 contracts completed
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Roadmap Summary
 
 - Phase 24: 报销数据模型 + 附件上传 API — complete
 - Phase 25: 员工报销申请与详情页面 — complete
 - Phase 26: 两级审核与手写签字 — complete
-- Phase 27: 报销导出 + 验证收尾
+- Phase 27: 报销导出 + 验证收尾 — planned
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 104 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3 + 4 v1.4 Phase 25 + 4 v1.4 Phase 26)
+- Total plans completed: 105 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3 + 4 v1.4 Phase 25 + 4 v1.4 Phase 26 + 1 v1.4 Phase 27)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
@@ -84,6 +84,10 @@ Progress: [██████████] 100%
 - Phase 26 Plan 26-02: same session, 3 tasks, backend review queues/actions/signatures/routes, completed 2026-05-03
 - Phase 26 Plan 26-03: same session, 3 tasks, frontend review store/signature/timeline support, completed 2026-05-03
 - Phase 26 Plan 26-04: same session, 3 tasks, reviewer queue/detail UI and validation closeout, completed 2026-05-03
+- Phase 27 Plan 27-01: same session, 3 tasks, backend/frontend export contracts, completed 2026-05-03
+- Phase 27 Plan 27-02: planned, backend export service and route
+- Phase 27 Plan 27-03: planned, frontend export store and toolbar UX
+- Phase 27 Plan 27-04: planned, final validation, UAT and v1.4 archive closeout
 
 ## Accumulated Context
 
@@ -107,6 +111,10 @@ Archived to PROJECT.md Key Decisions table.
 - [Phase 26]: 部门/财务审核队列使用 `/reimbursements/review/department` 与 `/reimbursements/review/finance`，和普通可见列表保持边界清晰。
 - [Phase 26]: 前端签名预览通过 authenticated blob 请求和 object URL 渲染，不在模板中直连受保护文件 URL。
 - [Phase 26]: Phase 26 focused backend/frontend suites and backend/frontend builds are green; export remains Phase 27 scope.
+- [Phase 27]: 报销导出锁定为 `/reimbursements` 当前筛选条件明细 Excel，不新增统计看板、OCR、付款打款、会计凭证或复杂流程。
+- [Phase 27]: 导出后端使用 `reimbursement:export` 权限、ExcelJS 服务端生成、2,000 行上限、公式注入防护和固定报销明细列。
+- [Phase 27]: 导出前端入口为报销列表工具栏的 `导出 Excel`，通过 authenticated blob 下载并回收 object URL。
+- [Phase 27]: Plans 27-01 through 27-04 cover Wave 0 contracts、后端导出、前端导出 UX 与 v1.4 验证归档收尾。
 
 - [Phase 19]: Phase 19 Wave 0 tests intentionally fail until future archive, export, stats, and notification modules are implemented.
 - [Phase 19]: Archive route contracts reject trusted fields and only accept operation payload fields for tags, notes, processing data, corrections, and reasons.
@@ -161,5 +169,5 @@ Keep out of scope for v1.4: OCR, invoice verification, automatic duplicate check
 ## Session
 
 - Last session: 2026-05-03
-- Stopped At: Phase 26 completed; Phase 27 ready
+- Stopped At: Phase 27 planned; ready to execute Plan 27-01
 - Resume File: .planning/phases/27-reimbursement-export-validation/27-01-PLAN.md

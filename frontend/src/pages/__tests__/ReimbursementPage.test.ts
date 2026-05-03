@@ -12,6 +12,7 @@ const signaturePadSource = readFileSync(resolve(__dirname, '../../components/rei
 const routeSource = readFileSync(resolve(__dirname, '../../router/routes.ts'), 'utf8');
 const menuSource = readFileSync(resolve(__dirname, '../../layouts/MainLayout.vue'), 'utf8');
 const uiSource = `${listSource}\n${formSource}\n${detailSource}\n${statusChipSource}\n${attachmentSource}\n${timelineSource}\n${signaturePadSource}`;
+const nonListUiSource = `${formSource}\n${detailSource}\n${statusChipSource}\n${attachmentSource}\n${timelineSource}\n${signaturePadSource}`;
 
 const readPermAny = "['reimbursement:own', 'reimbursement:list', 'reimbursement:department-review', 'reimbursement:finance-review']";
 
@@ -122,15 +123,35 @@ describe('Reimbursement UI source contract', () => {
     expect(detailSource).toContain('detail-main');
     expect(detailSource).toContain('detail-side');
 
-    for (const forbidden of [
-      '导出 Excel',
-      'OCR',
-      '发票验真',
-      '/approval/applications',
-      '/reimbursements/export',
-      'window.open',
-    ]) {
+    for (const forbidden of ['导出 Excel', '/reimbursements/export']) {
+      expect(nonListUiSource).not.toContain(forbidden);
+    }
+    for (const forbidden of ['OCR', '发票验真', '/approval/applications', 'window.open']) {
       expect(uiSource).not.toContain(forbidden);
+    }
+  });
+
+  it('pins the Phase 27 export toolbar action and feedback contract', () => {
+    for (const value of [
+      '导出 Excel',
+      '导出报销 Excel',
+      'reimbursement:export',
+      'exportReimbursements',
+      'store.exportLoading',
+      'store.exportExcel(currentFilters',
+      'URL.createObjectURL',
+      'link.click()',
+      'URL.revokeObjectURL',
+      'reimbursements-',
+      'Excel 导出已开始',
+      '当前筛选结果超过导出上限，请缩小筛选范围后重试。',
+      '导出失败，请稍后重试。',
+    ]) {
+      expect(listSource).toContain(value);
+    }
+
+    for (const forbidden of ['window.open', 'OCR', '发票验真', '统计看板', '付款', '会计凭证']) {
+      expect(listSource).not.toContain(forbidden);
     }
   });
 });
