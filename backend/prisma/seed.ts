@@ -31,6 +31,16 @@ export const VISIT_PERMISSION_CODES = [
   'visit:stats',
 ];
 
+export const REIMBURSEMENT_PERMISSION_CODES = [
+  'reimbursement:create',
+  'reimbursement:own',
+  'reimbursement:list',
+  'reimbursement:department-review',
+  'reimbursement:finance-review',
+  'reimbursement:attachment',
+  'reimbursement:export',
+];
+
 export const EMPLOYEE_PERMISSION_CODES = [
   'user:list',
   'department:list',
@@ -39,6 +49,9 @@ export const EMPLOYEE_PERMISSION_CODES = [
   'form:submission:list',
   'approval:application:create',
   'approval:application:own',
+  'reimbursement:create',
+  'reimbursement:own',
+  'reimbursement:attachment',
 ];
 
 // 权限定义：按模块分组
@@ -93,6 +106,14 @@ export const PERMISSIONS = [
   { code: 'visit:delete', name: '删除到访', module: 'visit' },
   { code: 'visit:import', name: '导入到访', module: 'visit' },
   { code: 'visit:stats', name: '到访统计', module: 'visit' },
+  // 报销模块
+  { code: 'reimbursement:create', name: '创建报销申请', module: 'reimbursement' },
+  { code: 'reimbursement:own', name: '查看我的报销', module: 'reimbursement' },
+  { code: 'reimbursement:list', name: '查看全部报销', module: 'reimbursement' },
+  { code: 'reimbursement:department-review', name: '部门审核报销', module: 'reimbursement' },
+  { code: 'reimbursement:finance-review', name: '财务复核报销', module: 'reimbursement' },
+  { code: 'reimbursement:attachment', name: '访问报销附件', module: 'reimbursement' },
+  { code: 'reimbursement:export', name: '导出报销数据', module: 'reimbursement' },
 ];
 
 function resolveAdminPassword(): string {

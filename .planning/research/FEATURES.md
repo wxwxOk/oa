@@ -1,40 +1,91 @@
-# Feature Landscape: v1.3 到访信息管理
+# Feature Landscape: v1.4 报销管理
 
-**Domain:** 渠道到访 / 学员咨询跟进 / 转化统计
-**Researched:** 2026-05-02
+**Domain:** 员工报销申请 / 发票附件 / 审批签字  
+**Researched:** 2026-05-02  
 **Confidence:** HIGH
-
-## Excel Sample Findings
-
-样表标题为「学员到访跟踪表」，第 1 行是合并标题 `A1:O1`，第 2 行是表头，实际数据从第 3 行开始。当前样本含 5 条记录、15 个固定字段：姓名、年龄、学历、性别、渠道商、咨询师、接待状态、接待人、接待日期、咨询后状态、状态类别、状态说明、试听课后状态、解决方案、试听课时间。
 
 ## Table Stakes
 
 | Category | Feature | Why Expected | Complexity |
 |----------|---------|--------------|------------|
-| 记录管理 | 固定 15 字段的到访记录新建、编辑、删除、详情查看 | 样表本质是业务台账，必须能在系统内持续维护 | MEDIUM |
-| 权限控制 | 独立菜单 + list/create/update/delete/import/stats 权限码 | OA 已有 RBAC 模式，新模块必须纳入权限体系 | LOW |
-| Excel 导入 | 支持当前表格格式导入，含预览和错误提示 | 用户已有 Excel 存量数据，这是入口能力 | MEDIUM |
-| 筛选查询 | 按渠道商、咨询师、接待人、日期和状态筛选分页 | 到访表的主要使用方式是查找和跟进 | MEDIUM |
-| 跟进维护 | 长文本状态说明、解决方案、试听后状态可持续更新 | 表格中的状态说明是业务判断依据 | LOW |
-| 基础统计 | 渠道、咨询师、接待人、状态分布和转化率汇总 | 管理者需要看来源质量和人员产出 | MEDIUM |
+| 报销单 | 员工可新建、保存草稿、提交报销申请 | 报销需要先沉淀申请单和状态 | MEDIUM |
+| 费用明细 | 一张报销单可包含多条日期/类别/金额/说明明细 | 报销通常不是单一金额，明细决定审核依据 | MEDIUM |
+| 发票附件 | 明细可上传图片/PDF 发票，并在详情查看/下载 | 发票是报销审核的核心凭证 | HIGH |
+| 审批流转 | 提交后进入现有审批待办，审核人可通过/驳回 | 项目已有 OA 审批中心，报销必须复用闭环 | MEDIUM |
+| 审批签字 | 通过报销时审核人必须手写签名 | 用户明确要求“审核人员审核并签字通过” | HIGH |
+| 权限控制 | 独立菜单 + list/create/update/delete/approve/export 权限 | OA 固定模块必须纳入 RBAC | MEDIUM |
+| 详情/PDF | 报销详情展示明细、发票、审批意见、签名，可打印/PDF | 报销需要可归档和复核 | MEDIUM |
+| 移动端 | PC/Mobile 均可提交、查看、审批签字 | 现有审批待办已支持移动端，报销不能回退 | MEDIUM |
 
 ## Differentiators
 
 | Feature | Value | Scope Decision |
 |---------|-------|----------------|
-| 导入预览逐行错误 | 避免脏数据入库，降低用户对 Excel 导入的不信任 | v1.3 included |
-| 潜在重复提醒 | 表格无唯一 ID，按姓名 + 接待日期 + 咨询师提示重复但不自动合并 | v1.3 included |
-| 转化漏斗摘要 | 从「咨询后状态 / 状态类别」计算有意向、已签、流失等分布 | v1.3 included |
-| 快速跟进编辑 | 列表内快速打开详情维护状态说明和解决方案 | v1.3 included |
+| 固定报销模块复用审批任务 | 不重新造工作流，用户在“待我审批”内处理报销 | v1.4 included |
+| 发票预览与明细绑定 | 审核时能按费用行查看对应凭证 | v1.4 included |
+| 签名进入审批时间线/PDF | 通过记录可追溯，归档输出更接近纸质签字 | v1.4 included |
+| 草稿附件清理 | 防止未提交草稿和删除明细留下孤儿文件 | v1.4 included if storage phase supports it |
 
 ## Deferred / Anti-Features
 
 | Feature | Reason |
 |---------|--------|
-| Excel 导出 | PROJECT.md 已明确 v2.0 考虑，当前只做导入 |
-| 自动去重合并 | 样表缺少手机号或唯一线索 ID，自动合并风险高 |
-| 跟进提醒 / 待办 | 需要通知和任务体系，超出固定台账范围 |
-| 渠道商字典管理 | 先从记录中提取筛选项，避免新增维护成本 |
-| 销售阶段工作流 | 当前需求是记录状态，不是强制流程编排 |
-| 公开渠道报名页 | 可由现有表单系统覆盖，不纳入固定到访模块 |
+| OCR 自动识别发票 | 外部服务、准确率、财税规则复杂，非首版闭环必需 |
+| 发票真伪查验 | 依赖税务平台或第三方服务，超出当前单机部署定位 |
+| 付款状态/出纳打款 | 审批通过后支付是后续财务闭环，不影响首版提交和审批 |
+| 预算控制/科目余额 | 需要预算模块和财务科目体系，当前没有基础数据 |
+| 通用附件字段 | 会扩大自定义表单平台范围；v1.4 仅报销发票附件 |
+| 多币种/汇率 | 中小企业首版按人民币本位币即可 |
+| 并行/会签审批 | 已在 PROJECT.md 后置，沿用现有串行流程 |
+
+## Feature Dependencies
+
+```text
+报销数据模型
+  ├──requires──> 权限种子
+  ├──requires──> 本地文件存储元数据
+  └──enables──> 报销草稿/提交
+
+报销提交
+  └──requires──> 现有审批流程适配
+      └──creates──> ApprovalApplication + ApprovalTask
+
+审批签字
+  ├──requires──> 签名 canvas UI
+  ├──requires──> 签名文件持久化
+  └──extends──> approveTask payload / timeline
+```
+
+## MVP Definition
+
+### Launch With (v1.4)
+
+- [ ] 员工可创建报销草稿并维护基本信息、总金额、多条费用明细。
+- [ ] 员工可为费用明细上传图片/PDF 发票并提交审批。
+- [ ] 报销申请进入现有审批待办，审核人可查看明细和发票。
+- [ ] 审核人通过时必须手写签名，驳回时必须填写意见。
+- [ ] 报销详情和打印/PDF 展示审批意见、签名和附件清单。
+- [ ] 报销菜单、按钮和接口均受 RBAC 控制。
+
+### Add After Validation
+
+- [ ] 付款/打款状态。
+- [ ] 报销统计和按类别/部门/月度汇总。
+- [ ] 附件批量下载或压缩包导出。
+- [ ] 审批通过后财务复核节点。
+
+### Future Consideration
+
+- [ ] 发票 OCR、验真、重复发票号检测。
+- [ ] 预算占用、费用科目、项目/客户维度。
+- [ ] 企业微信/钉钉通知。
+
+## Sources
+
+- 用户本次里程碑输入：报销管理、提交报销申请、上传发票和相关信息、审核人员审核并签字通过。
+- Codebase: `.planning/PROJECT.md`, `backend/src/modules/approval/*`, `frontend/src/pages/ApprovalTaskDetailPage.vue`, `backend/src/modules/visit/visit.route.ts`.
+- Context7 docs for Elysia file upload, Quasar QFile, Bun file I/O, signature_pad.
+
+---
+*Feature research for: v1.4 报销管理*  
+*Researched: 2026-05-02*

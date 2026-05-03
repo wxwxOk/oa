@@ -14,6 +14,7 @@ coverage/
 .cache/
 backend/prisma/migrations/dev.db*
 backups/
+uploads/
 .claude/worktrees/
 .ace-tool/
 .claude

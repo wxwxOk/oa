@@ -2,48 +2,51 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: 报销管理
-status: defining_requirements
-last_updated: "2026-05-02T00:00:00.000Z"
-last_activity: "2026-05-02 -- v1.4 milestone started"
+status: executing
+last_updated: "2026-05-03T04:48:08.768Z"
+last_activity: 2026-05-03 -- Phase 25 employee reimbursement UI completed; Phase 26 ready
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 9
+  completed_phases: 7
+  total_plans: 40
+  completed_plans: 40
+  percent: 100
 ---
 
 # State
 
 - Initialized: 2026-04-17
-- Milestone: v1.4 报销管理 — DEFINING REQUIREMENTS
-- Status: v1.4 started; requirements and roadmap pending
+- Milestone: v1.4 报销管理 — ACTIVE
+- Status: Phase 25 employee reimbursement UI complete; Phase 26 ready
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** 开箱即用的组织架构管理、表单审批和固定业务台账
-**Current focus:** v1.4 报销管理 requirements definition
+**Current focus:** Phase 26 — two-level reimbursement review and signatures
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-02 — Milestone v1.4 started
+Phase: 25 (reimbursement-ui) — COMPLETE
+Plan: 4 of 4
+Status: Phase 25 employee reimbursement UI complete; Phase 26 ready
+Last activity: 2026-05-03 -- Phase 25 employee reimbursement UI completed
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Roadmap Summary
 
-- v1.4 roadmap pending; phase list will be generated after requirements are confirmed.
+- Phase 24: 报销数据模型 + 附件上传 API — complete
+- Phase 25: 员工报销申请与详情页面 — complete
+- Phase 26: 两级审核与手写签字 — next
+- Phase 27: 报销导出 + 验证收尾
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 96 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3)
+- Total plans completed: 100 (25 v1.0 + 13 v1.1 + 16 v1.2 + 32 v2.0 + 10 v1.3 + 4 v1.4 Phase 25)
 - v1.2 commits: ~50
 - v1.2 LOC added: 17,172
 
@@ -69,12 +72,32 @@ Progress: [░░░░░░░░░░] 0%
 - Phase 22 Plan 22-02: same session, 4 tasks, 5 files, completed 2026-05-02
 - Phase 23 Plan 23-01: same session, 3 tasks, 2 files, completed 2026-05-02
 - Phase 23 Plan 23-02: same session, 5 tasks, 8 files, completed 2026-05-02
+- Phase 24 Plan 24-01: same session, 4 tasks, 4 test files, completed 2026-05-03
+- Phase 24 Plan 24-02: same session, 3 tasks, 5 files, completed 2026-05-03
+- Phase 24 Plan 24-03: same session, 3 tasks, 5 files, completed 2026-05-03
+- Phase 24 Plan 24-04: same session, 3 tasks, 3 implementation files plus planning updates, completed 2026-05-03
+- Phase 25 Plan 25-01: same session, 3 tasks, 3 frontend contract test files, completed 2026-05-03
+- Phase 25 Plan 25-02: same session, 3 tasks, 4 frontend shell files, completed 2026-05-03
+- Phase 25 Plan 25-03: same session, 3 tasks, 3 form/attachment UI files, completed 2026-05-03
+- Phase 25 Plan 25-04: same session, 4 tasks, 5 list/detail/validation files, completed 2026-05-03
 
 ## Accumulated Context
 
 ### Decisions
 
 Archived to PROJECT.md Key Decisions table.
+
+- [Phase 24]: 报销管理采用固定 Prisma 业务模型，不复用 ApprovalApplication 或表单 JSON 作为主数据。
+- [Phase 24]: 报销金额使用 Decimal(12,2)，状态和动作使用固定枚举，常用列表筛选字段保留索引。
+- [Phase 24]: EMPLOYEE 默认仅拥有 reimbursement:create、reimbursement:own、reimbursement:attachment；list/review/export 权限保持显式授权。
+- [Phase 24]: 报销列表/详情先通过 authGuard() 登录鉴权，再按 own/list/department-review/finance-review/admin 读权限和对象可见性过滤，避免 reviewer/list 用户被 own-only guard 阻断。
+- [Phase 24]: 报销附件本地存储只在数据库保存相对路径；文件服务统一限制 JPEG/PNG/WebP/PDF、10MB 单文件和 20 个附件上限。
+- [Phase 24]: Phase 24 focused backend suite and backend build are green; repository-wide backend suite still has existing non-Phase-24 approval archive/task failures.
+- [Phase 25]: 报销前端采用固定业务模块和 `/reimbursements` 路由族，不复用动态审批申请页面。
+- [Phase 25]: 报销管理菜单为顶层入口，列表/详情使用 own/list/department-review/finance-review 的 `permAny` 读权限。
+- [Phase 25]: 附件上传必须先保存草稿获得申请 ID；图片预览和下载统一通过 `useReimbursementStore` 的 authenticated blob 请求和 object URL。
+- [Phase 25]: Phase 25 仅交付员工创建、我的报销、详情和附件操作；部门/财务审核、签名和导出继续留给 Phase 26/27。
+- [Phase 25]: Focused reimbursement frontend contracts and Quasar build are green；full frontend suite still has existing `localStorage`/`document` test environment failures outside Phase 25 scope.
 
 - [Phase 19]: Phase 19 Wave 0 tests intentionally fail until future archive, export, stats, and notification modules are implemented.
 - [Phase 19]: Archive route contracts reject trusted fields and only accept operation payload fields for tags, notes, processing data, corrections, and reasons.
@@ -122,12 +145,12 @@ Archived to PROJECT.md Key Decisions table.
 
 ### Blockers/Concerns
 
-Client open questions remain around first-delivery form examples, approval levels, rejection behavior, attachment requirement, external notification channel, department/company-wide data visibility, and post-submit edit permissions. v2.0 assumes a practical MVP: single/serial approvals, department-manager approval, in-app notifications, no attachments unless confirmed.
+v1.4 has no active blocker. Confirmed scope: fixed reimbursement module, department initial review + finance final review, image/PDF invoice attachments, Canvas handwritten signatures, and Excel detail export only.
 
-v1.3 has no active blocker. Phase 23 should preserve the Phase 20 stats API contract, add only `visit:stats`-gated frontend controls, and keep Excel export/follow-up workflow out of scope.
+Keep out of scope for v1.4: OCR, invoice verification, automatic duplicate checks, payment/accounting integration, statistics dashboard, amount-based branching, countersignature, delegation, and timeout escalation.
 
 ## Session
 
-- Last session: 2026-05-02
-- Stopped At: v1.3 archived after manual testing
-- Resume File: .planning/milestones/v1.3-ROADMAP.md
+- Last session: 2026-05-03
+- Stopped At: Phase 25 employee reimbursement UI completed; Phase 26 ready
+- Resume File: .planning/phases/25-reimbursement-ui/25-04-SUMMARY.md

@@ -334,6 +334,7 @@ const allMenus: MenuConfig[] = [
   { path: '/users', title: '用户', icon: 'people', perm: 'user:list' },
   { path: '/roles', title: '角色', icon: 'security', perm: 'role:list' },
   { path: '/visits', title: '到访管理', icon: 'groups', perm: 'visit:list' },
+  { path: '/reimbursements', title: '报销管理', icon: 'receipt_long', permAny: ['reimbursement:own', 'reimbursement:list', 'reimbursement:department-review', 'reimbursement:finance-review'] },
   {
     title: '收集统计表', icon: 'assessment',
     children: [

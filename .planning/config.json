@@ -9,8 +9,8 @@
     "deployment": "docker-compose"
   },
   "workflow": {
-    "autoCommit": false,
+    "autoCommit": true,
     "requireApproval": true,
-    "_auto_chain_active": true
+    "_auto_chain_active": false
   }
 }

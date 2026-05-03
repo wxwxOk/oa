@@ -38,9 +38,12 @@ services:
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:9000}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      REIMBURSEMENT_UPLOAD_DIR: ${REIMBURSEMENT_UPLOAD_DIR:-/app/uploads/reimbursements}
       PORT: ${BACKEND_PORT:-3000}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
+    volumes:
+      - oa_uploads:/app/uploads
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
@@ -80,3 +83,4 @@ services:
 
 volumes:
   oa_pgdata:
+  oa_uploads:

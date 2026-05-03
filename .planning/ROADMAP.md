@@ -7,6 +7,7 @@
 - ✅ **v1.2 模板管理优化** — Phases 10-14 (shipped 2026-04-22) → [archive](milestones/v1.2-ROADMAP.md)
 - ✅ **v2.0 表单驱动 OA 审批中心** — Phases 15-19 (implemented through 2026-04-26; Phase 18 verification pending)
 - ✅ **v1.3 到访信息管理** — Phases 20-23 (shipped 2026-05-02) → [archive](milestones/v1.3-ROADMAP.md)
+- 🚧 **v1.4 报销管理** — Phases 24-27 (requirements defined 2026-05-02)
 
 ## Phases
 
@@ -161,6 +162,79 @@ Plans:
 
 Archived to [v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md) and [v1.3-REQUIREMENTS.md](milestones/v1.3-REQUIREMENTS.md).
 
+### 🚧 v1.4 报销管理 (Active)
+
+**Milestone Goal:** 新增固定报销管理模块，让员工提交报销申请、上传发票附件，并通过部门初审与财务复核两级审核签字形成可追踪闭环；本期交付明细导出，不做 OCR、付款和统计看板。
+
+- [x] **Phase 24: 报销数据模型 + 附件上传 API** - schema/seed/API/附件已完成；Phase 24 focused backend verification green（completed 2026-05-03）
+- [x] **Phase 25: 员工报销申请与详情页面** - PC/Mobile 申请表单、我的申请、附件预览下载、筛选和状态展示（completed 2026-05-03）
+- [ ] **Phase 26: 两级审核与手写签字** - 部门初审、财务复核、Canvas 签名、驳回原因和审核轨迹
+- [ ] **Phase 27: 报销导出 + 验证收尾** - 按筛选导出 Excel、权限校验、端到端 UAT 和文档归档
+
+### Phase 24: 报销数据模型 + 附件上传 API
+**Goal**: 建立报销固定业务模块的数据层、权限体系和后端接口，支撑提交、附件、查询和后续审核。
+**Depends on**: Phase 23 (v1.3 shipped), Phase 19 (Excel export and RBAC patterns)
+**Requirements**: REIM-01, REIM-02, REIM-03, REIM-04, INV-01, INV-02, INV-03, INV-04, PERM-01, PERM-02, PERM-03, NFR-01, NFR-02
+**Success Criteria** (what must be TRUE):
+  1. Prisma schema 可表达报销申请、附件、审核动作/轨迹和部门/财务审核状态，并通过 migration
+  2. 后端权限码和菜单种子覆盖申请创建、查看、部门审核、财务审核、附件访问和导出
+  3. API 支持创建/提交报销申请、分页筛选列表、详情、附件上传、图片预览和原文件下载
+  4. 后端校验金额、必填字段、文件类型/大小和附件访问权限，禁止越权查看他人申请或附件
+  5. 列表查询保持分页，常用筛选字段具备索引或可控查询条件
+**Plans:** 4/4 complete; focused backend verification passed, with unrelated approval full-suite failures documented in `24-VERIFICATION.md`
+
+Plans:
+- [x] 24-01-PLAN.md — Wave 0 backend contracts for reimbursement seed, schema, route and file safety
+- [x] 24-02-PLAN.md — Wave 1 schema, migration, seed and upload storage baseline
+- [x] 24-03-PLAN.md — Wave 2 reimbursement application state/service/routes and `/api/v1` registration
+- [x] 24-04-PLAN.md — Wave 3 attachment file service, upload/preview/download/delete and final backend gate
+
+### Phase 25: 员工报销申请与详情页面
+**Goal**: 员工可在 PC/Mobile 完成报销填写、上传发票并追踪自己的申请状态。
+**Depends on**: Phase 24
+**Requirements**: REIM-01, REIM-02, REIM-03, REIM-04, INV-01, INV-03, UX-01, UX-02, PERM-01, PERM-02
+**Success Criteria** (what must be TRUE):
+  1. 报销管理入口按权限显示，员工可创建申请并上传多张图片/PDF 附件
+  2. 表单校验与后端口径一致，提交成功后进入部门初审且核心字段不可直接修改
+  3. “我的报销”支持状态、类别、日期区间和关键词筛选，普通员工只看到自己的申请
+  4. 详情页展示申请信息、附件列表、图片预览/PDF 下载和当前审核状态
+  5. 移动端可完成提交、查看详情和附件操作，上传/提交失败有明确反馈
+**Plans:** 4/4 complete; focused frontend verification and build passed
+**Verification:** passed — focused Phase 25 contracts and `bun run build` green; full frontend suite has existing browser-global environment failures documented in `25-04-SUMMARY.md`
+
+Plans:
+- [x] 25-01-PLAN.md — Wave 0 frontend contracts for reimbursement types, store and page/source boundaries
+- [x] 25-02-PLAN.md — Wave 1 reimbursement types, store, routes and menu
+- [x] 25-03-PLAN.md — Wave 2 reimbursement fixed form and authenticated attachment UX
+- [x] 25-04-PLAN.md — Wave 3 reimbursement list, detail, timeline and final frontend validation
+**UI hint**: yes
+
+### Phase 26: 两级审核与手写签字
+**Goal**: 部门审核人员和财务审核人员可按两级流程完成报销审核、签字和驳回。
+**Depends on**: Phase 25
+**Requirements**: APPROVAL-01, APPROVAL-02, APPROVAL-03, APPROVAL-04, APPROVAL-05, PERM-01, PERM-02, UX-01, UX-02
+**Success Criteria** (what must be TRUE):
+  1. 部门审核列表只展示待部门初审且当前用户有权处理的申请
+  2. 部门初审通过后申请进入财务复核，驳回后申请进入已驳回并关闭后续待办
+  3. 财务复核通过后申请进入已通过并记录最终通过时间，驳回后记录财务节点驳回信息
+  4. 两个通过节点均必须采集 Canvas 手写签名，并保存签名图片、审核人、动作、意见和时间
+  5. 申请详情展示提交、部门初审、财务复核、签字和驳回的完整审核轨迹
+**Plans:** TBD
+**UI hint**: yes
+
+### Phase 27: 报销导出 + 验证收尾
+**Goal**: 财务或授权人员可按筛选条件导出报销明细，并完成 v1.4 端到端验证与归档。
+**Depends on**: Phase 26
+**Requirements**: EXPORT-01, EXPORT-02, EXPORT-03, PERM-01, PERM-02, UX-02
+**Success Criteria** (what must be TRUE):
+  1. 有权限用户可按当前列表筛选条件导出 Excel，普通员工不能越权导出全部数据
+  2. 导出列包含申请基础信息、附件数量、当前状态、部门审核结果、财务审核结果和最终通过时间
+  3. 导出功能复用既有 Excel 工具链，返回文件名和错误信息清晰
+  4. UAT 覆盖提交、附件访问、部门通过/驳回、财务通过/驳回和导出权限
+  5. 完成 v1.4 需求覆盖检查、里程碑归档材料和后续需求记录
+**Plans:** TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -183,28 +257,37 @@ Archived to [v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md) and [v1.3-REQUIREMENTS
 | 21. 到访管理页面 + CRUD 筛选 | v1.3 | 3/3 | Complete | 2026-05-02 |
 | 22. Excel 导入解析 + 预览入库 | v1.3 | 2/2 | Complete    | 2026-05-02 |
 | 23. 统计面板 + 转化汇总 | v1.3 | 2/2 | Complete | 2026-05-02 |
+| 24. 报销数据模型 + 附件上传 API | v1.4 | 4/4 | Complete | 2026-05-03 |
+| 25. 员工报销申请与详情页面 | v1.4 | 4/4 | Complete | 2026-05-03 |
+| 26. 两级审核与手写签字 | v1.4 | 0/TBD | Not Started |  |
+| 27. 报销导出 + 验证收尾 | v1.4 | 0/TBD | Not Started |  |
 
 ## Current Coverage
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VISIT-01 | Phase 20 + Phase 21 | Complete |
-| VISIT-02 | Phase 21 | Complete |
-| VISIT-03 | Phase 21 | Complete |
-| VISIT-04 | Phase 21 | Complete |
-| QUERY-01 | Phase 21 | Complete |
-| QUERY-02 | Phase 21 | Complete |
-| QUERY-03 | Phase 21 | Complete |
-| QUERY-04 | Phase 21 | Complete |
-| IMPORT-01 | Phase 22 | Complete |
-| IMPORT-02 | Phase 22 | Complete |
-| IMPORT-03 | Phase 22 | Complete |
-| IMPORT-04 | Phase 22 | Complete |
-| STAT-01 | Phase 23 | Complete |
-| STAT-02 | Phase 23 | Complete |
-| STAT-03 | Phase 23 | Complete |
-| STAT-04 | Phase 23 | Complete |
-| PERM-01 | Phase 20 + Phase 21 | Complete |
-| PERM-02 | Phase 20 + Phase 21 + Phase 22 + Phase 23 | Complete |
+| REIM-01 | Phase 24 + Phase 25 | Complete — backend + employee UI |
+| REIM-02 | Phase 24 + Phase 25 | Complete — backend + employee UI |
+| REIM-03 | Phase 24 + Phase 25 | Complete — backend + employee UI |
+| REIM-04 | Phase 24 + Phase 25 | Complete — backend + employee UI |
+| INV-01 | Phase 24 + Phase 25 | Complete — backend + employee upload UI |
+| INV-02 | Phase 24 | Complete |
+| INV-03 | Phase 24 + Phase 25 | Complete — authenticated preview/download backend + UI |
+| INV-04 | Phase 24 | Complete |
+| APPROVAL-01 | Phase 26 | Planned |
+| APPROVAL-02 | Phase 26 | Planned |
+| APPROVAL-03 | Phase 26 | Planned |
+| APPROVAL-04 | Phase 26 | Planned |
+| APPROVAL-05 | Phase 26 | Planned |
+| EXPORT-01 | Phase 27 | Planned |
+| EXPORT-02 | Phase 27 | Planned |
+| EXPORT-03 | Phase 27 | Planned |
+| PERM-01 | Phase 24 + Phase 25 + Phase 26 + Phase 27 | Phase 24 backend + Phase 25 frontend complete; review/export usage planned |
+| PERM-02 | Phase 24 + Phase 25 + Phase 26 + Phase 27 | Phase 24 backend + Phase 25 frontend complete; review/export usage planned |
+| PERM-03 | Phase 24 | Complete |
+| UX-01 | Phase 25 + Phase 26 | Phase 25 employee UI complete; Phase 26 review UI planned |
+| UX-02 | Phase 25 + Phase 26 + Phase 27 | Phase 25 upload/submit feedback complete; review/export feedback planned |
+| NFR-01 | Phase 24 | Complete |
+| NFR-02 | Phase 24 | Complete |
 
-**Coverage:** 18/18 v1.3 requirements mapped, 0 unmapped.
+**Coverage:** 23/23 v1.4 requirements mapped, 0 unmapped.
