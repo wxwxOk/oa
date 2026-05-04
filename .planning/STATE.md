@@ -1,62 +1,56 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: 报销管理
-status: completed
-last_updated: "2026-05-03T18:45:00.000Z"
-last_activity: 2026-05-03 -- v1.4 reimbursement milestone shipped after automated gates and manual UAT passed
+milestone: v1.5
+milestone_name: 工作记录管理
+status: ready_to_plan
+last_updated: "2026-05-03T19:30:00.000Z"
+last_activity: 2026-05-03 -- v1.5 requirements and roadmap defined; ready to plan Phase 28
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  completed_phases: 0
+  total_plans: 15
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
 
 - Initialized: 2026-04-17
-- Milestone: v1.4 报销管理 — SHIPPED
-- Status: Completed; automated focused gates passed and user confirmed manual UAT passed
+- Milestone: v1.5 工作记录管理 — READY TO PLAN
+- Status: Ready to plan Phase 28
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-03)
 
 **Core value:** 开箱即用的组织架构管理、表单审批和固定业务台账
-**Current focus:** No active milestone; start the next one with $gsd-new-milestone when requirements are ready
+**Current focus:** v1.5 工作记录管理 — 日报/周报/月报填报、部门汇总和 Excel 归档
 
 ## Current Position
 
-Phase: none — v1.4 is complete
-Plan: none
-Status: v1.4 archived to .planning/milestones/ and recorded in MILESTONES.md
-Last activity: 2026-05-03 -- manual UAT passed and milestone archived
+Phase: 28 工作记录数据模型 + 后端 API
+Plan: —
+Status: Ready to plan
+Last activity: 2026-05-03 -- v1.5 requirements and roadmap defined
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Roadmap Summary
 
-- Phase 24: 报销数据模型 + 附件上传 API — complete
-- Phase 25: 员工报销申请与详情页面 — complete
-- Phase 26: 两级审核与手写签字 — complete
-- Phase 27: 报销导出 + 验证收尾 — complete; manual UAT passed
+- Phase 28: 工作记录数据模型 + 后端 API (4 plans)
+- Phase 29: 员工填报页面 + 我的记录 (4 plans)
+- Phase 30: 部门汇总 + 管理视图 (4 plans)
+- Phase 31: 工作记录导出 + 验证收尾 (3 plans)
 
 ## Validation Summary
 
-- Backend focused reimbursement tests/build: passed
-- Frontend focused reimbursement tests/build: passed
-- Manual UAT: passed by user confirmation on 2026-05-03
-- Requirements coverage: 23/23 v1.4 requirements complete
+- v1.5 validation pending; implementation has not started
+- Requirements coverage: 24/24 mapped to Phases 28-31
 
 ## Completed Scope
 
-- Fixed reimbursement module with dedicated Prisma business model and RBAC permissions
-- Employee reimbursement submit/list/detail flow with image/PDF invoice attachments
-- Department initial review and finance final review with Canvas signature evidence
-- Review timeline with approve/reject opinions and protected signature/attachment access
-- Current-filter reimbursement Excel detail export
+- v1.4 completed fixed reimbursement module with application, attachments, two-level review signatures, audit timeline and Excel export
 
 ## Deferred Scope
 
-OCR, invoice verification, automatic duplicate checks, payment/accounting integration, statistics dashboard, amount-based branching, countersignature, delegation and timeout escalation remain out of scope for v1.4.
+v1.5 defers reminder push/c催办, manager comments, return-for-edit, scoring, OKR/KPI, project task management and AI summaries until the basic work-record loop is validated.

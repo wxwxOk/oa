@@ -1,91 +1,182 @@
-# Feature Landscape: v1.4 报销管理
+# Feature Landscape: v1.5 工作记录管理
 
-**Domain:** 员工报销申请 / 发票附件 / 审批签字  
-**Researched:** 2026-05-02  
+
+
+**Domain:** 员工日报周报月报 / 部门汇总 / 工作记录归档  
+
+**Researched:** 2026-05-03  
+
 **Confidence:** HIGH
+
+
 
 ## Table Stakes
 
+
+
 | Category | Feature | Why Expected | Complexity |
+
 |----------|---------|--------------|------------|
-| 报销单 | 员工可新建、保存草稿、提交报销申请 | 报销需要先沉淀申请单和状态 | MEDIUM |
-| 费用明细 | 一张报销单可包含多条日期/类别/金额/说明明细 | 报销通常不是单一金额，明细决定审核依据 | MEDIUM |
-| 发票附件 | 明细可上传图片/PDF 发票，并在详情查看/下载 | 发票是报销审核的核心凭证 | HIGH |
-| 审批流转 | 提交后进入现有审批待办，审核人可通过/驳回 | 项目已有 OA 审批中心，报销必须复用闭环 | MEDIUM |
-| 审批签字 | 通过报销时审核人必须手写签名 | 用户明确要求“审核人员审核并签字通过” | HIGH |
-| 权限控制 | 独立菜单 + list/create/update/delete/approve/export 权限 | OA 固定模块必须纳入 RBAC | MEDIUM |
-| 详情/PDF | 报销详情展示明细、发票、审批意见、签名，可打印/PDF | 报销需要可归档和复核 | MEDIUM |
-| 移动端 | PC/Mobile 均可提交、查看、审批签字 | 现有审批待办已支持移动端，报销不能回退 | MEDIUM |
+
+| 填报 | 员工可创建、保存草稿、提交日报/周报/月报 | 工作记录首先要形成稳定填报入口 | MEDIUM |
+
+| 固定模板 | 完成事项、计划、问题风险、需要协助、备注 | 成熟工作汇报产品的共同最小结构 | LOW |
+
+| 周期规则 | 记录 periodType、periodStart、periodEnd，并限制同一人同周期唯一提交 | 避免同周期重复和汇总口径混乱 | MEDIUM |
+
+| 我的记录 | 员工可查看、筛选、继续编辑自己的草稿和已提交记录 | 员工需要追踪自己的历史记录 | LOW |
+
+| 部门汇总 | 主管按部门、人员、周期、日期范围查看提交率和内容摘要 | 用户明确要求“汇总”，部门是首要口径 | MEDIUM |
+
+| 未提交人员 | 汇总页展示应提交但未提交的人员 | 管理者需要知道缺口，不只是看已有记录 | MEDIUM |
+
+| 权限控制 | 独立菜单 + own/department/all/export 权限 | OA 固定模块必须纳入 RBAC | MEDIUM |
+
+| Excel 归档 | 按当前筛选导出明细和汇总 sheet | 中小企业常用 Excel 做月度归档 | MEDIUM |
+
+| 移动端 | 员工可在移动端填写和查看记录 | 日报场景经常在下班前手机补填 | MEDIUM |
+
+
 
 ## Differentiators
 
+
+
 | Feature | Value | Scope Decision |
+
 |---------|-------|----------------|
-| 固定报销模块复用审批任务 | 不重新造工作流，用户在“待我审批”内处理报销 | v1.4 included |
-| 发票预览与明细绑定 | 审核时能按费用行查看对应凭证 | v1.4 included |
-| 签名进入审批时间线/PDF | 通过记录可追溯，归档输出更接近纸质签字 | v1.4 included |
-| 草稿附件清理 | 防止未提交草稿和删除明细留下孤儿文件 | v1.4 included if storage phase supports it |
+
+| 三周期统一模型 | 日报/周报/月报用同一套模型和页面，减少重复代码 | v1.5 included |
+
+| 部门提交率 | 比单纯列表更贴合主管查看场景 | v1.5 included |
+
+| 未提交清单 | 为后续提醒/催办保留数据基础，但不主动推送 | v1.5 included |
+
+| 双 sheet 导出 | 明细 sheet + 汇总 sheet 兼顾归档和复盘 | v1.5 included |
+
+
 
 ## Deferred / Anti-Features
 
+
+
 | Feature | Reason |
+
 |---------|--------|
-| OCR 自动识别发票 | 外部服务、准确率、财税规则复杂，非首版闭环必需 |
-| 发票真伪查验 | 依赖税务平台或第三方服务，超出当前单机部署定位 |
-| 付款状态/出纳打款 | 审批通过后支付是后续财务闭环，不影响首版提交和审批 |
-| 预算控制/科目余额 | 需要预算模块和财务科目体系，当前没有基础数据 |
-| 通用附件字段 | 会扩大自定义表单平台范围；v1.4 仅报销发票附件 |
-| 多币种/汇率 | 中小企业首版按人民币本位币即可 |
-| 并行/会签审批 | 已在 PROJECT.md 后置，沿用现有串行流程 |
+
+| 提醒/催办/截止时间 | 需要通知和规则调度，先验证填报闭环 |
+
+| 主管评论/退回修改 | 会增加协作状态机，后续再做 |
+
+| 评分/绩效/KPI | 属于绩效管理，超出“工作记录” |
+
+| OKR/目标拆解 | 独立产品方向，不作为 v1.5 前置条件 |
+
+| 项目工时/任务管理 | 容易变成项目管理系统，当前只做报表式记录 |
+
+| AI 总结/关键词分类 | 需要模型能力和成本，后置 |
+
+
 
 ## Feature Dependencies
 
+
+
 ```text
-报销数据模型
+
+工作记录数据模型
+
   ├──requires──> 权限种子
-  ├──requires──> 本地文件存储元数据
-  └──enables──> 报销草稿/提交
 
-报销提交
-  └──requires──> 现有审批流程适配
-      └──creates──> ApprovalApplication + ApprovalTask
+  ├──requires──> User / Department 关系
 
-审批签字
-  ├──requires──> 签名 canvas UI
-  ├──requires──> 签名文件持久化
-  └──extends──> approveTask payload / timeline
+  └──enables──> 员工草稿/提交
+
+
+
+记录列表和详情
+
+  ├──requires──> WorkReport CRUD API
+
+  └──enables──> PC/Mobile 填报页面
+
+
+
+部门汇总
+
+  ├──requires──> 周期字段和部门快照
+
+  ├──requires──> 用户清单
+
+  └──enables──> 提交率 / 未提交人员 / Excel 导出
+
 ```
+
+
 
 ## MVP Definition
 
-### Launch With (v1.4)
 
-- [ ] 员工可创建报销草稿并维护基本信息、总金额、多条费用明细。
-- [ ] 员工可为费用明细上传图片/PDF 发票并提交审批。
-- [ ] 报销申请进入现有审批待办，审核人可查看明细和发票。
-- [ ] 审核人通过时必须手写签名，驳回时必须填写意见。
-- [ ] 报销详情和打印/PDF 展示审批意见、签名和附件清单。
-- [ ] 报销菜单、按钮和接口均受 RBAC 控制。
+
+### Launch With (v1.5)
+
+
+
+- [ ] 员工可按日报、周报、月报创建草稿、编辑并提交。
+
+- [ ] 固定模板覆盖完成事项、下一周期计划、问题风险、需要协助和备注。
+
+- [ ] 同一员工同一周期只能有一条正式记录，提交后形成可汇总状态。
+
+- [ ] 主管/管理员可按部门、人员、周期和日期范围查看提交率、已提交/未提交人员和内容摘要。
+
+- [ ] 授权用户可导出当前筛选的明细和汇总 Excel。
+
+- [ ] 工作记录菜单、按钮和接口均受 RBAC 控制。
+
+
 
 ### Add After Validation
 
-- [ ] 付款/打款状态。
-- [ ] 报销统计和按类别/部门/月度汇总。
-- [ ] 附件批量下载或压缩包导出。
-- [ ] 审批通过后财务复核节点。
+
+
+- [ ] 提醒、催办和截止时间配置。
+
+- [ ] 主管评论、退回修改和已读确认。
+
+- [ ] 更多统计图表和趋势分析。
+
+
 
 ### Future Consideration
 
-- [ ] 发票 OCR、验真、重复发票号检测。
-- [ ] 预算占用、费用科目、项目/客户维度。
-- [ ] 企业微信/钉钉通知。
+
+
+- [ ] OKR/KPI、评分和绩效校准。
+
+- [ ] 项目工时、任务联动和看板。
+
+- [ ] AI 自动摘要、风险识别和关键词分类。
+
+
 
 ## Sources
 
-- 用户本次里程碑输入：报销管理、提交报销申请、上传发票和相关信息、审核人员审核并签字通过。
-- Codebase: `.planning/PROJECT.md`, `backend/src/modules/approval/*`, `frontend/src/pages/ApprovalTaskDetailPage.vue`, `backend/src/modules/visit/visit.route.ts`.
-- Context7 docs for Elysia file upload, Quasar QFile, Bun file I/O, signature_pad.
+
+
+- 用户本次里程碑输入：工作记录管理，用于员工填写日报、周报、月报并汇总。
+
+- 用户确认范围：轻量填报闭环、固定模板、部门汇总、v1.5。
+
+- Codebase: `.planning/PROJECT.md`, `.planning/ROADMAP.md`, `backend/src/modules/visit/visit.route.ts`, `backend/src/modules/reimbursement/*`, `backend/prisma/seed.ts`.
+
+- 产品参考：钉钉日志、飞书工作汇报、15Five weekly check-in、Weekdone、Odoo / ERPNext timesheets。
+
+
 
 ---
-*Feature research for: v1.4 报销管理*  
-*Researched: 2026-05-02*
+
+*Feature research for: v1.5 工作记录管理*  
+
+*Researched: 2026-05-03*
+
