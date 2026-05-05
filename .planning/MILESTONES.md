@@ -1,5 +1,29 @@
 # Milestones
 
+## v1.6 渠道商信息推送 (Planning: 2026-05-05)
+
+**Status:** 🚧 PLANNED — roadmap approved, ready to execute Phase 32
+**Planned Phases:** 5 (Phases 32-36) | **Planned Plans:** 17 | **Requirements:** 28 v1
+**Timeline:** 2026-05-05 milestone started, requirements defined and roadmap approved
+
+**Scope:**
+
+1. 外部渠道商账号体系（管理员手动开通 + CHANNEL_PARTNER 角色 + 1 渠道商 ↔ 1 主接收人）
+2. 学员信息推送（在线单条 + Excel 批量 + 附件 + 待审核可编辑撤回）
+3. 重复提示但不阻止（按 姓名+手机号）
+4. 主接收人审核闭环（补充内部字段 + 通过/驳回 + 必填意见）
+5. 双向站内通知（复用 v2.0）+ 部门负责人/上级/ADMIN 只读可见
+
+**Key decisions:**
+
+- 推送数据独立 ChannelPush 模型，不与 v1.3 VisitRecord 联动
+- 渠道商复用 PC/Mobile 布局，靠 RBAC 屏蔽员工菜单
+- 仅站内通知，不引入外部短信/微信/邮件
+
+**Files:** [REQUIREMENTS.md](REQUIREMENTS.md) | [ROADMAP.md](ROADMAP.md)
+
+---
+
 ## v1.5 工作记录管理 (Deferred: 2026-05-05)
 
 **Status:** ⏸️ DEFERRED before implementation — priority lowered in favour of a new milestone

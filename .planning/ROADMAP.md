@@ -9,6 +9,7 @@
 - ✅ **v1.3 到访信息管理** — Phases 20-23 (shipped 2026-05-02) → [archive](milestones/v1.3-ROADMAP.md)
 - ✅ **v1.4 报销管理** — Phases 24-27 (shipped 2026-05-03; manual UAT passed) → [archive](milestones/v1.4-ROADMAP.md)
 - ⏸️ **v1.5 工作记录管理** — Phases 28-31 (deferred 2026-05-05; planning only, no code) → [archive](milestones/v1.5-ROADMAP.md)
+- 🚧 **v1.6 渠道商信息推送** — Phases 32-36 (planning started 2026-05-05)
 
 ## Phases
 
@@ -183,6 +184,87 @@ Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS
 
 **Resume path:** 见 `milestones/v1.5-ROADMAP.md` 中 "Resume Path" 小节。
 
+### 🚧 v1.6 渠道商信息推送 (Planning started 2026-05-05)
+
+**Milestone Goal:** 让外部渠道商通过本系统向绑定的内部接收人推送学员信息，由接收人审核闭环；推送数据独立沉淀和查询，不与 v1.3 到访记录混用。
+
+- [ ] **Phase 32: 渠道推送数据模型 + 后端 API + RBAC** — ChannelPush Prisma 模型、CHANNEL_PARTNER 角色、5 个权限码、渠道商 CRUD/绑定接收人、推送提交/查询/编辑/撤回 API、附件存储复用 v1.4 模式
+- [ ] **Phase 33: 渠道商提交体验 + 我的推送 UI** — 渠道商专用菜单和路由守卫、单条提交表单、附件上传、我的推送列表、详情、编辑/撤回、重复提示 UI
+- [ ] **Phase 34: Excel 批量推送导入** — 复用 v1.3 解析体验、表头约定、预览、有效/无效行展示、批量提交、独立审核流
+- [ ] **Phase 35: 接收人审核 UI + 内部补充字段** — 「待我审核」列表/详情、内部补充字段 UI、通过/驳回 + 必填驳回意见、已审核历史、PC 表格 + Mobile 卡片
+- [ ] **Phase 36: 站内通知集成 + 跨角色可见性 + 验证收尾** — 渠道推送通知类型、铃铛跳转、渠道商通知接收、部门负责人/上级/ADMIN 只读可见性、端到端验证与归档
+
+
+### Phase 32: 渠道推送数据模型 + 后端 API + RBAC
+
+**Goal**: 建立 v1.6 渠道商信息推送的后端基础——固定 ChannelPush 数据模型、CHANNEL_PARTNER 角色与 5 个权限码、渠道商账号开通与接收人绑定 API、推送提交/查询/编辑/撤回端点和附件存储管线。
+**Depends on**: Phase 27 (v1.4 shipped — 报销附件存储与 RBAC 模式可复用)
+**Requirements**: PARTNER-01, PARTNER-02, PARTNER-03, PUSH-01, PUSH-02, PUSH-05, PUSH-06, DEDUP-01, REVIEW-04, REVIEW-06, PERM-01, PERM-02, PERM-03
+**Plans**: 4 plans (estimated)
+**Success Criteria** (what must be TRUE):
+  1. Prisma `ChannelPush`、`ChannelPushAttachment`、`ChannelPushReviewAction` 模型与 migration 落地，包含状态机字段和审核时间线
+  2. CHANNEL_PARTNER 角色和 channelPush:create / viewOwn / cancel / review / viewScope 权限码完成种子数据
+  3. 管理员可通过 API 开通渠道商账号、绑定 1 个内部主接收人并支持禁用/启用
+  4. 渠道商可通过 `/api/v1/channel-push` 提交（含附件）、查询自己的推送、编辑和撤回（仅待审核状态）
+  5. 后端按 (姓名, 手机号) 在响应中返回潜在重复提示数据，但不阻止提交
+  6. 后端服务/路由测试覆盖创建/查询/编辑/撤回/重复检测和非法状态拒绝
+**UI hint**: no
+
+### Phase 33: 渠道商提交体验 + 我的推送 UI
+
+**Goal**: 渠道商可在 PC/Mobile 完成推送提交、附件上传，并在「我的推送」列表/详情中追踪自己的推送状态、编辑/撤回待审核记录、看到重复提示。
+**Depends on**: Phase 32
+**Requirements**: PARTNER-04, PARTNER-05, PUSH-01, PUSH-02, PUSH-05, PUSH-06, DEDUP-01, DEDUP-02, NOTIF-03
+**Plans**: 4 plans (estimated)
+**Success Criteria** (what must be TRUE):
+  1. 渠道商登录后只可见「我的推送」相关菜单，访问员工业务路径被前端守卫和后端权限拦截
+  2. PC/Mobile 提交表单覆盖学员姓名、手机号、年龄、学历、性别、意向、备注和附件 0~N 上传
+  3. 提交时按 (姓名, 手机号) 命中重复立即提示冲突条目，但允许继续提交
+  4. 「我的推送」列表支持关键字搜索、状态筛选、时间范围筛选，并能进入详情查看处理状态、驳回原因和审核时间
+  5. 待审核状态记录可编辑/撤回，终态记录按钮禁用并提示原因
+**UI hint**: yes
+
+### Phase 34: Excel 批量推送导入
+
+**Goal**: 渠道商可使用 Excel 批量推送学员信息，复用 v1.3 解析与预览体验，每条推送独立进入审核流。
+**Depends on**: Phase 33
+**Requirements**: PUSH-03, PUSH-04
+**Plans**: 2 plans (estimated)
+**Success Criteria** (what must be TRUE):
+  1. 渠道商可上传 `.xlsx`，系统按约定的标题/表头/数据行解析并提供预览，标识有效行/无效行和错误原因
+  2. 用户确认后系统按行批量创建独立 ChannelPush 记录，并返回成功/失败计数和失败原因
+  3. 批量提交结果在「我的推送」列表中出现，每条独立可审核、可编辑/撤回（仅待审核态）
+  4. 重复提示对批量导入同样适用（DEDUP-01 复用），不会自动跳过或合并
+**UI hint**: yes
+
+### Phase 35: 接收人审核 UI + 内部补充字段
+
+**Goal**: 主接收人可在 PC/Mobile 处理「待我审核」推送，补充内部字段、通过/驳回（必填意见）并查看已审核历史。
+**Depends on**: Phase 34
+**Requirements**: REVIEW-01, REVIEW-03, REVIEW-04, REVIEW-05, REVIEW-06, REVIEW-07, PERM-04
+**Plans**: 4 plans (estimated)
+**Success Criteria** (what must be TRUE):
+  1. 主接收人在「待我审核」列表看到当前作为主接收人的待审推送，可按渠道商、状态、时间范围筛选
+  2. 推送详情页展示渠道商提交字段、附件预览、重复提示信息和审核时间线
+  3. 主接收人可在审核前补充内部字段（计划接待人、预期接待日期、内部备注）；补充字段不修改原始提交，仅对内部可见
+  4. 通过/驳回操作仅对当前主接收人开放；驳回必须填写意见，通过可选填备注；操作后状态机转为终态
+  5. 「已审核」历史按状态/时间筛选，PC 表格 + Mobile 卡片均可用
+  6. 审核结果只更新推送记录与时间线，不创建到访记录或与 VisitRecord 联动
+**UI hint**: yes
+
+### Phase 36: 站内通知集成 + 跨角色可见性 + 验证收尾
+
+**Goal**: 完成 v1.6 通知闭环（双向）、跨角色只读可见性（部门负责人/上级/ADMIN）、端到端 UAT 与归档。
+**Depends on**: Phase 35
+**Requirements**: REVIEW-02, NOTIF-01, NOTIF-02, NOTIF-04
+**Plans**: 3 plans (estimated)
+**Success Criteria** (what must be TRUE):
+  1. 渠道商提交推送后主接收人立即收到「渠道推送待审核」站内通知，铃铛未读数 +1，点击跳转到审核详情
+  2. 渠道商在自己推送被通过/驳回时收到「我的推送已审核」站内通知，跳转到我的推送详情
+  3. 主接收人所在部门负责人、上级部门负责人和超级管理员可只读查看名下/全部推送，但通过/驳回操作按钮和 API 仅对主接收人放行
+  4. v1.6 端到端验证：focused 后端测试 + 前端 contract/build + 手动 UAT，并将 v1.6 closeout 摘要写入 MILESTONES.md
+**UI hint**: yes
+
 
 ## Progress
 
@@ -214,7 +296,12 @@ Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS
 | 29. 员工填报页面 + 我的记录 | v1.5 | 0/4 | Deferred |  |
 | 30. 部门汇总 + 管理视图 | v1.5 | 0/4 | Deferred |  |
 | 31. 工作记录导出 + 验证收尾 | v1.5 | 0/3 | Deferred |  |
+| 32. 渠道推送数据模型 + 后端 API + RBAC | v1.6 | 0/4 | Pending |  |
+| 33. 渠道商提交体验 + 我的推送 UI | v1.6 | 0/4 | Pending |  |
+| 34. Excel 批量推送导入 | v1.6 | 0/2 | Pending |  |
+| 35. 接收人审核 UI + 内部补充字段 | v1.6 | 0/4 | Pending |  |
+| 36. 站内通知集成 + 跨角色可见性 + 验证收尾 | v1.6 | 0/3 | Pending |  |
 
 ## Current Coverage
 
-No active milestone. v1.5 coverage is archived to [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md). Next milestone scope will be captured in a fresh `REQUIREMENTS.md` when planning resumes.
+**Active milestone:** v1.6 渠道商信息推送 (Phases 32-36) — 28 v1 requirements mapped across 5 phases (100% coverage). See [REQUIREMENTS.md](REQUIREMENTS.md) for detail; v1.5 archive remains at [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md).

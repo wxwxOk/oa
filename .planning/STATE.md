@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: "渠道商信息推送"
-status: planning
+status: roadmap_approved
 last_updated: "2026-05-05T00:00:00.000Z"
-last_activity: 2026-05-05 -- v1.6 渠道商信息推送 milestone started; defining requirements
+last_activity: 2026-05-05 -- v1.6 roadmap approved (Phases 32-36, 28 requirements mapped)
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 17
   completed_plans: 0
   percent: 0
 ---
@@ -16,8 +16,8 @@ progress:
 # State
 
 - Initialized: 2026-04-17
-- Active Milestone: v1.6 渠道商信息推送 — planning
-- Status: Defining requirements
+- Active Milestone: v1.6 渠道商信息推送 — Phases 32-36
+- Status: Roadmap approved; awaiting Phase 32 execution
 
 ## Project Reference
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 32 (planned, not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-05 — Milestone v1.6 渠道商信息推送 started
+Status: Ready to plan Phase 32 — 渠道推送数据模型 + 后端 API + RBAC
+Last activity: 2026-05-05 — Roadmap approved (5 phases / 28 requirements / 17 plans)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -45,7 +45,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Next Step
 
-定义 v1.6 渠道商信息推送 需求 (REQUIREMENTS.md) → 生成 ROADMAP.md (Phase 编号从 32 开始) → 进入 `/gsd-plan-phase 32` 开始执行。
+Run `/gsd-discuss-phase 32` (recommended) or `/gsd-plan-phase 32` to plan and execute the first v1.6 phase: 渠道推送数据模型 + 后端 API + RBAC.
 
 ## Deferred Scope Notes
 

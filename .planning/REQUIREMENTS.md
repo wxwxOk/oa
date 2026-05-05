@@ -91,40 +91,40 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PARTNER-01 | TBD | Pending |
-| PARTNER-02 | TBD | Pending |
-| PARTNER-03 | TBD | Pending |
-| PARTNER-04 | TBD | Pending |
-| PARTNER-05 | TBD | Pending |
-| PUSH-01 | TBD | Pending |
-| PUSH-02 | TBD | Pending |
-| PUSH-03 | TBD | Pending |
-| PUSH-04 | TBD | Pending |
-| PUSH-05 | TBD | Pending |
-| PUSH-06 | TBD | Pending |
-| DEDUP-01 | TBD | Pending |
-| DEDUP-02 | TBD | Pending |
-| REVIEW-01 | TBD | Pending |
-| REVIEW-02 | TBD | Pending |
-| REVIEW-03 | TBD | Pending |
-| REVIEW-04 | TBD | Pending |
-| REVIEW-05 | TBD | Pending |
-| REVIEW-06 | TBD | Pending |
-| REVIEW-07 | TBD | Pending |
-| NOTIF-01 | TBD | Pending |
-| NOTIF-02 | TBD | Pending |
-| NOTIF-03 | TBD | Pending |
-| NOTIF-04 | TBD | Pending |
-| PERM-01 | TBD | Pending |
-| PERM-02 | TBD | Pending |
-| PERM-03 | TBD | Pending |
-| PERM-04 | TBD | Pending |
+| PARTNER-01 | Phase 32 | Pending |
+| PARTNER-02 | Phase 32 | Pending |
+| PARTNER-03 | Phase 32 | Pending |
+| PARTNER-04 | Phase 33 | Pending |
+| PARTNER-05 | Phase 33 | Pending |
+| PUSH-01 | Phase 33 | Pending |
+| PUSH-02 | Phase 33 | Pending |
+| PUSH-03 | Phase 34 | Pending |
+| PUSH-04 | Phase 34 | Pending |
+| PUSH-05 | Phase 33 | Pending |
+| PUSH-06 | Phase 33 | Pending |
+| DEDUP-01 | Phase 33 | Pending |
+| DEDUP-02 | Phase 33 | Pending |
+| REVIEW-01 | Phase 35 | Pending |
+| REVIEW-02 | Phase 36 | Pending |
+| REVIEW-03 | Phase 35 | Pending |
+| REVIEW-04 | Phase 35 | Pending |
+| REVIEW-05 | Phase 35 | Pending |
+| REVIEW-06 | Phase 35 | Pending |
+| REVIEW-07 | Phase 35 | Pending |
+| NOTIF-01 | Phase 36 | Pending |
+| NOTIF-02 | Phase 36 | Pending |
+| NOTIF-03 | Phase 33 | Pending |
+| NOTIF-04 | Phase 36 | Pending |
+| PERM-01 | Phase 32 | Pending |
+| PERM-02 | Phase 32 | Pending |
+| PERM-03 | Phase 32 | Pending |
+| PERM-04 | Phase 35 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
-- Mapped to phases: 0 (will be filled by roadmap)
-- Unmapped: 28 ⚠️ (expected pre-roadmap)
+- Mapped to phases: 28
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after initial v1.6 definition*
+*Last updated: 2026-05-05 after v1.6 roadmap traceability mapping*
