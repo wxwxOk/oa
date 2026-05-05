@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: ""
-status: awaiting_milestone_definition
+milestone: v1.6
+milestone_name: "渠道商信息推送"
+status: planning
 last_updated: "2026-05-05T00:00:00.000Z"
-last_activity: 2026-05-05 -- v1.5 deferred before implementation; awaiting new milestone definition
+last_activity: 2026-05-05 -- v1.6 渠道商信息推送 milestone started; defining requirements
 progress:
   total_phases: 0
   completed_phases: 0
@@ -16,22 +16,22 @@ progress:
 # State
 
 - Initialized: 2026-04-17
-- Active Milestone: none — awaiting definition
-- Status: Previous milestone (v1.5 工作记录管理) deferred 2026-05-05; no code shipped
+- Active Milestone: v1.6 渠道商信息推送 — planning
+- Status: Defining requirements
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-03)
+See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** 开箱即用的组织架构管理、表单审批和固定业务台账
-**Current focus:** —（等待新里程碑需求定义；v1.5 工作记录管理因优先级调整暂缓）
+**Current focus:** v1.6 渠道商信息推送 — 外部渠道商账号 + 推送 + 内部审核闭环 + 通知
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting milestone definition
-Last activity: 2026-05-05 -- v1.5 deferred; Phase 28 planning artefacts archived to .planning/milestones/v1.5-phases/
+Status: Defining requirements
+Last activity: 2026-05-05 — Milestone v1.6 渠道商信息推送 started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -45,12 +45,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Next Step
 
-新里程碑需求尚未定义。开启下一里程碑时：
-
-1. 创建新的 `.planning/REQUIREMENTS.md`
-2. 更新 `.planning/ROADMAP.md` 增加新里程碑条目（Phase 编号从 32 开始，避免与 v1.5 冲突）
-3. 更新本文件的 `milestone` / `milestone_name` / `status` / `progress`
-4. 在 `.planning/MILESTONES.md` 顶部追加新里程碑概览
+定义 v1.6 渠道商信息推送 需求 (REQUIREMENTS.md) → 生成 ROADMAP.md (Phase 编号从 32 开始) → 进入 `/gsd-plan-phase 32` 开始执行。
 
 ## Deferred Scope Notes
 
