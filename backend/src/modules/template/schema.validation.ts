@@ -9,6 +9,7 @@ const FieldType = t.Union([
   t.Literal('date'),
   t.Literal('phone'),
   t.Literal('signature'),
+  t.Literal('name'),
 ]);
 
 const SchemaField = t.Object({
@@ -66,7 +67,7 @@ export const SchemaV2Body = t.Object({
   items: t.Array(SchemaItem),
 });
 
-type FormFieldType = 'text' | 'textarea' | 'radio' | 'checkbox' | 'date' | 'phone' | 'signature';
+type FormFieldType = 'text' | 'textarea' | 'radio' | 'checkbox' | 'date' | 'phone' | 'signature' | 'name';
 
 type SchemaFieldLike = {
   id: string;
@@ -129,7 +130,7 @@ function assertRequiredField(field: SchemaFieldLike, value: unknown): void {
     throw new BizError(`${field.label}: ${message}`, 400, 'FORM_REQUIRED_FIELD_MISSING');
   };
 
-  if (field.type === 'text' || field.type === 'textarea') {
+  if (field.type === 'text' || field.type === 'textarea' || field.type === 'name') {
     if (typeof value !== 'string' || value.trim() === '') fail('此项为必填');
     return;
   }
