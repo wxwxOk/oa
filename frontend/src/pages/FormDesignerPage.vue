@@ -5,13 +5,6 @@
       <q-btn flat dense icon="arrow_back" aria-label="返回模板列表" @click="router.push('/templates')" />
       <span class="text-h6 q-ml-sm ellipsis">{{ store.current?.name ?? '' }}</span>
       <q-space />
-      <q-toggle
-        v-if="store.current"
-        v-model="store.current.requireIdentity"
-        label="要求填写者提供身份信息"
-        dense
-        class="q-mr-md"
-      />
       <q-select
         v-if="store.current"
         v-model="store.current.businessMode"
@@ -256,6 +249,7 @@ import {
   type ArchiveProcessingField,
   type ArchiveProcessingFieldType,
 } from 'src/types/approvalArchive';
+import { flattenFields } from 'src/types/schema';
 import FieldPalette from 'src/components/designer/FieldPalette.vue';
 import DesignerCanvas from 'src/components/designer/DesignerCanvas.vue';
 import PropertyEditor from 'src/components/designer/PropertyEditor.vue';
@@ -524,15 +518,21 @@ async function saveTemplate(disconnectPublicCollection = false) {
   try {
     const prev = store.current.schemaVersion;
     const processingSchema = normalizeProcessingSchemaForSave();
+    const fields = flattenFields(store.current.schema);
+    const hasFullIdentityFields = fields.some(f => f.type === 'name') && fields.some(f => f.type === 'phone');
+    const wasRequireIdentity = store.current.requireIdentity;
     await store.update(templateId, {
       schema: store.current.schema,
       processingSchema: processingSchema,
-      requireIdentity: store.current.requireIdentity,
+      ...(hasFullIdentityFields ? { requireIdentity: false } : {}),
       businessMode: store.current.businessMode,
       approvalProcessId: store.current.approvalProcessId,
       ...(disconnectPublicCollection ? { disconnectPublicCollection: true } : {}),
     });
     $q.notify({ type: 'positive', message: '保存成功' });
+    if (hasFullIdentityFields && wasRequireIdentity) {
+      $q.notify({ type: 'info', message: '已切换为字段化身份收集，旧版全局开关已停用' });
+    }
     if (store.current.schemaVersion > prev) {
       $q.notify({ type: 'info', message: `模板已更新至 v${store.current.schemaVersion}` });
     }

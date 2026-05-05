@@ -39,7 +39,7 @@
 
     <!-- Designer mode: disabled inputs -->
     <template v-else-if="mode === 'designer'">
-      <q-input v-if="field.type === 'text' || field.type === 'phone'" outlined dense disabled :placeholder="field.placeholder" />
+      <q-input v-if="field.type === 'text' || field.type === 'phone' || field.type === 'name'" outlined dense disabled :placeholder="field.placeholder" />
       <q-input v-else-if="field.type === 'textarea'" outlined dense disabled type="textarea" :placeholder="field.placeholder" />
       <q-option-group v-else-if="field.type === 'radio'" type="radio" disabled :options="mapOptions(field.options)" :model-value="null" />
       <q-option-group v-else-if="field.type === 'checkbox'" type="checkbox" disabled :options="mapOptions(field.options)" :model-value="[]" />
@@ -56,6 +56,18 @@
         :model-value="modelValue"
         @update:model-value="onModelUpdate($event)"
         outlined
+        :placeholder="field.placeholder"
+        :rules="field.required ? [requiredRule] : []"
+        :error="!!imperativeError"
+        :error-message="imperativeError"
+      />
+      <q-input
+        v-else-if="field.type === 'name'"
+        :model-value="modelValue"
+        @update:model-value="onModelUpdate($event)"
+        outlined
+        autocomplete="name"
+        maxlength="32"
         :placeholder="field.placeholder"
         :rules="field.required ? [requiredRule] : []"
         :error="!!imperativeError"
@@ -120,6 +132,7 @@
         @update:model-value="onModelUpdate($event)"
         outlined
         type="tel"
+        autocomplete="tel"
         mask="###########"
         :placeholder="field.placeholder || '请输入手机号'"
         :rules="field.required ? [(v: string) => /^1\d{10}$/.test(v) || '请输入有效手机号'] : []"
@@ -188,7 +201,7 @@ function setInputError(message: string): boolean {
 function isFieldValueValid(value: any, field: SchemaField): boolean {
   if (!field.required) return true;
 
-  if (field.type === 'text' || field.type === 'textarea') return hasTrimmedString(value);
+  if (field.type === 'text' || field.type === 'textarea' || field.type === 'name') return hasTrimmedString(value);
   if (field.type === 'date') return hasNonEmptyValue(value);
   if (field.type === 'phone') return typeof value === 'string' && /^1\d{10}$/.test(value);
   if (field.type === 'radio') return hasNonEmptyValue(value);
@@ -207,7 +220,7 @@ function validate(value: any, field: SchemaField): boolean {
   clearErrors();
   if (!field.required) return true;
 
-  if (field.type === 'text' || field.type === 'textarea') {
+  if (field.type === 'text' || field.type === 'textarea' || field.type === 'name') {
     if (!hasTrimmedString(value)) return setInputError('此项为必填');
     return true;
   }

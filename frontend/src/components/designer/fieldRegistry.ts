@@ -15,7 +15,8 @@ export const FIELD_TYPES: FieldTypeDef[] = [
   { type: 'radio', label: '单选', icon: 'radio_button_checked', group: 'basic', defaultProps: { options: ['选项1', '选项2'], colSpan: 12 } },
   { type: 'checkbox', label: '多选', icon: 'check_box', group: 'basic', defaultProps: { options: ['选项1', '选项2'], colSpan: 12 } },
   { type: 'date', label: '日期', icon: 'calendar_today', group: 'basic', defaultProps: { colSpan: 12 } },
-  { type: 'phone', label: '手机号', icon: 'phone', group: 'basic', defaultProps: { placeholder: '请输入手机号', colSpan: 12 } },
+  { type: 'name', label: '姓名', icon: 'badge', group: 'basic', defaultProps: { placeholder: '请输入姓名', colSpan: 6, required: true } },
+  { type: 'phone', label: '手机号', icon: 'phone', group: 'basic', defaultProps: { placeholder: '请输入手机号', colSpan: 6 } },
   { type: 'signature', label: '手写签名', icon: 'draw', group: 'special', defaultProps: { colSpan: 12 } },
 ];
 

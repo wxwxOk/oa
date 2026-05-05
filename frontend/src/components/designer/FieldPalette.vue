@@ -63,8 +63,8 @@ function cloneField(item: FieldTypeDef): SchemaField {
     id: uuid(),
     type: item.type,
     label: item.label,
-    required: false,
-    colSpan: 12,
+    required: item.defaultProps.required ?? false,
+    colSpan: item.defaultProps.colSpan ?? 12,
     placeholder: item.defaultProps.placeholder,
     options: item.defaultProps.options ? [...item.defaultProps.options] : undefined,
   };

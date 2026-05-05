@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'textarea' | 'radio' | 'checkbox' | 'date' | 'phone' | 'signature';
+export type FieldType = 'text' | 'textarea' | 'radio' | 'checkbox' | 'date' | 'phone' | 'signature' | 'name';
 
 // 动态表格列支持的字段类型（排除 textarea/signature）
 export type DynamicTableColumnType = 'text' | 'radio' | 'checkbox' | 'date' | 'phone';

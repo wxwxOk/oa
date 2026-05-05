@@ -44,7 +44,7 @@
             <q-card-section>
               <q-form ref="formRef" greedy>
                 <!-- 身份信息区域 -->
-                <div v-if="templateData.requireIdentity" class="identity-section q-mb-md" style="border-bottom: 1px solid var(--oa-border, #E2E8F0); padding-bottom: 16px">
+                <div v-if="templateData.requireIdentity && !hasSchemaIdentity" class="identity-section q-mb-md" style="border-bottom: 1px solid var(--oa-border, #E2E8F0); padding-bottom: 16px">
                   <q-input
                     v-model="identity.name"
                     outlined
@@ -126,6 +126,24 @@ const schema = ref<SchemaV2 | null>(null);
 const formData = reactive<Record<string, any>>({});
 const identity = reactive({ name: '', phone: '' });
 
+const hasSchemaIdentity = computed(() => {
+  if (!schema.value) return false;
+  const fields = flattenFields(schema.value);
+  return fields.some(f => f.type === 'name') && fields.some(f => f.type === 'phone');
+});
+
+function pickSchemaValue(type: 'name' | 'phone'): string | undefined {
+  if (!schema.value) return undefined;
+  const field = flattenFields(schema.value).find(f => f.type === type);
+  if (!field) return undefined;
+  const val = formData[field.id];
+  if (typeof val !== 'string') return undefined;
+  const trimmed = val.trim();
+  if (!trimmed) return undefined;
+  if (type === 'phone' && !/^1\d{10}$/.test(trimmed)) return undefined;
+  return trimmed;
+}
+
 const wrapperStyle = computed(() => ({
   maxWidth: isMobile.value ? '100%' : '960px',
   width: '100%',
@@ -188,8 +206,8 @@ async function handleSubmit() {
   try {
     await publicApi.post(`/public/f/${code}/submit`, {
       data: { ...formData },
-      submitterName: templateData.requireIdentity ? identity.name : undefined,
-      submitterPhone: templateData.requireIdentity ? identity.phone : undefined,
+      submitterName: hasSchemaIdentity.value ? pickSchemaValue('name') : (templateData.requireIdentity ? identity.name : undefined),
+      submitterPhone: hasSchemaIdentity.value ? pickSchemaValue('phone') : (templateData.requireIdentity ? identity.phone : undefined),
     });
     pageState.value = 'success';
   } catch {
