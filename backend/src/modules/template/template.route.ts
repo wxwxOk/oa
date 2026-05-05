@@ -4,10 +4,8 @@ import { nanoid } from 'nanoid';
 import { prisma } from '../../plugins/prisma';
 import { authGuard } from '../../middlewares/auth';
 import { BizError, notFound } from '../../utils/errors';
-import { validateProcessDefinition } from '../approval/process-config.service';
 import { SchemaV2Body } from './schema.validation';
 
-type TemplateBusinessMode = 'COLLECTION_ONLY' | 'APPROVAL_REQUIRED';
 type TemplateStatus = 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
 
 export const SUPPORTED_PROCESSING_FIELD_TYPES = [
@@ -20,11 +18,6 @@ export const SUPPORTED_PROCESSING_FIELD_TYPES = [
 ] as const;
 
 type ProcessingFieldType = (typeof SUPPORTED_PROCESSING_FIELD_TYPES)[number];
-
-type CurrentUser = {
-  roleCodes?: string[];
-  permissions?: string[];
-};
 
 type ProcessingFieldBody = {
   id?: unknown;
@@ -63,20 +56,11 @@ export type TemplateUpdateBody = {
   processingSchema?: unknown;
   requireIdentity?: boolean;
   watermarkText?: string | null;
-  businessMode?: TemplateBusinessMode;
-  approvalProcessId?: number | null;
-  disconnectPublicCollection?: boolean;
 };
 
 const templateInclude = {
   creator: { select: { id: true, realName: true } },
-  approvalProcess: { select: { id: true, name: true, isActive: true } },
 } satisfies Prisma.FormTemplateInclude;
-
-const TemplateBusinessModeBody = t.Union([
-  t.Literal('COLLECTION_ONLY'),
-  t.Literal('APPROVAL_REQUIRED'),
-]);
 
 const ProcessingFieldBodySchema = t.Object(
   {
@@ -89,18 +73,6 @@ const ProcessingFieldBodySchema = t.Object(
   },
   { additionalProperties: false },
 );
-
-function hasApprovalTemplateBindPermission(currentUser?: CurrentUser): boolean {
-  if (!currentUser) return true;
-  if (currentUser.roleCodes?.includes('ADMIN')) return true;
-  return currentUser.permissions?.includes('approval:template:bind') === true;
-}
-
-function assertApprovalTemplateBindPermission(currentUser?: CurrentUser): void {
-  if (!hasApprovalTemplateBindPermission(currentUser)) {
-    throw new BizError('缺少权限: approval:template:bind', 403, 'FORBIDDEN');
-  }
-}
 
 function hasJsonChanged(next: unknown, current: unknown): boolean {
   return JSON.stringify(next) !== JSON.stringify(current);
@@ -159,18 +131,6 @@ function normalizeProcessingSchema(value: unknown): ProcessingField[] {
   });
 }
 
-async function assertValidApprovalProcess(processId: number | null | undefined): Promise<void> {
-  if (processId == null) {
-    throw new BizError('请选择启用且有效的审批流程', 400, 'APPROVAL_PROCESS_INVALID');
-  }
-
-  try {
-    await validateProcessDefinition(processId);
-  } catch {
-    throw new BizError('请选择启用且有效的审批流程', 400, 'APPROVAL_PROCESS_INVALID');
-  }
-}
-
 function activeTemplateWhere(id: number): Prisma.FormTemplateWhereInput {
   return { id, deletedAt: null };
 }
@@ -179,13 +139,11 @@ export async function listTemplates(query: {
   page?: number | string;
   size?: number | string;
   status?: TemplateStatus | '';
-  businessMode?: TemplateBusinessMode | '';
 }) {
   const page = Number(query.page) || 1;
   const size = Number(query.size) || 10;
   const where: Prisma.FormTemplateWhereInput = { deletedAt: null };
   if (query.status) where.status = query.status;
-  if (query.businessMode) where.businessMode = query.businessMode;
 
   const [rows, total] = await Promise.all([
     prisma.formTemplate.findMany({
@@ -204,44 +162,11 @@ export async function listTemplates(query: {
 export async function updateTemplate(
   id: number,
   body: TemplateUpdateBody,
-  currentUser?: CurrentUser,
 ) {
   const tpl = await prisma.formTemplate.findFirst({
     where: activeTemplateWhere(id),
-    include: { _count: { select: { shareLinks: true } } },
   });
   if (!tpl) throw notFound('模板不存在');
-
-  const targetBusinessMode = (body.businessMode ?? tpl.businessMode) as TemplateBusinessMode;
-  const targetApprovalProcessId =
-    body.approvalProcessId === undefined ? tpl.approvalProcessId : body.approvalProcessId;
-  const businessModeChanged =
-    body.businessMode !== undefined && body.businessMode !== tpl.businessMode;
-  const approvalProcessChanged =
-    body.approvalProcessId !== undefined && body.approvalProcessId !== tpl.approvalProcessId;
-  const bindingChanged = businessModeChanged || approvalProcessChanged;
-
-  if (bindingChanged) {
-    assertApprovalTemplateBindPermission(currentUser);
-  }
-
-  if (targetBusinessMode === 'APPROVAL_REQUIRED') {
-    await assertValidApprovalProcess(targetApprovalProcessId);
-  }
-
-  if (
-    tpl.status === 'PUBLISHED' &&
-    tpl.businessMode === 'COLLECTION_ONLY' &&
-    targetBusinessMode === 'APPROVAL_REQUIRED' &&
-    tpl._count.shareLinks > 0 &&
-    body.disconnectPublicCollection !== true
-  ) {
-    throw new BizError(
-      '切换为需审批前必须确认断开公开收集入口',
-      400,
-      'PUBLIC_COLLECTION_DISCONNECT_REQUIRED',
-    );
-  }
 
   const data: Prisma.FormTemplateUpdateInput = {};
   if (body.name !== undefined) data.name = body.name;
@@ -257,13 +182,6 @@ export async function updateTemplate(
   }
   if (body.requireIdentity !== undefined) data.requireIdentity = body.requireIdentity;
   if (body.watermarkText !== undefined) data.watermarkText = normalizeWatermarkText(body.watermarkText);
-  if (body.businessMode !== undefined) data.businessMode = body.businessMode;
-  if (body.approvalProcessId !== undefined) {
-    data.approvalProcess =
-      body.approvalProcessId == null
-        ? { disconnect: true }
-        : { connect: { id: body.approvalProcessId } };
-  }
 
   return prisma.formTemplate.update({
     where: { id },
@@ -282,9 +200,6 @@ export async function publishTemplate(id: number) {
   };
   if (transitions[tpl.status] !== 'PUBLISHED') {
     throw new BizError(`当前状态 ${tpl.status} 不可转为 PUBLISHED`);
-  }
-  if (tpl.businessMode === 'APPROVAL_REQUIRED') {
-    await assertValidApprovalProcess(tpl.approvalProcessId);
   }
 
   return prisma.formTemplate.update({
@@ -315,13 +230,6 @@ export async function updateTemplateStatus(id: number, action: 'publish' | 'offl
 export async function createTemplateShareLink(templateId: number, creatorId: number) {
   const tpl = await prisma.formTemplate.findFirst({ where: activeTemplateWhere(templateId) });
   if (!tpl) throw notFound('模板不存在');
-  if (tpl.businessMode === 'APPROVAL_REQUIRED') {
-    throw new BizError(
-      '需审批模板不生成公开分享链接',
-      400,
-      'APPROVAL_TEMPLATE_SHARE_DISABLED',
-    );
-  }
   if (tpl.status !== 'PUBLISHED') throw new BizError('仅已发布模板可生成分享链接');
 
   return prisma.shareLink.create({
@@ -378,7 +286,7 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
   .guard({}, (app) =>
     app.use(authGuard('form:template:edit')).put(
       '/:id',
-      async ({ params, body, currentUser }: any) => updateTemplate(Number(params.id), body, currentUser),
+      async ({ params, body }: any) => updateTemplate(Number(params.id), body),
       {
         params: t.Object({ id: t.String() }),
         body: t.Object({
@@ -388,9 +296,6 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
           processingSchema: t.Optional(t.Array(ProcessingFieldBodySchema)),
           requireIdentity: t.Optional(t.Boolean()),
           watermarkText: t.Optional(t.Nullable(t.String({ maxLength: 50 }))),
-          businessMode: t.Optional(TemplateBusinessModeBody),
-          approvalProcessId: t.Optional(t.Nullable(t.Number())),
-          disconnectPublicCollection: t.Optional(t.Boolean()),
         }),
       },
     ),

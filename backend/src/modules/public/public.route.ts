@@ -17,7 +17,6 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
             schema: true,
             schemaVersion: true,
             status: true,
-            businessMode: true,
             requireIdentity: true,
             watermarkText: true,
           },
@@ -26,9 +25,6 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
     });
     if (!link) throw notFound('链接无效');
     if (link.template.status !== 'PUBLISHED') {
-      throw new BizError('该表单已停止收集', 410, 'TEMPLATE_OFFLINE');
-    }
-    if (link.template.businessMode !== 'COLLECTION_ONLY') {
       throw new BizError('该表单已停止收集', 410, 'TEMPLATE_OFFLINE');
     }
     // 仅返回填写所需字段，不暴露内部数据
@@ -54,7 +50,6 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
               schema: true,
               schemaVersion: true,
               status: true,
-              businessMode: true,
               requireIdentity: true,
             },
           },
@@ -62,9 +57,6 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
       });
       if (!link) throw notFound('链接无效');
       if (link.template.status !== 'PUBLISHED') {
-        throw new BizError('该表单已停止收集', 410, 'TEMPLATE_OFFLINE');
-      }
-      if (link.template.businessMode !== 'COLLECTION_ONLY') {
         throw new BizError('该表单已停止收集', 410, 'TEMPLATE_OFFLINE');
       }
       // per D-09/D-12: 如果模板要求身份信息，校验必填
