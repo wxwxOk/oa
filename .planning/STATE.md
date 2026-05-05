@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 
 Phase: 33
 Plan: Not started
-Status: Context captured (CONTEXT.md ready for plan-phase)
-Resume file: .planning/phases/33-ui/33-CONTEXT.md
+Status: UI-SPEC approved; ready for plan-phase
+Resume file: .planning/phases/33-ui/33-UI-SPEC.md
 Last activity: 2026-05-05
 
 Progress: [░░░░░░░░░░] 0%
