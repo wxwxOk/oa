@@ -40,6 +40,13 @@ model User {
   reimbursementApplications  ReimbursementApplication[] @relation("ReimbursementApplicant")
   reimbursementAttachments   ReimbursementAttachment[]  @relation("ReimbursementAttachmentUploader")
   reimbursementActions       ReimbursementAction[]      @relation("ReimbursementActionActor")
+  channelPushesAsPartner                   ChannelPush[]               @relation("ChannelPushPartner")
+  channelPushesAsRecipient                 ChannelPush[]               @relation("ChannelPushRecipient")
+  channelPushesAsInternalScheduledReceiver ChannelPush[]               @relation("ChannelPushInternalScheduledReceiver")
+  channelPushAttachments                   ChannelPushAttachment[]     @relation("ChannelPushAttachmentUploader")
+  channelPushReviewActions                 ChannelPushReviewAction[]   @relation("ChannelPushReviewActionActor")
+  channelPartnerProfile                    ChannelPartnerProfile?      @relation("ChannelPartnerProfileUser")
+  channelPartnerProfilesAsRecipient        ChannelPartnerProfile[]     @relation("ChannelPartnerProfileRecipient")
   defaultApproverDepartments Department[]            @relation("DepartmentDefaultApprover")
   createdAt                  DateTime                @default(now())
   updatedAt                  DateTime                @updatedAt
@@ -208,6 +215,21 @@ enum ReimbursementActionType {
   DEPARTMENT_REJECT
   FINANCE_APPROVE
   FINANCE_REJECT
+}
+
+enum ChannelPushStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum ChannelPushReviewActionType {
+  SUBMIT
+  EDIT
+  CANCEL
+  APPROVE
+  REJECT
 }
 
 model ApprovalProcess {
@@ -561,4 +583,84 @@ model VisitRecord {
   @@index([consultationStatus])
   @@index([statusCategory])
   @@index([creatorId])
+}
+
+model ChannelPush {
+  id                              Int                          @id @default(autoincrement())
+  channelPartnerId                Int
+  channelPartner                  User                         @relation("ChannelPushPartner", fields: [channelPartnerId], references: [id])
+  recipientUserId                 Int
+  recipient                       User                         @relation("ChannelPushRecipient", fields: [recipientUserId], references: [id])
+  studentName                     String
+  studentPhone                    String
+  studentAge                      Int?
+  studentEducation                String?
+  studentGender                   String?
+  intentStatus                    String?
+  intentNote                      String?
+  remark                          String?
+  status                          ChannelPushStatus            @default(PENDING)
+  submittedAt                     DateTime                     @default(now())
+  lastEditedAt                    DateTime?
+  cancelledAt                     DateTime?
+  internalScheduledReceiverId     Int?
+  internalScheduledReceiver       User?                        @relation("ChannelPushInternalScheduledReceiver", fields: [internalScheduledReceiverId], references: [id])
+  internalScheduledDate           DateTime?
+  internalNote                    String?
+  attachments                     ChannelPushAttachment[]
+  reviewActions                   ChannelPushReviewAction[]
+  createdAt                       DateTime                     @default(now())
+  updatedAt                       DateTime                     @updatedAt
+
+  @@index([channelPartnerId, status])
+  @@index([recipientUserId, status])
+  @@index([studentName, studentPhone])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+model ChannelPushAttachment {
+  id            Int          @id @default(autoincrement())
+  channelPushId Int
+  channelPush   ChannelPush  @relation(fields: [channelPushId], references: [id], onDelete: Cascade)
+  originalName  String
+  storedName    String
+  relativePath  String
+  mimeType      String
+  size          Int
+  uploaderId    Int
+  uploader      User         @relation("ChannelPushAttachmentUploader", fields: [uploaderId], references: [id])
+  createdAt     DateTime     @default(now())
+
+  @@index([channelPushId])
+  @@index([uploaderId])
+}
+
+model ChannelPushReviewAction {
+  id            Int                            @id @default(autoincrement())
+  channelPushId Int
+  channelPush   ChannelPush                    @relation(fields: [channelPushId], references: [id], onDelete: Cascade)
+  actorId       Int
+  actor         User                           @relation("ChannelPushReviewActionActor", fields: [actorId], references: [id])
+  actorName     String
+  type          ChannelPushReviewActionType
+  comment       String?
+  createdAt     DateTime                       @default(now())
+
+  @@index([channelPushId])
+  @@index([actorId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model ChannelPartnerProfile {
+  id                 Int       @id @default(autoincrement())
+  userId             Int       @unique
+  user               User      @relation("ChannelPartnerProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  primaryRecipientId Int
+  primaryRecipient   User      @relation("ChannelPartnerProfileRecipient", fields: [primaryRecipientId], references: [id])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([primaryRecipientId])
 }
