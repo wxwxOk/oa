@@ -175,7 +175,7 @@
         :columns="columns"
         row-key="id"
         :loading="store.loading"
-        :pagination="pagination"
+        v-model:pagination="pagination"
         :rows-per-page-options="[10, 20, 50]"
         flat
         bordered
@@ -437,13 +437,19 @@ const columns = [
   { name: 'actions', label: '操作', field: 'id', align: 'center' as const, style: 'width:190px' },
 ];
 
-const pagination = computed(() => ({
-  page: store.page,
-  rowsPerPage: store.size,
-  rowsNumber: store.total,
-  sortBy: currentSortBy.value,
-  descending: currentDescending.value,
-}));
+const pagination = computed({
+  get: () => ({
+    page: store.page,
+    rowsPerPage: store.size,
+    rowsNumber: store.total,
+    sortBy: currentSortBy.value,
+    descending: currentDescending.value,
+  }),
+  set: (val) => {
+    if (val.sortBy !== undefined) currentSortBy.value = normalizeVisitSortBy(val.sortBy);
+    if (typeof val.descending === 'boolean') currentDescending.value = val.descending;
+  },
+});
 
 function optionValues(values: string[]) {
   return values;
@@ -515,7 +521,7 @@ function onRequest(props: { pagination: VisitRequestPagination }) {
     props.pagination.page,
     props.pagination.rowsPerPage,
     normalizeVisitSortBy(props.pagination.sortBy),
-    props.pagination.descending ?? currentDescending.value,
+    typeof props.pagination.descending === 'boolean' ? props.pagination.descending : currentDescending.value,
   );
 }
 
