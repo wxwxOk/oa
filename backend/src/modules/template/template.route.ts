@@ -44,12 +44,25 @@ type ProcessingField = {
   options?: string[];
 };
 
+export const WATERMARK_MAX_LENGTH = 50;
+
+export function normalizeWatermarkText(raw: string | null | undefined): string | null {
+  if (raw == null) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > WATERMARK_MAX_LENGTH) {
+    throw new BizError(`水印文本不超过 ${WATERMARK_MAX_LENGTH} 字`, 400, 'WATERMARK_TOO_LONG');
+  }
+  return trimmed;
+}
+
 export type TemplateUpdateBody = {
   name?: string;
   description?: string | null;
   schema?: unknown;
   processingSchema?: unknown;
   requireIdentity?: boolean;
+  watermarkText?: string | null;
   businessMode?: TemplateBusinessMode;
   approvalProcessId?: number | null;
   disconnectPublicCollection?: boolean;
@@ -243,6 +256,7 @@ export async function updateTemplate(
     data.processingSchema = normalizeProcessingSchema(body.processingSchema) as Prisma.InputJsonValue;
   }
   if (body.requireIdentity !== undefined) data.requireIdentity = body.requireIdentity;
+  if (body.watermarkText !== undefined) data.watermarkText = normalizeWatermarkText(body.watermarkText);
   if (body.businessMode !== undefined) data.businessMode = body.businessMode;
   if (body.approvalProcessId !== undefined) {
     data.approvalProcess =
@@ -373,6 +387,7 @@ export const formTemplateModule = new Elysia({ prefix: '/templates' })
           schema: t.Optional(SchemaV2Body),
           processingSchema: t.Optional(t.Array(ProcessingFieldBodySchema)),
           requireIdentity: t.Optional(t.Boolean()),
+          watermarkText: t.Optional(t.Nullable(t.String({ maxLength: 50 }))),
           businessMode: t.Optional(TemplateBusinessModeBody),
           approvalProcessId: t.Optional(t.Nullable(t.Number())),
           disconnectPublicCollection: t.Optional(t.Boolean()),

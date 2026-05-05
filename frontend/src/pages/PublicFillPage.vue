@@ -33,7 +33,9 @@
           </q-card>
 
           <!-- 表单 -->
-          <q-card v-else flat class="form-card">
+          <!-- 表单 -->
+          <WatermarkOverlay v-else :text="templateData.watermarkText">
+          <q-card flat class="form-card">
             <q-card-section>
               <div style="font-size: 20px; font-weight: 600; line-height: 1.2">{{ templateData.templateName }}</div>
               <div v-if="templateData.description" class="q-mt-xs" style="font-size: 14px; color: var(--oa-text-secondary, #64748B)">
@@ -85,6 +87,7 @@
               />
             </q-card-section>
           </q-card>
+          </WatermarkOverlay>
 
         </div>
       </q-page>
@@ -100,6 +103,7 @@ import { Notify } from 'quasar';
 import axios from 'axios';
 import { useResponsive } from 'src/composables/useResponsive';
 import GridFormRenderer from 'src/components/renderer/GridFormRenderer.vue';
+import WatermarkOverlay from 'src/components/WatermarkOverlay.vue';
 import type { SchemaV2 } from 'src/types/schema';
 import { flattenFields } from 'src/types/schema';
 
@@ -121,6 +125,7 @@ const templateData = reactive({
   templateName: '',
   description: '' as string | null,
   requireIdentity: false,
+  watermarkText: null as string | null,
 });
 const schema = ref<SchemaV2 | null>(null);
 const formData = reactive<Record<string, any>>({});
@@ -153,6 +158,7 @@ onMounted(async () => {
     templateData.templateName = data.templateName;
     templateData.description = data.description;
     templateData.requireIdentity = data.requireIdentity;
+    templateData.watermarkText = data.watermarkText ?? null;
     schema.value = data.schema as SchemaV2;
     // 初始化 formData（使用 flattenFields 遍历嵌套结构）
     for (const f of flattenFields(schema.value)) {

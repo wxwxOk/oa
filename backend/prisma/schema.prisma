@@ -133,7 +133,7 @@ model FormTemplate {
   approvalProcessId    Int?
   approvalProcess      ApprovalProcess?      @relation(fields: [approvalProcessId], references: [id])
   requireIdentity      Boolean               @default(false)
-  watermarkText        String?               @db.VarChar(100)
+  watermarkText        String?               @db.VarChar(50)
   creatorId            Int
   creator              User                  @relation(fields: [creatorId], references: [id])
   shareLinks           ShareLink[]

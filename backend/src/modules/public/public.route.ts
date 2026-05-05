@@ -19,6 +19,7 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
             status: true,
             businessMode: true,
             requireIdentity: true,
+            watermarkText: true,
           },
         },
       },
@@ -36,6 +37,7 @@ export const publicFillModule = new Elysia({ prefix: '/public/f' })
       description: link.template.description,
       schema: link.template.schema,
       requireIdentity: link.template.requireIdentity,
+      watermarkText: link.template.watermarkText,
     };
   })
   // POST /:code/submit — 提交表单数据（公开，无鉴权）

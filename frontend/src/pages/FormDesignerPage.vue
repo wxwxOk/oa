@@ -49,6 +49,19 @@
         :disable="saving"
         @click="processingDialogOpen = true"
       />
+      <q-input
+        v-if="store.current"
+        v-model="watermarkTextDraft"
+        class="watermark-input q-mr-sm"
+        outlined
+        dense
+        clearable
+        label="分享水印（选填，≤50 字）"
+        maxlength="50"
+        :disable="saving"
+      >
+        <q-tooltip>设置后，分享填写页与提交详情将叠加半透明水印（打印和 PDF 不受影响）</q-tooltip>
+      </q-input>
       <q-btn flat label="保存设计" :loading="saving" @click="handleSave" />
       <q-btn
         v-if="store.current?.status !== 'PUBLISHED'"
@@ -270,6 +283,7 @@ const processingDialogOpen = ref(false);
 const approvalProcessError = ref(false);
 const originalBusinessMode = ref<TemplateBusinessMode>('COLLECTION_ONLY');
 const originalApprovalProcessId = ref<number | null>(null);
+const watermarkTextDraft = ref<string>('');
 type ProcessingFieldDraft = Omit<ArchiveProcessingField, 'options'> & { options?: string[] };
 
 const templateId = Number(route.params.id);
@@ -302,6 +316,7 @@ onMounted(async () => {
   try {
     await store.fetchOne(templateId);
     ensureProcessingFields();
+    watermarkTextDraft.value = store.current?.watermarkText ?? '';
     syncOriginalBinding();
     if (canBindApprovalTemplate.value) {
       approvalProcessStore.page = 1;
@@ -320,6 +335,11 @@ function syncOriginalBinding() {
   if (!store.current) return;
   originalBusinessMode.value = store.current.businessMode;
   originalApprovalProcessId.value = store.current.approvalProcessId;
+}
+
+function normalizeWatermarkDraft(): string | null {
+  const raw = (watermarkTextDraft.value ?? '').trim();
+  return raw ? raw.slice(0, 50) : null;
 }
 
 function restoreOriginalBinding() {
@@ -525,6 +545,7 @@ async function saveTemplate(disconnectPublicCollection = false) {
       schema: store.current.schema,
       processingSchema: processingSchema,
       ...(hasFullIdentityFields ? { requireIdentity: false } : {}),
+      watermarkText: normalizeWatermarkDraft(),
       businessMode: store.current.businessMode,
       approvalProcessId: store.current.approvalProcessId,
       ...(disconnectPublicCollection ? { disconnectPublicCollection: true } : {}),

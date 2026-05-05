@@ -24,6 +24,7 @@ export interface Template {
   schemaVersion: number;
   status: 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
   requireIdentity: boolean;
+  watermarkText?: string | null;
   businessMode: TemplateBusinessMode;
   approvalProcessId: number | null;
   approvalProcess?: TemplateApprovalProcessSummary | null;
@@ -39,6 +40,7 @@ export interface TemplateUpdatePayload {
   schema?: SchemaV2;
   processingSchema?: ProcessingFieldConfig[];
   requireIdentity?: boolean;
+  watermarkText?: string | null;
   businessMode?: TemplateBusinessMode;
   approvalProcessId?: number | null;
   disconnectPublicCollection?: boolean;
