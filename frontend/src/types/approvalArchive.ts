@@ -1,12 +1,10 @@
-import type { ApprovalApplicationStatus, ApprovalTimelineEvent } from './approvalApplication';
 import type { SchemaV2 } from './schema';
 
-export type ArchiveSourceType = 'approval' | 'collection';
+export type ArchiveSourceType = 'collection';
 
 export const COLLECTED_ARCHIVE_STATUS = 'COLLECTED' as const;
 
-export type ArchiveApprovalStatus = ApprovalApplicationStatus;
-export type ArchiveStatus = ArchiveApprovalStatus | typeof COLLECTED_ARCHIVE_STATUS;
+export type ArchiveStatus = typeof COLLECTED_ARCHIVE_STATUS;
 
 export type ArchiveProcessingFieldType = 'text' | 'textarea' | 'date' | 'radio' | 'checkbox' | 'phone';
 
@@ -39,7 +37,7 @@ export interface ArchiveRow {
 }
 
 export interface ArchiveFilterOptions {
-  templates: Array<{ label: string; value: number; version: number }>;
+  templates: Array<{ label: string; value: number; version?: number }>;
   departments: Array<{ label: string; value: number }>;
   recommendedTags: string[];
 }
@@ -49,7 +47,6 @@ export interface ArchiveListFilters {
   size?: number;
   sourceType?: ArchiveSourceType | '';
   templateId?: number | null;
-  departmentId?: number | null;
   personName?: string;
   status?: ArchiveStatus | '';
   dateFrom?: string;
@@ -98,23 +95,37 @@ export interface ArchiveNote {
   createdAt: string;
 }
 
+export interface ArchiveTimelineEvent {
+  id: number;
+  taskId?: number | null;
+  actorId: number | null;
+  actorName: string;
+  nodeOrder?: number | null;
+  nodeName?: string | null;
+  type: string;
+  title: string;
+  comment: string | null;
+  payload?: unknown;
+  createdAt: string;
+}
+
 export interface ArchiveDetail extends ArchiveRow {
   formData: Record<string, unknown>;
   effectiveData: Record<string, unknown>;
+  watermarkText?: string | null;
   schemaSnapshot: SchemaV2;
   processingFields?: ArchiveProcessingField[];
   processingData: Record<string, unknown>;
   notes: ArchiveNote[];
   corrections: ArchiveCorrectionHistory[];
   correctionHistory?: ArchiveCorrectionHistory[];
-  timeline: ApprovalTimelineEvent[];
+  timeline: ArchiveTimelineEvent[];
   canMark: boolean;
   canEdit: boolean;
 }
 
 export interface ArchiveStatsItem {
   count: number;
-  sourceType?: ArchiveSourceType | 'all';
 }
 
 export interface ArchiveTemplateStatsItem extends ArchiveStatsItem {
@@ -126,11 +137,6 @@ export interface ArchiveStatusStatsItem extends ArchiveStatsItem {
   status: ArchiveStatus;
 }
 
-export interface ArchiveDepartmentStatsItem extends ArchiveStatsItem {
-  departmentId: number | null;
-  departmentName: string | null;
-}
-
 export interface ArchiveMonthStatsItem extends ArchiveStatsItem {
   month: string;
 }
@@ -138,7 +144,6 @@ export interface ArchiveMonthStatsItem extends ArchiveStatsItem {
 export interface ArchiveStats {
   byTemplate: ArchiveTemplateStatsItem[];
   byStatus: ArchiveStatusStatsItem[];
-  byDepartment: ArchiveDepartmentStatsItem[];
   byMonth: ArchiveMonthStatsItem[];
 }
 
@@ -181,27 +186,14 @@ export const UPDATE_ARCHIVE_PROCESSING_PAYLOAD_KEYS = ARCHIVE_PROCESSING_PAYLOAD
 export const CREATE_ARCHIVE_CORRECTION_PAYLOAD_KEYS = ARCHIVE_CORRECTION_PAYLOAD_KEYS;
 
 const SOURCE_TYPE_LABELS: Record<ArchiveSourceType, string> = {
-  approval: '审批申请',
   collection: '公开收集',
 };
 
 const STATUS_LABELS: Record<ArchiveStatus, string> = {
-  DRAFT: '草稿',
-  SUBMITTED: '审批中',
-  APPROVING: '审批中',
-  APPROVED: '已通过',
-  REJECTED: '已驳回',
-  CANCELED: '已撤销',
   COLLECTED: '已收集',
 };
 
 const STATUS_COLORS: Record<ArchiveStatus, string> = {
-  DRAFT: 'warning',
-  SUBMITTED: 'primary',
-  APPROVING: 'primary',
-  APPROVED: 'positive',
-  REJECTED: 'negative',
-  CANCELED: 'grey',
   COLLECTED: 'info',
 };
 
