@@ -138,10 +138,7 @@ function pickSchemaValue(type: 'name' | 'phone'): string | undefined {
   if (!field) return undefined;
   const val = formData[field.id];
   if (typeof val !== 'string') return undefined;
-  const trimmed = val.trim();
-  if (!trimmed) return undefined;
-  if (type === 'phone' && !/^1\d{10}$/.test(trimmed)) return undefined;
-  return trimmed;
+  return val.trim() || undefined;
 }
 
 const wrapperStyle = computed(() => ({

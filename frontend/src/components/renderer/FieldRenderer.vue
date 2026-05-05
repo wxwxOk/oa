@@ -135,7 +135,10 @@
         autocomplete="tel"
         mask="###########"
         :placeholder="field.placeholder || '请输入手机号'"
-        :rules="field.required ? [(v: string) => /^1\d{10}$/.test(v) || '请输入有效手机号'] : []"
+        :rules="[
+          ...(field.required ? [requiredRule] : []),
+          (v: string) => !v || /^1\d{10}$/.test(v) || '请输入有效手机号',
+        ]"
         :error="!!imperativeError"
         :error-message="imperativeError"
       />
@@ -199,11 +202,16 @@ function setInputError(message: string): boolean {
 }
 
 function isFieldValueValid(value: any, field: SchemaField): boolean {
+  if (field.type === 'phone') {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    if (!trimmed) return !field.required;
+    return /^1\d{10}$/.test(trimmed);
+  }
+
   if (!field.required) return true;
 
   if (field.type === 'text' || field.type === 'textarea' || field.type === 'name') return hasTrimmedString(value);
   if (field.type === 'date') return hasNonEmptyValue(value);
-  if (field.type === 'phone') return typeof value === 'string' && /^1\d{10}$/.test(value);
   if (field.type === 'radio') return hasNonEmptyValue(value);
   if (field.type === 'checkbox') return Array.isArray(value) && value.length > 0;
   if (field.type === 'signature') return hasTrimmedString(value);
@@ -218,6 +226,15 @@ function onModelUpdate(value: any) {
 
 function validate(value: any, field: SchemaField): boolean {
   clearErrors();
+
+  // phone：无论是否必填，只要有输入就必须校验格式
+  if (field.type === 'phone') {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    if (!trimmed) return field.required ? setInputError('此项为必填') : true;
+    if (!/^1\d{10}$/.test(trimmed)) return setInputError('请输入有效手机号');
+    return true;
+  }
+
   if (!field.required) return true;
 
   if (field.type === 'text' || field.type === 'textarea' || field.type === 'name') {
@@ -227,11 +244,6 @@ function validate(value: any, field: SchemaField): boolean {
 
   if (field.type === 'date') {
     if (!hasNonEmptyValue(value)) return setInputError('请选择日期');
-    return true;
-  }
-
-  if (field.type === 'phone') {
-    if (typeof value !== 'string' || !/^1\d{10}$/.test(value)) return setInputError('请输入有效手机号');
     return true;
   }
 
