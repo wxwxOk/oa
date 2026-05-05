@@ -39,6 +39,7 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:9000}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
       REIMBURSEMENT_UPLOAD_DIR: ${REIMBURSEMENT_UPLOAD_DIR:-/app/uploads/reimbursements}
+      CHANNEL_PUSH_UPLOAD_DIR: ${CHANNEL_PUSH_UPLOAD_DIR:-/app/uploads/channel-push}
       PORT: ${BACKEND_PORT:-3000}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
