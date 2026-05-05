@@ -5,6 +5,7 @@ import { swagger } from '@elysiajs/swagger';
 import { BizError } from './utils/errors';
 import { authModule } from './modules/auth/auth.route';
 import { userModule } from './modules/user/user.route';
+import { channelPartnerAdminModule } from './modules/user/channel-partner-admin.route';
 import { departmentModule } from './modules/department/department.route';
 import { roleModule, permissionModule } from './modules/role/role.route';
 import { dashboardModule } from './modules/dashboard/dashboard.route';
@@ -70,6 +71,7 @@ const app = new Elysia()
         app
           .use(authModule)
           .use(userModule)
+          .use(channelPartnerAdminModule)
           .use(departmentModule)
           .use(roleModule)
           .use(permissionModule)

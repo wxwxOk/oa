@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import type { User } from '@prisma/client';
+import type { ChannelPartnerProfile, User } from '@prisma/client';
 
 import { prisma } from '../../plugins/prisma';
 import { BizError } from '../../utils/errors';
@@ -7,6 +7,10 @@ import { BizError } from '../../utils/errors';
 const CHANNEL_PARTNER_ROLE_CODE = 'CHANNEL_PARTNER';
 const PARTNER_LIST_DEFAULT_SIZE = 20;
 const PARTNER_LIST_MAX_SIZE = 100;
+
+// Bound to the Prisma model — every CHANNEL_PARTNER user must own exactly one
+// ChannelPartnerProfile row recording its primary recipient.
+type _ChannelPartnerProfileShape = ChannelPartnerProfile;
 
 export type ChannelPartnerCreateInput = {
   username: string;
