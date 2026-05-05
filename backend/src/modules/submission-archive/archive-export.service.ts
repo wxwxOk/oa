@@ -34,7 +34,7 @@ type FieldColumn = {
 
 const fallbackFieldLabels: Record<string, string> = {
   followUpResult: '跟进结果',
-  reason: '申请事由',
+  reason: '原因',
   phone: '联系电话',
   remark: '备注',
   owner: '负责人',
@@ -129,12 +129,6 @@ function collectColumns(rows: ArchiveExportRow[]): FieldColumn[] {
   ];
 }
 
-function formatSourceType(sourceType: unknown): string {
-  if (sourceType === 'approval') return '审批申请';
-  if (sourceType === 'collection') return '公开收集';
-  return '';
-}
-
 function hasFullMetadata(rows: ArchiveExportRow[]): boolean {
   return rows.some((row) => row.archiveNo !== undefined || row.templateId !== undefined || row.createdAt !== undefined);
 }
@@ -143,10 +137,8 @@ function buildBaseColumns(rows: ArchiveExportRow[]) {
   if (hasFullMetadata(rows)) {
     return [
       { header: '编号', key: 'archiveNo', width: 24 },
-      { header: '来源', key: 'sourceType', width: 14 },
       { header: '模板', key: 'templateName', width: 24 },
-      { header: '申请人/填写者', key: 'personName', width: 18 },
-      { header: '部门', key: 'departmentName', width: 18 },
+      { header: '提交人', key: 'personName', width: 18 },
       { header: '状态', key: 'status', width: 14 },
       { header: '标签/标记', key: 'tags', width: 24 },
       { header: '更新时间', key: 'updatedAt', width: 24 },
@@ -154,10 +146,8 @@ function buildBaseColumns(rows: ArchiveExportRow[]) {
   }
 
   return [
-    { header: '来源', key: 'sourceType', width: 14 },
     { header: '模板', key: 'templateName', width: 24 },
-    { header: '部门', key: 'departmentName', width: 18 },
-    { header: '人员', key: 'personName', width: 18 },
+    { header: '提交人', key: 'personName', width: 18 },
     { header: '状态', key: 'status', width: 14 },
     { header: '标签', key: 'tags', width: 24 },
   ];
@@ -165,9 +155,7 @@ function buildBaseColumns(rows: ArchiveExportRow[]) {
 
 function buildBaseValues(row: ArchiveExportRow, fullMetadata: boolean): Record<string, unknown> {
   const common = {
-    sourceType: sanitizeExcelCell(formatSourceType(row.sourceType)),
     templateName: sanitizeExcelCell(toDisplayValue(row.templateName)),
-    departmentName: sanitizeExcelCell(toDisplayValue(row.departmentName)),
     personName: sanitizeExcelCell(toDisplayValue(row.personName)),
     status: sanitizeExcelCell(toDisplayValue(row.status)),
     tags: sanitizeExcelCell(toDisplayValue(row.tags ?? [])),

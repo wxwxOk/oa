@@ -1,13 +1,7 @@
-import type {
-  ApprovalApplicationStatus,
-  ArchiveEventType,
-  ArchiveSourceType,
-  Prisma,
-} from '@prisma/client';
+import type { ArchiveEventType, Prisma } from '@prisma/client';
 
 import { prisma } from '../../plugins/prisma';
 import { BizError } from '../../utils/errors';
-import { appendApplicationEvent } from './application.service';
 
 export type ArchiveActor = {
   id: number;
@@ -16,14 +10,13 @@ export type ArchiveActor = {
   permissions: string[];
 };
 
-export type ArchiveSourceTypeParam = 'approval' | 'collection';
+export type ArchiveSourceTypeParam = 'collection';
 
 export type ArchiveListFilters = {
   page?: number | string;
   size?: number | string;
   sourceType?: ArchiveSourceTypeParam | '' | undefined;
   templateId?: number | string;
-  departmentId?: number | string;
   personName?: string;
   status?: string;
   dateFrom?: string;
@@ -101,23 +94,6 @@ type CorrectionStore = {
   history: ArchiveCorrectionHistoryItem[];
 };
 
-type ApprovalArchiveRecord = Prisma.ApprovalApplicationGetPayload<{
-  include: {
-    archiveMeta: {
-      include: {
-        events: {
-          orderBy: [{ createdAt: 'asc' }, { id: 'asc' }];
-        };
-      };
-    };
-    template: {
-      select: {
-        processingSchema: true;
-      };
-    };
-  };
-}>;
-
 type CollectionArchiveRecord = Prisma.SubmissionGetPayload<{
   include: {
     archiveMeta: {
@@ -132,6 +108,7 @@ type CollectionArchiveRecord = Prisma.SubmissionGetPayload<{
         name: true;
         schema: true;
         processingSchema: true;
+        watermarkText: true;
       };
     };
   };
@@ -139,13 +116,6 @@ type CollectionArchiveRecord = Prisma.SubmissionGetPayload<{
 
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 20;
-const ARCHIVED_APPROVAL_STATUSES: ApprovalApplicationStatus[] = [
-  'SUBMITTED',
-  'APPROVING',
-  'APPROVED',
-  'REJECTED',
-  'CANCELED',
-];
 const RECOMMENDED_TAGS = ['待跟进', '已核对', '资料不全', '重点'];
 
 function toInputJson(value: unknown): Prisma.InputJsonValue {
@@ -192,12 +162,8 @@ function parseDateBoundary(value: string | undefined, boundary: 'start' | 'end')
 }
 
 function normalizeSourceType(sourceType: string): ArchiveSourceTypeParam {
-  if (sourceType === 'approval' || sourceType === 'collection') return sourceType;
+  if (sourceType === 'collection') return sourceType;
   throw new BizError('归档来源类型无效', 400, 'INVALID_ARCHIVE_SOURCE_TYPE');
-}
-
-function toPrismaSourceType(sourceType: ArchiveSourceTypeParam): ArchiveSourceType {
-  return sourceType === 'approval' ? 'APPROVAL' : 'COLLECTION';
 }
 
 function normalizeTagsInput(input: string[] | string | { tags?: string[] } | undefined): string[] {
@@ -327,70 +293,12 @@ function tagsMatch(recordTags: string[], filterTags: string[]): boolean {
   return filterTags.every((tag) => recordTags.includes(tag));
 }
 
-async function resolveActorDepartmentId(actor: ArchiveActor): Promise<number | null> {
-  const user = await prisma.user.findUnique({
-    where: { id: actor.id },
-    select: { departmentId: true },
-  });
-  if (!user) {
-    throw new BizError('当前用户不存在', 403, 'ARCHIVE_ACTOR_NOT_FOUND');
-  }
-  return user.departmentId;
-}
-
-async function buildApprovalWhere(
-  actor: ArchiveActor,
-  filters: ArchiveListFilters,
-): Promise<Prisma.ApprovalApplicationWhereInput | null> {
-  const hasAll = hasPermission(actor, 'approval:application:all');
-  const hasDepartment = hasPermission(actor, 'approval:application:department');
-  if (!hasAll && !hasDepartment) return null;
-
-  const templateId = normalizeNumber(filters.templateId);
-  const requestedDepartmentId = normalizeNumber(filters.departmentId);
-  const dateFrom = parseDateBoundary(filters.dateFrom, 'start');
-  const dateTo = parseDateBoundary(filters.dateTo, 'end');
-  const where: Prisma.ApprovalApplicationWhereInput = {
-    status: { in: ARCHIVED_APPROVAL_STATUSES },
-  };
-
-  if (!hasAll) {
-    const actorDepartmentId = await resolveActorDepartmentId(actor);
-    if (!actorDepartmentId) return null;
-    if (requestedDepartmentId && requestedDepartmentId !== actorDepartmentId) return null;
-    where.applicantDepartmentId = actorDepartmentId;
-  } else if (requestedDepartmentId) {
-    where.applicantDepartmentId = requestedDepartmentId;
-  }
-  if (templateId) where.templateId = templateId;
-  if (filters.personName?.trim()) {
-    where.applicantName = {
-      contains: filters.personName.trim(),
-      mode: 'insensitive',
-    };
-  }
-  if (filters.status?.trim()) {
-    if (!ARCHIVED_APPROVAL_STATUSES.includes(filters.status as ApprovalApplicationStatus)) return null;
-    where.status = filters.status as ApprovalApplicationStatus;
-  }
-  if (dateFrom || dateTo) {
-    where.updatedAt = {
-      ...(dateFrom ? { gte: dateFrom } : {}),
-      ...(dateTo ? { lte: dateTo } : {}),
-    };
-  }
-
-  return where;
-}
-
 function buildCollectionWhere(filters: ArchiveListFilters): Prisma.SubmissionWhereInput | null {
   const templateId = normalizeNumber(filters.templateId);
-  const departmentId = normalizeNumber(filters.departmentId);
   const dateFrom = parseDateBoundary(filters.dateFrom, 'start');
   const dateTo = parseDateBoundary(filters.dateTo, 'end');
   const where: Prisma.SubmissionWhereInput = {};
 
-  if (departmentId) return null;
   if (filters.status?.trim() && filters.status.trim() !== 'COLLECTED') return null;
   if (templateId) where.templateId = templateId;
   if (filters.personName?.trim()) {
@@ -412,8 +320,7 @@ function buildCollectionWhere(filters: ArchiveListFilters): Prisma.SubmissionWhe
 function serializeArchiveEvent(
   event: Prisma.ArchiveEventGetPayload<Record<string, never>>,
 ): ArchiveDetailEvent {
-  const sourceType = event.sourceType === 'APPROVAL' ? 'approval' : 'collection';
-  const sourceId = event.approvalApplicationId ?? event.submissionId ?? 0;
+  const sourceId = event.submissionId ?? 0;
   const typeMap: Record<ArchiveEventType, ArchiveDetailEvent['type']> = {
     TAGS_UPDATED: 'MARK',
     NOTE_ADDED: 'COMMENT',
@@ -432,40 +339,12 @@ function serializeArchiveEvent(
     type: typeMap[event.type],
     title: titleMap[event.type],
     comment: event.comment,
-    sourceType,
+    sourceType: 'collection',
     sourceId,
     actorId: event.actorId,
     actorName: event.actorName,
     createdAt: event.createdAt,
     payload: event.payload,
-  };
-}
-
-function serializeApprovalRow(record: ApprovalArchiveRecord): ArchiveListItem {
-  const tags = record.archiveMeta?.tags ?? [];
-  const updatedAt = record.archiveMeta?.updatedAt ?? record.updatedAt;
-  const formData = toRecord(record.formData);
-
-  return {
-    id: record.id,
-    archiveKey: `approval:${record.id}`,
-    sourceType: 'approval',
-    sourceId: record.id,
-    archiveNo: record.applicationNo,
-    templateId: record.templateId,
-    templateName: record.templateName,
-    templateVersion: record.templateVersion,
-    departmentId: record.applicantDepartmentId,
-    departmentName: record.applicantDepartmentName,
-    personName: record.applicantName,
-    personPhone: typeof formData.phone === 'string' ? formData.phone : null,
-    status: record.status,
-    tags,
-    processingSummary: firstProcessingSummary(record.archiveMeta?.processingData),
-    submittedAt: record.submittedAt,
-    completedAt: record.completedAt,
-    createdAt: record.createdAt,
-    updatedAt,
   };
 }
 
@@ -496,33 +375,6 @@ function serializeCollectionRow(record: CollectionArchiveRecord): ArchiveListIte
   };
 }
 
-function serializeApprovalDetail(record: ApprovalArchiveRecord): ArchiveDetail {
-  const row = serializeApprovalRow(record);
-  const correctionStore = readCorrectionStore(record.archiveMeta?.correctionData);
-  const formData = toRecord(record.formData);
-  const events = (record.archiveMeta?.events ?? []).map(serializeArchiveEvent);
-
-  return {
-    ...row,
-    formData,
-    effectiveData: { ...formData, ...correctionStore.current },
-    processingFields: toArray(record.template.processingSchema),
-    processingData: toRecord(record.archiveMeta?.processingData),
-    schemaSnapshot: record.schemaSnapshot,
-    notes: events
-      .filter((event) => event.type === 'COMMENT')
-      .map((event) => ({
-        id: event.id,
-        comment: event.comment ?? '',
-        actorId: event.actorId,
-        actorName: event.actorName,
-        createdAt: event.createdAt,
-      })),
-    correctionHistory: correctionStore.history,
-    events,
-  };
-}
-
 function serializeCollectionDetail(record: CollectionArchiveRecord): ArchiveDetail {
   const row = serializeCollectionRow(record);
   const correctionStore = readCorrectionStore(record.archiveMeta?.correctionData);
@@ -533,6 +385,7 @@ function serializeCollectionDetail(record: CollectionArchiveRecord): ArchiveDeta
     ...row,
     formData,
     effectiveData: { ...formData, ...correctionStore.current },
+    watermarkText: record.template.watermarkText,
     processingFields: toArray(record.template.processingSchema),
     processingData: toRecord(record.archiveMeta?.processingData),
     schemaSnapshot: record.template.schema,
@@ -550,24 +403,6 @@ function serializeCollectionDetail(record: CollectionArchiveRecord): ArchiveDeta
   };
 }
 
-async function loadApprovalForDetail(actor: ArchiveActor, id: number): Promise<ApprovalArchiveRecord> {
-  const where = await buildApprovalWhere(actor, {});
-  if (!where) throw new BizError('无权查看归档记录', 403, 'ARCHIVE_RECORD_FORBIDDEN');
-
-  const record = await prisma.approvalApplication.findFirst({
-    where: { ...where, id },
-    include: {
-      archiveMeta: {
-        include: { events: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] } },
-      },
-      template: { select: { processingSchema: true } },
-    },
-  });
-
-  if (!record) throw new BizError('无权查看归档记录', 403, 'ARCHIVE_RECORD_FORBIDDEN');
-  return record;
-}
-
 async function loadCollectionForDetail(actor: ArchiveActor, id: number): Promise<CollectionArchiveRecord> {
   if (!hasPermission(actor, 'form:submission:list')) {
     throw new BizError('无权查看归档记录', 403, 'ARCHIVE_RECORD_FORBIDDEN');
@@ -579,7 +414,7 @@ async function loadCollectionForDetail(actor: ArchiveActor, id: number): Promise
       archiveMeta: {
         include: { events: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] } },
       },
-      template: { select: { name: true, schema: true, processingSchema: true } },
+      template: { select: { name: true, schema: true, processingSchema: true, watermarkText: true } },
     },
   });
 
@@ -587,83 +422,24 @@ async function loadCollectionForDetail(actor: ArchiveActor, id: number): Promise
   return record;
 }
 
-async function ensureArchiveMeta(
-  tx: Prisma.TransactionClient,
-  sourceType: ArchiveSourceTypeParam,
-  sourceId: number,
-) {
-  if (sourceType === 'approval') {
-    return tx.archiveRecordMeta.upsert({
-      where: { approvalApplicationId: sourceId },
-      update: {},
-      create: {
-        sourceType: 'APPROVAL',
-        approvalApplicationId: sourceId,
-        submissionId: null,
-      },
-    });
-  }
-
+async function ensureArchiveMeta(tx: Prisma.TransactionClient, sourceId: number) {
   return tx.archiveRecordMeta.upsert({
     where: { submissionId: sourceId },
     update: {},
     create: {
       sourceType: 'COLLECTION',
-      approvalApplicationId: null,
       submissionId: sourceId,
     },
-  });
-}
-
-async function appendApprovalArchiveEvent(
-  actor: ArchiveActor,
-  sourceType: ArchiveSourceTypeParam,
-  sourceId: number,
-  eventType: 'COMMENT' | 'MARK' | 'EDIT',
-  title: string,
-  comment: string | null,
-  payload: Record<string, unknown>,
-): Promise<void> {
-  if (sourceType !== 'approval') return;
-
-  await appendApplicationEvent({
-    applicationId: sourceId,
-    actor: { id: actor.id, name: actor.name },
-    type: eventType,
-    title,
-    comment,
-    payload: toInputJson({ visibility: 'INTERNAL', ...payload }),
   });
 }
 
 export async function listArchiveRecords(actor: ArchiveActor, filters: ArchiveListFilters = {}) {
   const page = normalizePage(filters.page, 1);
   const size = normalizeSize(filters.size, DEFAULT_PAGE_SIZE);
-  const requestedSource = filters.sourceType ? normalizeSourceType(filters.sourceType) : undefined;
   const filterTags = normalizeTagsInput(filters.tags);
   const rows: ArchiveListItem[] = [];
 
-  if (!requestedSource || requestedSource === 'approval') {
-    const approvalWhere = await buildApprovalWhere(actor, filters);
-    if (approvalWhere) {
-      const approvals = await prisma.approvalApplication.findMany({
-        where: approvalWhere,
-        include: {
-          archiveMeta: {
-            include: { events: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] } },
-          },
-          template: { select: { processingSchema: true } },
-        },
-      });
-      rows.push(
-        ...approvals
-          .map(serializeApprovalRow)
-          .filter((row) => tagsMatch(row.tags, filterTags)),
-      );
-    }
-  }
-
-  if ((!requestedSource || requestedSource === 'collection') && hasPermission(actor, 'form:submission:list')) {
+  if (hasPermission(actor, 'form:submission:list')) {
     const collectionWhere = buildCollectionWhere(filters);
     if (collectionWhere) {
       const submissions = await prisma.submission.findMany({
@@ -702,23 +478,16 @@ export async function listArchiveMeta(actor: ArchiveActor) {
   }
 
   const templates = new Map<number, { label: string; value: number }>();
-  const departments = new Map<number, { label: string; value: number }>();
   const tags = new Set<string>(RECOMMENDED_TAGS);
 
   for (const row of rows) {
     templates.set(row.templateId, { label: row.templateName, value: row.templateId });
-    if (row.departmentId) {
-      departments.set(row.departmentId, {
-        label: row.departmentName ?? `部门 ${row.departmentId}`,
-        value: row.departmentId,
-      });
-    }
     row.tags.forEach((tag) => tags.add(tag));
   }
 
   return {
     templates: Array.from(templates.values()).sort((a, b) => a.label.localeCompare(b.label, 'zh-CN')),
-    departments: Array.from(departments.values()).sort((a, b) => a.label.localeCompare(b.label, 'zh-CN')),
+    departments: [],
     recommendedTags: Array.from(tags),
   };
 }
@@ -728,10 +497,7 @@ export async function getArchiveDetail(
   sourceType: ArchiveSourceTypeParam,
   sourceId: number,
 ): Promise<ArchiveDetail> {
-  const normalizedSourceType = normalizeSourceType(sourceType);
-  if (normalizedSourceType === 'approval') {
-    return serializeApprovalDetail(await loadApprovalForDetail(actor, sourceId));
-  }
+  normalizeSourceType(sourceType);
   return serializeCollectionDetail(await loadCollectionForDetail(actor, sourceId));
 }
 
@@ -741,28 +507,25 @@ export async function setArchiveTags(
   sourceId: number,
   input: string[] | { tags?: string[] },
 ): Promise<ArchiveDetail> {
-  if (!hasPermission(actor, 'approval:archive:mark')) {
-    throw new BizError('缺少权限: approval:archive:mark', 403, 'FORBIDDEN');
+  if (!hasPermission(actor, 'form:archive:mark')) {
+    throw new BizError('缺少权限: form:archive:mark', 403, 'FORBIDDEN');
   }
 
-  const normalizedSourceType = normalizeSourceType(sourceType);
-  await getArchiveDetail(actor, normalizedSourceType, sourceId);
+  normalizeSourceType(sourceType);
+  await getArchiveDetail(actor, 'collection', sourceId);
   const tags = normalizeTagsInput(input);
 
   await prisma.$transaction(async (tx) => {
-    const metadata = await ensureArchiveMeta(tx, normalizedSourceType, sourceId);
+    const metadata = await ensureArchiveMeta(tx, sourceId);
     await tx.archiveRecordMeta.update({
       where: { id: metadata.id },
-      data: {
-        tags,
-      },
+      data: { tags },
     });
     await tx.archiveEvent.create({
       data: {
         metadataId: metadata.id,
-        sourceType: toPrismaSourceType(normalizedSourceType),
-        approvalApplicationId: normalizedSourceType === 'approval' ? sourceId : null,
-        submissionId: normalizedSourceType === 'collection' ? sourceId : null,
+        sourceType: 'COLLECTION',
+        submissionId: sourceId,
         actorId: actor.id,
         actorName: actor.name,
         type: 'TAGS_UPDATED',
@@ -771,17 +534,7 @@ export async function setArchiveTags(
     });
   });
 
-  await appendApprovalArchiveEvent(
-    actor,
-    normalizedSourceType,
-    sourceId,
-    'MARK',
-    '更新归档标签',
-    tags.join('、'),
-    { tags },
-  );
-
-  return getArchiveDetail(actor, normalizedSourceType, sourceId);
+  return getArchiveDetail(actor, 'collection', sourceId);
 }
 
 export async function addArchiveNote(
@@ -790,22 +543,21 @@ export async function addArchiveNote(
   sourceId: number,
   input: { comment?: unknown },
 ): Promise<ArchiveDetail> {
-  if (!hasPermission(actor, 'approval:archive:mark')) {
-    throw new BizError('缺少权限: approval:archive:mark', 403, 'FORBIDDEN');
+  if (!hasPermission(actor, 'form:archive:mark')) {
+    throw new BizError('缺少权限: form:archive:mark', 403, 'FORBIDDEN');
   }
 
-  const normalizedSourceType = normalizeSourceType(sourceType);
-  await getArchiveDetail(actor, normalizedSourceType, sourceId);
+  normalizeSourceType(sourceType);
+  await getArchiveDetail(actor, 'collection', sourceId);
   const comment = normalizeComment(input.comment);
 
   await prisma.$transaction(async (tx) => {
-    const metadata = await ensureArchiveMeta(tx, normalizedSourceType, sourceId);
+    const metadata = await ensureArchiveMeta(tx, sourceId);
     await tx.archiveEvent.create({
       data: {
         metadataId: metadata.id,
-        sourceType: toPrismaSourceType(normalizedSourceType),
-        approvalApplicationId: normalizedSourceType === 'approval' ? sourceId : null,
-        submissionId: normalizedSourceType === 'collection' ? sourceId : null,
+        sourceType: 'COLLECTION',
+        submissionId: sourceId,
         actorId: actor.id,
         actorName: actor.name,
         type: 'NOTE_ADDED',
@@ -815,17 +567,7 @@ export async function addArchiveNote(
     });
   });
 
-  await appendApprovalArchiveEvent(
-    actor,
-    normalizedSourceType,
-    sourceId,
-    'COMMENT',
-    '内部备注',
-    comment,
-    {},
-  );
-
-  return getArchiveDetail(actor, normalizedSourceType, sourceId);
+  return getArchiveDetail(actor, 'collection', sourceId);
 }
 
 export async function updateProcessingData(
@@ -834,15 +576,12 @@ export async function updateProcessingData(
   sourceId: number,
   input: { processingData?: unknown },
 ): Promise<ArchiveDetail> {
-  if (!hasPermission(actor, 'approval:archive:edit')) {
-    throw new BizError('缺少权限: approval:archive:edit', 403, 'FORBIDDEN');
+  if (!hasPermission(actor, 'form:archive:edit')) {
+    throw new BizError('缺少权限: form:archive:edit', 403, 'FORBIDDEN');
   }
 
-  const normalizedSourceType = normalizeSourceType(sourceType);
-  const detailSource =
-    normalizedSourceType === 'approval'
-      ? await loadApprovalForDetail(actor, sourceId)
-      : await loadCollectionForDetail(actor, sourceId);
+  normalizeSourceType(sourceType);
+  const detailSource = await loadCollectionForDetail(actor, sourceId);
   const processingData = normalizeRecordObject(
     input.processingData,
     'INVALID_PROCESSING_DATA',
@@ -854,19 +593,16 @@ export async function updateProcessingData(
   }
 
   await prisma.$transaction(async (tx) => {
-    const metadata = await ensureArchiveMeta(tx, normalizedSourceType, sourceId);
+    const metadata = await ensureArchiveMeta(tx, sourceId);
     await tx.archiveRecordMeta.update({
       where: { id: metadata.id },
-      data: {
-        processingData: toInputJson(processingData),
-      },
+      data: { processingData: toInputJson(processingData) },
     });
     await tx.archiveEvent.create({
       data: {
         metadataId: metadata.id,
-        sourceType: toPrismaSourceType(normalizedSourceType),
-        approvalApplicationId: normalizedSourceType === 'approval' ? sourceId : null,
-        submissionId: normalizedSourceType === 'collection' ? sourceId : null,
+        sourceType: 'COLLECTION',
+        submissionId: sourceId,
         actorId: actor.id,
         actorName: actor.name,
         type: 'PROCESSING_UPDATED',
@@ -875,17 +611,7 @@ export async function updateProcessingData(
     });
   });
 
-  await appendApprovalArchiveEvent(
-    actor,
-    normalizedSourceType,
-    sourceId,
-    'EDIT',
-    '更新处理信息',
-    null,
-    { processingData },
-  );
-
-  return getArchiveDetail(actor, normalizedSourceType, sourceId);
+  return getArchiveDetail(actor, 'collection', sourceId);
 }
 
 export async function correctArchiveData(
@@ -894,29 +620,20 @@ export async function correctArchiveData(
   sourceId: number,
   input: { changes?: unknown; reason?: unknown },
 ): Promise<ArchiveDetail> {
-  if (!hasPermission(actor, 'approval:archive:edit')) {
-    throw new BizError('缺少权限: approval:archive:edit', 403, 'FORBIDDEN');
+  if (!hasPermission(actor, 'form:archive:edit')) {
+    throw new BizError('缺少权限: form:archive:edit', 403, 'FORBIDDEN');
   }
 
-  const normalizedSourceType = normalizeSourceType(sourceType);
+  normalizeSourceType(sourceType);
   const reason = typeof input.reason === 'string' ? input.reason.trim().slice(0, 500) : '';
   if (!reason) {
     throw new BizError('编辑原因不能为空', 400, 'ARCHIVE_EDIT_REASON_REQUIRED');
   }
 
   const changes = normalizeRecordObject(input.changes, 'INVALID_ARCHIVE_CHANGES', '修正字段格式无效');
-  const detailSource =
-    normalizedSourceType === 'approval'
-      ? await loadApprovalForDetail(actor, sourceId)
-      : await loadCollectionForDetail(actor, sourceId);
-  const formalData =
-    normalizedSourceType === 'approval'
-      ? toRecord((detailSource as ApprovalArchiveRecord).formData)
-      : toRecord((detailSource as CollectionArchiveRecord).data);
-  const schema =
-    normalizedSourceType === 'approval'
-      ? (detailSource as ApprovalArchiveRecord).schemaSnapshot
-      : (detailSource as CollectionArchiveRecord).template.schema;
+  const detailSource = await loadCollectionForDetail(actor, sourceId);
+  const formalData = toRecord(detailSource.data);
+  const schema = detailSource.template.schema;
   const knownFieldIds = readFieldIdsFromSchema(schema);
   assertKnownFields(Object.keys(changes), knownFieldIds, 'UNKNOWN_ARCHIVE_FIELD_ID');
 
@@ -935,13 +652,12 @@ export async function correctArchiveData(
   }
 
   await prisma.$transaction(async (tx) => {
-    const metadata = await ensureArchiveMeta(tx, normalizedSourceType, sourceId);
+    const metadata = await ensureArchiveMeta(tx, sourceId);
     const event = await tx.archiveEvent.create({
       data: {
         metadataId: metadata.id,
-        sourceType: toPrismaSourceType(normalizedSourceType),
-        approvalApplicationId: normalizedSourceType === 'approval' ? sourceId : null,
-        submissionId: normalizedSourceType === 'collection' ? sourceId : null,
+        sourceType: 'COLLECTION',
+        submissionId: sourceId,
         actorId: actor.id,
         actorName: actor.name,
         type: 'CONTROLLED_EDIT',
@@ -975,15 +691,5 @@ export async function correctArchiveData(
     });
   });
 
-  await appendApprovalArchiveEvent(
-    actor,
-    normalizedSourceType,
-    sourceId,
-    'EDIT',
-    '修正提交数据',
-    reason,
-    { changes: fieldChanges },
-  );
-
-  return getArchiveDetail(actor, normalizedSourceType, sourceId);
+  return getArchiveDetail(actor, 'collection', sourceId);
 }

@@ -38,14 +38,13 @@ export type ArchiveRouteDetail = Omit<
   events: Array<Omit<ArchiveDetail['events'][number], 'createdAt'> & { createdAt: Date | string }>;
 };
 
-const sourceTypeSchema = t.Union([t.Literal('approval'), t.Literal('collection')]);
+const sourceTypeSchema = t.Literal('collection');
 
 export const archiveListQuerySchema = t.Object({
   sourceType: t.Optional(sourceTypeSchema),
   page: t.Optional(t.String()),
   size: t.Optional(t.String()),
   templateId: t.Optional(t.String()),
-  departmentId: t.Optional(t.String()),
   personName: t.Optional(t.String()),
   status: t.Optional(t.String()),
   dateFrom: t.Optional(t.String()),
@@ -215,9 +214,9 @@ export function serializeArchiveDetail(detail: ArchiveRouteDetail) {
   };
 }
 
-export const approvalArchiveModule = new Elysia({ prefix: '/approval/archive' })
+export const submissionArchiveModule = new Elysia({ prefix: '/approval/archive' })
   .guard({}, (app) =>
-    app.use(authGuard('approval:export')).get(
+    app.use(authGuard('form:archive:export')).get(
       '/export',
       async ({ query, currentUser, set }: any) => {
         const workbook = await exportArchiveExcel(toActor(currentUser), query as ArchiveListFilters);
@@ -235,7 +234,7 @@ export const approvalArchiveModule = new Elysia({ prefix: '/approval/archive' })
   )
   .guard({}, (app) =>
     app
-      .use(authGuard('approval:archive:stats'))
+      .use(authGuard('form:archive:stats'))
       .get(
         '/stats',
         async ({ query, currentUser }: any) => getArchiveStats(toActor(currentUser), query as ArchiveListFilters),
@@ -244,7 +243,7 @@ export const approvalArchiveModule = new Elysia({ prefix: '/approval/archive' })
   )
   .guard({}, (app) =>
     app
-      .use(authGuard())
+      .use(authGuard('form:submission:list'))
       .get(
         '/',
         async ({ query, currentUser }: any) =>
@@ -269,7 +268,7 @@ export const approvalArchiveModule = new Elysia({ prefix: '/approval/archive' })
   )
   .guard({}, (app) =>
     app
-      .use(authGuard('approval:archive:mark'))
+      .use(authGuard('form:archive:mark'))
       .put(
         '/:sourceType/:id/tags',
         async ({ params, body, currentUser }: any) =>
@@ -299,7 +298,7 @@ export const approvalArchiveModule = new Elysia({ prefix: '/approval/archive' })
   )
   .guard({}, (app) =>
     app
-      .use(authGuard('approval:archive:edit'))
+      .use(authGuard('form:archive:edit'))
       .put(
         '/:sourceType/:id/processing',
         async ({ params, body, currentUser }: any) =>
