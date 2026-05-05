@@ -2,19 +2,17 @@
   <q-page padding class="approval-archive-detail-page">
     <div class="detail-wrapper" :class="{ 'has-mobile-actions': isMobile && detail }">
       <div class="row items-center q-mb-md q-gutter-sm">
-        <q-btn flat dense round icon="arrow_back" aria-label="返回归档查询" @click="goBack">
-          <q-tooltip>返回归档查询</q-tooltip>
+        <q-btn flat dense round icon="arrow_back" aria-label="返回提交统计" @click="goBack">
+          <q-tooltip>返回提交统计</q-tooltip>
         </q-btn>
-        <div class="text-h6">归档详情</div>
-        <q-chip v-if="detail" dense square :color="sourceColor(detail.sourceType)" text-color="white">
-          {{ sourceTypeLabel(detail.sourceType) }}
-        </q-chip>
+        <div class="text-h6">提交详情</div>
         <q-chip v-if="detail" dense square :color="archiveStatusColor(detail.status)" text-color="white">
           {{ archiveStatusLabel(detail.status) }}
         </q-chip>
         <q-space />
-        <q-btn outline color="primary" icon="print" label="打印" :disable="!detail" @click="printArchive" />
+        <q-btn v-if="isDesktop" outline color="primary" icon="print" label="打印" :disable="!detail" @click="printArchive" />
         <q-btn
+          v-if="isDesktop"
           outline
           color="primary"
           icon="picture_as_pdf"
@@ -35,7 +33,7 @@
       </div>
 
       <q-card v-else-if="error" flat bordered class="detail-section text-center q-pa-xl">
-        <div class="text-body1">归档详情加载失败，请检查网络后重试。</div>
+        <div class="text-body1">提交详情加载失败，请检查网络后重试。</div>
         <q-btn color="primary" label="重新加载" class="q-mt-md" @click="loadDetail" />
       </q-card>
 
@@ -48,7 +46,7 @@
                 <div class="visibility-hint">处理字段、标签、备注和修正操作仅影响内部归档信息。</div>
                 <div class="operation-action-grid q-mt-md">
                   <q-btn
-                    v-perm="'approval:archive:mark'"
+                    v-perm="'form:submission:list'"
                     outline
                     color="primary"
                     icon="sell"
@@ -58,7 +56,7 @@
                     @click="saveTags"
                   />
                   <q-btn
-                    v-perm="'approval:archive:mark'"
+                    v-perm="'form:submission:list'"
                     outline
                     color="primary"
                     icon="sticky_note_2"
@@ -67,7 +65,7 @@
                     @click="openNoteDialog"
                   />
                   <q-btn
-                    v-perm="'approval:archive:edit'"
+                    v-perm="'form:submission:list'"
                     color="primary"
                     icon="edit_note"
                     label="修正提交数据"
@@ -81,15 +79,12 @@
 
           <q-card flat bordered class="detail-section q-mb-md">
             <q-card-section>
-              <div class="section-title">归档信息</div>
+              <div class="section-title">提交信息</div>
               <div class="summary-grid q-mt-md">
                 <div><span class="muted">编号：</span>{{ detail.archiveNo }}</div>
-                <div><span class="muted">来源：</span>{{ sourceTypeLabel(detail.sourceType) }}</div>
                 <div><span class="muted">模板：</span>{{ detail.templateName }} v{{ detail.templateVersion }}</div>
-                <div><span class="muted">申请人/填写者：</span>{{ detail.personName }}</div>
-                <div><span class="muted">部门：</span>{{ detail.departmentName || '未设置部门' }}</div>
-                <div><span class="muted">提交/收集时间：</span>{{ formatDate(detail.submittedAt) }}</div>
-                <div><span class="muted">完成时间：</span>{{ formatDate(detail.completedAt) }}</div>
+                <div><span class="muted">提交人：</span>{{ detail.personName }}</div>
+                <div><span class="muted">提交时间：</span>{{ formatDate(detail.submittedAt) }}</div>
                 <div><span class="muted">当前状态：</span>{{ archiveStatusLabel(detail.status) }}</div>
                 <div><span class="muted">最近更新时间：</span>{{ formatDate(detail.updatedAt) }}</div>
               </div>
@@ -160,18 +155,20 @@
           <q-card flat bordered class="detail-section q-mb-md">
             <q-card-section>
               <div class="section-title q-mb-md">正式提交内容</div>
-              <div
-                id="print-area"
-                class="print-area"
-                :data-form-title="detail.templateName"
-                :data-submit-time="formatDate(detail.submittedAt)"
-              >
-                <GridFormRenderer
-                  :schema="detail.schemaSnapshot"
-                  mode="print"
-                  :model-value="detail.effectiveData"
-                />
-              </div>
+              <WatermarkOverlay :text="detail.watermarkText">
+                <div
+                  id="print-area"
+                  class="print-area"
+                  :data-form-title="detail.templateName"
+                  :data-submit-time="formatDate(detail.submittedAt)"
+                >
+                  <GridFormRenderer
+                    :schema="detail.schemaSnapshot"
+                    mode="print"
+                    :model-value="detail.effectiveData"
+                  />
+                </div>
+              </WatermarkOverlay>
               <div v-if="correctedFields.length > 0" class="corrected-list q-mt-md">
                 <div v-for="field in correctedFields" :key="field.id" class="corrected-row">
                   <div class="min-width-0">
@@ -233,7 +230,7 @@
             </q-card-section>
             <q-card-actions v-if="processingFields.length > 0" align="right" class="q-pa-md">
               <q-btn
-                v-perm="'approval:archive:edit'"
+                v-perm="'form:submission:list'"
                 color="primary"
                 label="保存处理信息"
                 :loading="store.actionLoading"
@@ -284,7 +281,7 @@
                 <div class="visibility-hint">处理字段、标签、备注和修正操作仅影响内部归档信息。</div>
                 <div class="operation-action-grid q-mt-md">
                   <q-btn
-                    v-perm="'approval:archive:mark'"
+                    v-perm="'form:submission:list'"
                     outline
                     color="primary"
                     icon="sell"
@@ -294,7 +291,7 @@
                     @click="saveTags"
                   />
                   <q-btn
-                    v-perm="'approval:archive:mark'"
+                    v-perm="'form:submission:list'"
                     outline
                     color="primary"
                     icon="sticky_note_2"
@@ -303,7 +300,7 @@
                     @click="openNoteDialog"
                   />
                   <q-btn
-                    v-perm="'approval:archive:edit'"
+                    v-perm="'form:submission:list'"
                     color="primary"
                     icon="edit_note"
                     label="修正提交数据"
@@ -379,7 +376,7 @@
                 <div class="section-title">内部备注</div>
                 <q-space />
                 <q-btn
-                  v-perm="'approval:archive:mark'"
+                  v-perm="'form:submission:list'"
                   flat
                   dense
                   color="primary"
@@ -405,7 +402,7 @@
           <q-card flat bordered class="detail-section">
             <q-card-section>
               <div class="section-title q-mb-md">处理动态</div>
-              <ApplicationTimeline :events="detail.timeline" />
+              <ArchiveTimeline :events="detail.timeline" />
             </q-card-section>
           </q-card>
         </div>
@@ -442,7 +439,6 @@
         <q-card-section v-if="detail" class="q-gutter-md">
           <div class="dialog-summary">
             <div>编号：{{ detail.archiveNo }}</div>
-            <div>来源：{{ sourceTypeLabel(detail.sourceType) }}</div>
             <div>模板：{{ detail.templateName }}</div>
             <div>当前状态：{{ archiveStatusLabel(detail.status) }}</div>
           </div>
@@ -493,16 +489,16 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { Dialog, Notify } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
-import ApplicationTimeline from 'src/components/approval/ApplicationTimeline.vue';
+import ArchiveTimeline from 'src/components/approval/ArchiveTimeline.vue';
 import GridFormRenderer from 'src/components/renderer/GridFormRenderer.vue';
+import WatermarkOverlay from 'src/components/WatermarkOverlay.vue';
 import { useResponsive } from 'src/composables/useResponsive';
 import { exportToPdf } from 'src/composables/usePdfExport';
-import { useApprovalArchiveStore } from 'src/stores/approvalArchive';
+import { useSubmissionArchiveStore } from 'src/stores/submissionArchive';
 import {
   ARCHIVE_RECOMMENDED_TAGS,
   archiveStatusColor,
   archiveStatusLabel,
-  sourceTypeLabel,
   type ArchiveDetail,
   type ArchiveProcessingField,
   type ArchiveSourceType,
@@ -511,7 +507,7 @@ import { flattenFields, type SchemaField } from 'src/types/schema';
 
 const route = useRoute();
 const router = useRouter();
-const store = useApprovalArchiveStore();
+const store = useSubmissionArchiveStore();
 const { isDesktop, isMobile } = useResponsive();
 
 const loading = ref(true);
@@ -601,7 +597,7 @@ function processingOptions(field: ArchiveProcessingField) {
 }
 
 function goBack() {
-  router.push('/approval/archive');
+  router.push('/submissions');
 }
 
 function printArchive() {
@@ -715,10 +711,6 @@ function viewOriginal(field: SchemaField) {
 
 function fieldLabel(fieldId: string, fallback?: string) {
   return fallback || formalFields.value.find((field) => field.id === fieldId)?.label || fieldId;
-}
-
-function sourceColor(value: ArchiveSourceType) {
-  return value === 'approval' ? 'primary' : 'info';
 }
 
 function formatDate(value?: string | null) {

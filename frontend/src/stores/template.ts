@@ -7,14 +7,6 @@ import { flattenFields } from 'src/types/schema';
 /** @deprecated Use SchemaField from 'src/types/schema' instead */
 export type { SchemaField as FormField } from 'src/types/schema';
 
-export type TemplateBusinessMode = 'COLLECTION_ONLY' | 'APPROVAL_REQUIRED';
-
-export interface TemplateApprovalProcessSummary {
-  id: number;
-  name: string;
-  isActive: boolean;
-}
-
 export interface Template {
   id: number;
   name: string;
@@ -25,9 +17,6 @@ export interface Template {
   status: 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
   requireIdentity: boolean;
   watermarkText?: string | null;
-  businessMode: TemplateBusinessMode;
-  approvalProcessId: number | null;
-  approvalProcess?: TemplateApprovalProcessSummary | null;
   creatorId: number;
   creator: { id: number; realName: string };
   createdAt: string;
@@ -41,9 +30,6 @@ export interface TemplateUpdatePayload {
   processingSchema?: ProcessingFieldConfig[];
   requireIdentity?: boolean;
   watermarkText?: string | null;
-  businessMode?: TemplateBusinessMode;
-  approvalProcessId?: number | null;
-  disconnectPublicCollection?: boolean;
 }
 
 export const useTemplateStore = defineStore('template', {
@@ -54,7 +40,6 @@ export const useTemplateStore = defineStore('template', {
     page: 1,
     size: 10,
     statusFilter: '' as string,
-    businessModeFilter: '' as '' | TemplateBusinessMode,
     current: null as Template | null,
     selectedFieldId: null as string | null,
   }),
@@ -65,10 +50,8 @@ export const useTemplateStore = defineStore('template', {
     },
     selectedItem(s): SchemaField | SchemaGroup | SchemaDynamicTable | null {
       if (!s.current || !s.selectedFieldId) return null;
-      // 先查找普通字段
       const field = flattenFields(s.current.schema).find(f => f.id === s.selectedFieldId);
       if (field) return field;
-      // 再查找分组和动态表格
       for (const item of s.current.schema.items) {
         if ((item.type === 'group' || item.type === 'dynamic-table') && item.id === s.selectedFieldId) {
           return item;
@@ -83,7 +66,6 @@ export const useTemplateStore = defineStore('template', {
       try {
         const params: Record<string, unknown> = { page: this.page, size: this.size };
         if (this.statusFilter) params.status = this.statusFilter;
-        if (this.businessModeFilter) params.businessMode = this.businessModeFilter;
         const { data } = await api.get('/templates', { params });
         this.rows = data.rows;
         this.total = data.total;

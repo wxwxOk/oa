@@ -5,39 +5,6 @@
       <q-btn flat dense icon="arrow_back" aria-label="返回模板列表" @click="router.push('/templates')" />
       <span class="text-h6 q-ml-sm ellipsis">{{ store.current?.name ?? '' }}</span>
       <q-space />
-      <q-select
-        v-if="store.current"
-        v-model="store.current.businessMode"
-        class="template-purpose-select q-mr-sm"
-        outlined
-        dense
-        emit-value
-        map-options
-        label="用途"
-        :options="businessModeOptions"
-        :disable="!canBindApprovalTemplate || saving"
-        @update:model-value="onBusinessModeChange"
-      >
-        <q-tooltip v-if="!canBindApprovalTemplate">缺少权限: approval:template:bind</q-tooltip>
-      </q-select>
-      <q-select
-        v-if="store.current?.businessMode === 'APPROVAL_REQUIRED'"
-        v-model="store.current.approvalProcessId"
-        class="approval-process-select q-mr-md"
-        outlined
-        dense
-        emit-value
-        map-options
-        label="审批流程"
-        :options="approvalProcessOptions"
-        :loading="approvalProcessStore.loading"
-        :disable="!canBindApprovalTemplate || saving"
-        :error="approvalProcessError"
-        error-message="请选择启用且有效的审批流程"
-        @update:model-value="approvalProcessError = false"
-      >
-        <q-tooltip v-if="!canBindApprovalTemplate">缺少权限: approval:template:bind</q-tooltip>
-      </q-select>
       <q-btn
         v-if="store.current"
         outline
@@ -85,7 +52,7 @@
           <div>
             <div class="text-h6">处理字段</div>
             <div class="text-caption text-grey-7 processing-fields-copy">
-              处理字段仅用于内部后续处理，不会覆盖申请人或填写者的正式提交内容。
+              处理字段仅用于内部后续处理，不会覆盖填写者的正式提交内容。
             </div>
           </div>
           <q-space />
@@ -254,9 +221,6 @@ import { computed, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useTemplateStore } from 'src/stores/template';
-import { useApprovalProcessStore } from 'src/stores/approvalProcess';
-import { useAuthStore } from 'src/stores/auth';
-import type { TemplateBusinessMode } from 'src/stores/template';
 import {
   SUPPORTED_PROCESSING_FIELD_TYPES,
   type ArchiveProcessingField,
@@ -267,31 +231,18 @@ import FieldPalette from 'src/components/designer/FieldPalette.vue';
 import DesignerCanvas from 'src/components/designer/DesignerCanvas.vue';
 import PropertyEditor from 'src/components/designer/PropertyEditor.vue';
 
-const APPROVAL_TEMPLATE_BIND_PERM = 'approval:template:bind';
-const MISSING_PROCESS_MESSAGE = '请选择启用且有效的审批流程';
-
 const route = useRoute();
 const router = useRouter();
 const $q = useQuasar();
 const store = useTemplateStore();
-const approvalProcessStore = useApprovalProcessStore();
-const auth = useAuthStore();
 
 const loading = ref(true);
 const saving = ref(false);
 const processingDialogOpen = ref(false);
-const approvalProcessError = ref(false);
-const originalBusinessMode = ref<TemplateBusinessMode>('COLLECTION_ONLY');
-const originalApprovalProcessId = ref<number | null>(null);
 const watermarkTextDraft = ref<string>('');
 type ProcessingFieldDraft = Omit<ArchiveProcessingField, 'options'> & { options?: string[] };
 
 const templateId = Number(route.params.id);
-
-const businessModeOptions = [
-  { label: '仅收集', value: 'COLLECTION_ONLY' },
-  { label: '需审批', value: 'APPROVAL_REQUIRED' },
-];
 
 const processingFieldTypeOptions: Array<{ label: string; value: ArchiveProcessingFieldType }> = [
   { label: '文本', value: 'text' },
@@ -302,14 +253,6 @@ const processingFieldTypeOptions: Array<{ label: string; value: ArchiveProcessin
   { label: '手机号', value: 'phone' },
 ];
 
-const canBindApprovalTemplate = computed(() => auth.hasPerm(APPROVAL_TEMPLATE_BIND_PERM));
-
-const approvalProcessOptions = computed(() =>
-  approvalProcessStore.rows
-    .filter((process) => process.isActive)
-    .map((process) => ({ label: process.name, value: process.id })),
-);
-
 const processingFields = computed(() => ensureProcessingFields());
 
 onMounted(async () => {
@@ -317,12 +260,6 @@ onMounted(async () => {
     await store.fetchOne(templateId);
     ensureProcessingFields();
     watermarkTextDraft.value = store.current?.watermarkText ?? '';
-    syncOriginalBinding();
-    if (canBindApprovalTemplate.value) {
-      approvalProcessStore.page = 1;
-      approvalProcessStore.size = 100;
-      await approvalProcessStore.fetchList({ isActive: true });
-    }
   } catch {
     $q.notify({ type: 'negative', message: '模板加载失败' });
     router.push('/templates');
@@ -331,42 +268,9 @@ onMounted(async () => {
   }
 });
 
-function syncOriginalBinding() {
-  if (!store.current) return;
-  originalBusinessMode.value = store.current.businessMode;
-  originalApprovalProcessId.value = store.current.approvalProcessId;
-}
-
 function normalizeWatermarkDraft(): string | null {
   const raw = (watermarkTextDraft.value ?? '').trim();
   return raw ? raw.slice(0, 50) : null;
-}
-
-function restoreOriginalBinding() {
-  if (!store.current) return;
-  store.current.businessMode = originalBusinessMode.value;
-  store.current.approvalProcessId = originalApprovalProcessId.value;
-  approvalProcessError.value = false;
-}
-
-function onBusinessModeChange(mode: TemplateBusinessMode) {
-  approvalProcessError.value = false;
-  if (mode === 'COLLECTION_ONLY' && store.current) {
-    store.current.approvalProcessId = null;
-  }
-}
-
-function validateApprovalProcessSelection() {
-  if (store.current?.businessMode !== 'APPROVAL_REQUIRED') {
-    approvalProcessError.value = false;
-    return true;
-  }
-  approvalProcessError.value = store.current.approvalProcessId == null;
-  if (approvalProcessError.value) {
-    $q.notify({ type: 'negative', message: MISSING_PROCESS_MESSAGE });
-    return false;
-  }
-  return true;
 }
 
 function isProcessingFieldType(value: unknown): value is ArchiveProcessingFieldType {
@@ -524,15 +428,7 @@ function normalizeProcessingSchemaForSave(): ArchiveProcessingField[] {
   });
 }
 
-function shouldConfirmPublicDisconnect() {
-  return (
-    store.current?.status === 'PUBLISHED' &&
-    originalBusinessMode.value === 'COLLECTION_ONLY' &&
-    store.current.businessMode === 'APPROVAL_REQUIRED'
-  );
-}
-
-async function saveTemplate(disconnectPublicCollection = false) {
+async function saveTemplate() {
   if (!store.current) return;
   saving.value = true;
   try {
@@ -543,12 +439,9 @@ async function saveTemplate(disconnectPublicCollection = false) {
     const wasRequireIdentity = store.current.requireIdentity;
     await store.update(templateId, {
       schema: store.current.schema,
-      processingSchema: processingSchema,
+      processingSchema,
       ...(hasFullIdentityFields ? { requireIdentity: false } : {}),
       watermarkText: normalizeWatermarkDraft(),
-      businessMode: store.current.businessMode,
-      approvalProcessId: store.current.approvalProcessId,
-      ...(disconnectPublicCollection ? { disconnectPublicCollection: true } : {}),
     });
     $q.notify({ type: 'positive', message: '保存成功' });
     if (hasFullIdentityFields && wasRequireIdentity) {
@@ -557,7 +450,6 @@ async function saveTemplate(disconnectPublicCollection = false) {
     if (store.current.schemaVersion > prev) {
       $q.notify({ type: 'info', message: `模板已更新至 v${store.current.schemaVersion}` });
     }
-    syncOriginalBinding();
   } catch {
     $q.notify({ type: 'negative', message: '保存失败' });
   } finally {
@@ -568,23 +460,6 @@ async function saveTemplate(disconnectPublicCollection = false) {
 async function handleSave() {
   if (!store.current) return;
   if (!validateProcessingSchema()) return;
-  if (!validateApprovalProcessSelection()) return;
-  if (shouldConfirmPublicDisconnect()) {
-    $q.dialog({
-      title: '切换为需审批',
-      message: '切换后将断开公开收集入口，已有分享链接不可继续填写。确认切换为需审批？',
-      cancel: true,
-      persistent: true,
-      ok: { label: '断开公开收集并切换', color: 'primary' },
-    })
-      .onOk(() => {
-        void saveTemplate(true);
-      })
-      .onCancel(() => {
-        restoreOriginalBinding();
-      });
-    return;
-  }
   await saveTemplate();
 }
 
@@ -594,15 +469,9 @@ async function handleProcessingSave() {
 
 function handlePublish() {
   if (!store.current) return;
-  if (store.current.businessMode === 'APPROVAL_REQUIRED' && !validateApprovalProcessSelection()) {
-    return;
-  }
-  const message = store.current.businessMode === 'APPROVAL_REQUIRED'
-    ? '发布后员工可提交审批申请。请确认已绑定启用且有效的审批流程。'
-    : '发布后模板可用于生成分享链接。确认发布？';
   $q.dialog({
     title: '发布模板',
-    message,
+    message: '发布后模板可用于生成分享链接。确认发布？',
     cancel: true,
     ok: { label: '确认发布', color: 'primary' },
   }).onOk(async () => {
@@ -643,12 +512,6 @@ function handleOffline() {
   padding: 0 16px;
   border-bottom: 1px solid var(--oa-border);
   flex-shrink: 0;
-}
-.template-purpose-select {
-  width: 140px;
-}
-.approval-process-select {
-  width: 220px;
 }
 .processing-fields-toolbar-btn {
   min-height: 44px;

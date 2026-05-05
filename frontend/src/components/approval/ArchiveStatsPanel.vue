@@ -1,18 +1,18 @@
 <template>
   <section class="archive-stats-panel">
     <div class="row items-center q-mb-md">
-      <div class="section-title">归档统计</div>
+      <div class="section-title">提交统计</div>
       <q-space />
       <q-btn
         flat
         dense
         round
         icon="refresh"
-        aria-label="刷新归档统计"
+        aria-label="刷新提交统计"
         :loading="loading"
         @click="$emit('reload')"
       >
-        <q-tooltip>刷新归档统计</q-tooltip>
+        <q-tooltip>刷新提交统计</q-tooltip>
       </q-btn>
     </div>
 
@@ -37,7 +37,7 @@
       <q-card flat bordered class="stats-block">
         <q-card-section>
           <div class="text-subtitle2 q-mb-sm">按模板统计</div>
-          <div class="chart-box" role="img" aria-label="按模板统计归档数量柱状图">
+          <div class="chart-box" role="img" aria-label="按模板统计提交数量柱状图">
             <Bar :data="templateChartData" :options="chartOptions" />
           </div>
           <StatsTable :rows="templateRows" />
@@ -53,18 +53,8 @@
 
       <q-card flat bordered class="stats-block">
         <q-card-section>
-          <div class="text-subtitle2 q-mb-sm">按部门统计</div>
-          <div class="chart-box" role="img" aria-label="按部门统计归档数量柱状图">
-            <Bar :data="departmentChartData" :options="chartOptions" />
-          </div>
-          <StatsTable :rows="departmentRows" />
-        </q-card-section>
-      </q-card>
-
-      <q-card flat bordered class="stats-block">
-        <q-card-section>
           <div class="text-subtitle2 q-mb-sm">按月份统计</div>
-          <div class="chart-box" role="img" aria-label="按月份统计归档数量柱状图">
+          <div class="chart-box" role="img" aria-label="按月份统计提交数量柱状图">
             <Bar :data="monthChartData" :options="chartOptions" />
           </div>
           <StatsTable :rows="monthRows" />
@@ -110,21 +100,18 @@ defineEmits<{
   reload: [];
 }>();
 
-const datasetNames = ['按模板统计', '按状态统计', '按部门统计', '按月份统计'];
+const datasetNames = ['按模板统计', '按状态统计', '按月份统计'];
 const templateRows = computed<StatTableRow[]>(() =>
   (props.stats?.byTemplate ?? []).map((item) => ({ label: item.templateName, count: item.count })),
 );
 const statusRows = computed<StatTableRow[]>(() =>
   (props.stats?.byStatus ?? []).map((item) => ({ label: archiveStatusLabel(item.status), count: item.count })),
 );
-const departmentRows = computed<StatTableRow[]>(() =>
-  (props.stats?.byDepartment ?? []).map((item) => ({ label: item.departmentName || '未设置部门', count: item.count })),
-);
 const monthRows = computed<StatTableRow[]>(() =>
   (props.stats?.byMonth ?? []).map((item) => ({ label: item.month, count: item.count })),
 );
 const isEmpty = computed(() =>
-  [templateRows.value, statusRows.value, departmentRows.value, monthRows.value].every((rows) => rows.length === 0),
+  [templateRows.value, statusRows.value, monthRows.value].every((rows) => rows.length === 0),
 );
 
 const chartOptions = {
@@ -143,7 +130,7 @@ function barData(rows: StatTableRow[], color: string) {
     labels: rows.map((row) => row.label),
     datasets: [
       {
-        label: '归档数量',
+        label: '提交数量',
         backgroundColor: color,
         data: rows.map((row) => row.count),
       },
@@ -152,7 +139,6 @@ function barData(rows: StatTableRow[], color: string) {
 }
 
 const templateChartData = computed(() => barData(templateRows.value, '#4F46E5'));
-const departmentChartData = computed(() => barData(departmentRows.value, '#16A34A'));
 const monthChartData = computed(() => barData(monthRows.value, '#DC2626'));
 
 const StatsTable = defineComponent({

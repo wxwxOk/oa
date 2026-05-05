@@ -1,13 +1,11 @@
 <template>
   <q-page padding>
-    <!-- Toolbar -->
     <div class="row items-center q-mb-md">
       <div class="text-h6">模板管理</div>
       <q-space />
       <q-btn v-perm="'form:template:create'" color="primary" icon="add" label="创建模板" @click="openCreate" />
     </div>
 
-    <!-- Filters -->
     <div class="row items-center q-gutter-sm q-mb-md">
       <q-btn-toggle
         v-model="store.statusFilter"
@@ -22,21 +20,8 @@
         ]"
         @update:model-value="onFilterChange"
       />
-      <q-btn-toggle
-        v-model="store.businessModeFilter"
-        toggle-color="primary"
-        flat
-        bordered
-        :options="[
-          { label: '全部用途', value: '' },
-          { label: '仅收集', value: 'COLLECTION_ONLY' },
-          { label: '需审批', value: 'APPROVAL_REQUIRED' },
-        ]"
-        @update:model-value="onFilterChange"
-      />
     </div>
 
-    <!-- Loading skeleton (first load) -->
     <div v-if="firstLoading" class="q-pa-md">
       <template v-if="isDesktop">
         <q-skeleton type="rect" height="40px" class="q-mb-sm" />
@@ -52,7 +37,6 @@
       </template>
     </div>
 
-    <!-- Error state -->
     <div v-else-if="error" class="flex flex-center q-pa-xl">
       <div class="text-center">
         <div class="text-body1">加载失败，请检查网络后重试</div>
@@ -60,7 +44,6 @@
       </div>
     </div>
 
-    <!-- Empty state -->
     <EmptyState
       v-else-if="store.rows.length === 0 && !store.loading"
       icon="description"
@@ -70,7 +53,6 @@
       @action="openCreate"
     />
 
-    <!-- Data: PC table -->
     <template v-else>
       <q-table
         v-if="isDesktop"
@@ -91,15 +73,6 @@
               :color="statusColor(props.row.status)"
               text-color="white"
               :label="statusLabel(props.row.status)"
-            />
-          </q-td>
-        </template>
-        <template #body-cell-purpose="props">
-          <q-td :props="props">
-            <q-badge
-              :color="purposeColor(props.row.businessMode)"
-              text-color="white"
-              :label="purposeLabel(props.row.businessMode)"
             />
           </q-td>
         </template>
@@ -124,7 +97,7 @@
               <q-tooltip>编辑设计</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="props.row.status === 'PUBLISHED' && props.row.businessMode === 'COLLECTION_ONLY'"
+              v-if="props.row.status === 'PUBLISHED'"
               v-perm="'form:template:share'"
               size="sm" flat dense icon="share" color="primary"
               @click="openShare(props.row)"
@@ -132,18 +105,9 @@
               <q-tooltip>分享链接</q-tooltip>
             </q-btn>
             <q-btn
-              v-else-if="props.row.status === 'PUBLISHED' && props.row.businessMode === 'APPROVAL_REQUIRED'"
-              v-perm="'form:template:share'"
-              size="sm" flat dense icon="share" color="grey-6"
-              disable
-            >
-              <q-tooltip>需审批模板不生成公开分享链接</q-tooltip>
-            </q-btn>
-            <q-btn
-              v-if="props.row.businessMode === 'COLLECTION_ONLY'"
               v-perm="'form:submission:list'"
               size="sm" flat dense icon="visibility" color="primary"
-              @click="$router.push(`/templates/${props.row.id}/submissions`)"
+              @click="$router.push(`/submissions?templateId=${props.row.id}`)"
             >
               <q-tooltip>查看提交</q-tooltip>
             </q-btn>
@@ -175,25 +139,17 @@
         </template>
       </q-table>
 
-      <!-- Data: Mobile cards -->
       <div v-else class="q-gutter-sm">
         <q-card v-for="t in store.rows" :key="t.id" flat bordered>
           <q-card-section>
             <div class="row items-center">
               <div class="text-subtitle1">{{ t.name }}</div>
               <q-space />
-              <div class="row items-center q-gutter-xs">
-                <q-badge
-                  :color="statusColor(t.status)"
-                  text-color="white"
-                  :label="statusLabel(t.status)"
-                />
-                <q-badge
-                  :color="purposeColor(t.businessMode)"
-                  text-color="white"
-                  :label="purposeLabel(t.businessMode)"
-                />
-              </div>
+              <q-badge
+                :color="statusColor(t.status)"
+                text-color="white"
+                :label="statusLabel(t.status)"
+              />
             </div>
             <div class="text-caption q-mt-xs" style="color: var(--oa-text-secondary)">
               v{{ t.schemaVersion }} · {{ formatDate(t.updatedAt) }}
@@ -209,7 +165,7 @@
               <q-tooltip>编辑设计</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="t.status === 'PUBLISHED' && t.businessMode === 'COLLECTION_ONLY'"
+              v-if="t.status === 'PUBLISHED'"
               v-perm="'form:template:share'"
               flat dense icon="share" color="primary"
               aria-label="分享链接"
@@ -218,20 +174,10 @@
               <q-tooltip>分享链接</q-tooltip>
             </q-btn>
             <q-btn
-              v-else-if="t.status === 'PUBLISHED' && t.businessMode === 'APPROVAL_REQUIRED'"
-              v-perm="'form:template:share'"
-              flat dense icon="share" color="grey-6"
-              aria-label="需审批模板不生成公开分享链接"
-              disable
-            >
-              <q-tooltip>需审批模板不生成公开分享链接</q-tooltip>
-            </q-btn>
-            <q-btn
-              v-if="t.businessMode === 'COLLECTION_ONLY'"
               v-perm="'form:submission:list'"
               flat dense icon="visibility" color="primary"
               aria-label="查看提交"
-              @click="$router.push(`/templates/${t.id}/submissions`)"
+              @click="$router.push(`/submissions?templateId=${t.id}`)"
             >
               <q-tooltip>查看提交</q-tooltip>
             </q-btn>
@@ -267,7 +213,6 @@
       </div>
     </template>
 
-    <!-- Create dialog -->
     <q-dialog v-model="createDialog">
       <q-card style="min-width: 400px">
         <q-card-section class="text-h6">创建模板</q-card-section>
@@ -306,7 +251,6 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import type { QForm } from 'quasar';
 import { Dialog, Notify } from 'quasar';
-import { useRouter } from 'vue-router';
 import { useTemplateStore } from 'src/stores/template';
 import { useResponsive } from 'src/composables/useResponsive';
 import EmptyState from 'src/components/EmptyState.vue';
@@ -314,7 +258,6 @@ import ShareDialog from 'src/components/ShareDialog.vue';
 import type { Template } from 'src/stores/template';
 
 const store = useTemplateStore();
-const router = useRouter();
 const { isDesktop } = useResponsive();
 
 const firstLoading = ref(true);
@@ -334,7 +277,6 @@ function openShare(row: Template) {
 const columns = [
   { name: 'name', label: '模板名称', field: 'name', align: 'left' as const },
   { name: 'status', label: '状态', field: 'status', align: 'center' as const, style: 'width:80px' },
-  { name: 'purpose', label: '用途', field: 'businessMode', align: 'center' as const, style: 'width:80px' },
   { name: 'schemaVersion', label: '版本', field: 'schemaVersion', align: 'center' as const, style: 'width:60px' },
   { name: 'creator', label: '创建者', field: (row: Template) => row.creator?.realName, align: 'left' as const, style: 'width:100px' },
   { name: 'updatedAt', label: '更新时间', field: 'updatedAt', align: 'left' as const, style: 'width:160px' },
@@ -355,12 +297,6 @@ const STATUS_MAP: Record<string, { color: string; label: string }> = {
 
 function statusColor(s: string) { return STATUS_MAP[s]?.color ?? 'grey'; }
 function statusLabel(s: string) { return STATUS_MAP[s]?.label ?? s; }
-function purposeColor(mode: Template['businessMode']) {
-  return mode === 'APPROVAL_REQUIRED' ? 'primary' : 'blue-grey-6';
-}
-function purposeLabel(mode: Template['businessMode']) {
-  return mode === 'APPROVAL_REQUIRED' ? '需审批' : '仅收集';
-}
 
 function formatDate(val: string) {
   return new Date(val).toLocaleString('zh-CN', {
@@ -420,12 +356,9 @@ function onDelete(row: Template) {
 }
 
 function onPublish(row: Template) {
-  const message = row.businessMode === 'APPROVAL_REQUIRED'
-    ? '发布后员工可提交审批申请。请确认已绑定启用且有效的审批流程。'
-    : '发布后模板可用于生成分享链接。确认发布？';
   Dialog.create({
     title: '发布模板',
-    message,
+    message: '发布后模板可用于生成分享链接。确认发布？',
     cancel: true,
     ok: { label: '确认发布', color: 'primary' },
   }).onOk(async () => {
