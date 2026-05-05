@@ -4,24 +4,6 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-export const APPROVAL_PERMISSION_CODES = [
-  'approval:process:list',
-  'approval:process:create',
-  'approval:process:update',
-  'approval:process:delete',
-  'approval:template:bind',
-  'approval:application:create',
-  'approval:application:own',
-  'approval:application:department',
-  'approval:application:all',
-  'approval:task:list',
-  'approval:task:handle',
-  'approval:export',
-  'approval:archive:edit',
-  'approval:archive:mark',
-  'approval:archive:stats',
-];
-
 export const VISIT_PERMISSION_CODES = [
   'visit:list',
   'visit:create',
@@ -61,8 +43,6 @@ export const EMPLOYEE_PERMISSION_CODES = [
   'role:list',
   'form:template:list',
   'form:submission:list',
-  'approval:application:create',
-  'approval:application:own',
   'reimbursement:create',
   'reimbursement:own',
   'reimbursement:attachment',
@@ -95,24 +75,11 @@ export const PERMISSIONS = [
   { code: 'form:template:publish', name: '发布/下线模板', module: 'form' },
   { code: 'form:template:share', name: '分享模板', module: 'form' },
   { code: 'form:submission:list', name: '查看提交数据', module: 'form' },
+  { code: 'form:archive:mark', name: '归档标签/备注', module: 'form' },
+  { code: 'form:archive:edit', name: '归档受控编辑', module: 'form' },
+  { code: 'form:archive:stats', name: '归档统计', module: 'form' },
+  { code: 'form:archive:export', name: '导出归档数据', module: 'form' },
   { code: 'form:stats:view', name: '查看表单统计', module: 'form' },
-  { code: 'form:link-stats:view', name: '查看分享链接统计', module: 'form' },
-  // 审批模块
-  { code: 'approval:process:list', name: '流程配置列表', module: 'approval' },
-  { code: 'approval:process:create', name: '创建流程配置', module: 'approval' },
-  { code: 'approval:process:update', name: '编辑流程配置', module: 'approval' },
-  { code: 'approval:process:delete', name: '删除流程配置', module: 'approval' },
-  { code: 'approval:template:bind', name: '绑定模板审批流程', module: 'approval' },
-  { code: 'approval:application:create', name: '提交审批申请', module: 'approval' },
-  { code: 'approval:application:own', name: '查看我的申请', module: 'approval' },
-  { code: 'approval:application:department', name: '查看部门申请', module: 'approval' },
-  { code: 'approval:application:all', name: '查看全部申请', module: 'approval' },
-  { code: 'approval:task:list', name: '审批任务列表', module: 'approval' },
-  { code: 'approval:task:handle', name: '处理审批任务', module: 'approval' },
-  { code: 'approval:export', name: '导出审批数据', module: 'approval' },
-  { code: 'approval:archive:edit', name: '归档受控编辑', module: 'approval' },
-  { code: 'approval:archive:mark', name: '归档标记备注', module: 'approval' },
-  { code: 'approval:archive:stats', name: '归档统计', module: 'approval' },
   // 到访模块
   { code: 'visit:list', name: '到访列表', module: 'visit' },
   { code: 'visit:create', name: '创建到访', module: 'visit' },
@@ -178,7 +145,7 @@ export async function seedDatabase(): Promise<void> {
     data: allPerms.map((p) => ({ roleId: adminRole.id, permissionId: p.id })),
   });
 
-  // 4. EMPLOYEE 角色（查看基础数据 + 提交/查看本人审批申请）
+  // 4. EMPLOYEE 角色（查看基础数据 + 报销）
   const employeeRole = await prisma.role.upsert({
     where: { code: 'EMPLOYEE' },
     update: { name: '普通员工' },
