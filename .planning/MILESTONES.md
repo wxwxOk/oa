@@ -1,5 +1,20 @@
 # Milestones
 
+## v1.5 工作记录管理 (Deferred: 2026-05-05)
+
+**Status:** ⏸️ DEFERRED before implementation — priority lowered in favour of a new milestone
+**Planned Phases:** 4 | **Planned Plans:** 15 | **Code shipped:** none
+**Timeline:** 2026-05-03 requirements defined → 2026-05-05 deferred after Phase 28 planning artefacts
+
+**Planning artefacts retained:**
+
+1. `milestones/v1.5-REQUIREMENTS.md` + `milestones/v1.5-ROADMAP.md`
+2. Phase 28 CONTEXT/RESEARCH/PLAN/TASKS/LOG under `milestones/v1.5-phases/28-api/`
+
+**Resume path:** 参见 [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) 的 "Resume Path"。
+
+---
+
 ## v1.4 报销管理 (Shipped: 2026-05-03)
 
 **Phases:** 4 | **Plans:** 16 | **Validation:** automated focused tests/builds + manual UAT passed

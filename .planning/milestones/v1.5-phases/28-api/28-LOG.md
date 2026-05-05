@@ -1,7 +1,8 @@
 # Phase 28: 工作记录数据模型 + 后端 API - Log
 
-**Updated:** 2026-05-03
-**Status:** Planning artifacts prepared
+**Updated:** 2026-05-03 (frozen 2026-05-05)
+**Status:** Planning artifacts prepared — ⏸️ DEFERRED 2026-05-05 (milestone 封存，未进入实现)
+**Archive location:** `.planning/milestones/v1.5-phases/28-api/` (moved here 2026-05-05)
 
 ## Artifact Verification
 

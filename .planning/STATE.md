@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5
-milestone_name: 工作记录管理
-status: ready_to_plan
-last_updated: "2026-05-03T19:30:00.000Z"
-last_activity: 2026-05-03 -- v1.5 requirements and roadmap defined; ready to plan Phase 28
+milestone: none
+milestone_name: ""
+status: awaiting_milestone_definition
+last_updated: "2026-05-05T00:00:00.000Z"
+last_activity: 2026-05-05 -- v1.5 deferred before implementation; awaiting new milestone definition
 progress:
-  total_phases: 4
+  total_phases: 0
   completed_phases: 0
-  total_plans: 15
+  total_plans: 0
   completed_plans: 0
   percent: 0
 ---
@@ -16,41 +16,43 @@ progress:
 # State
 
 - Initialized: 2026-04-17
-- Milestone: v1.5 工作记录管理 — READY TO PLAN
-- Status: Ready to plan Phase 28
+- Active Milestone: none — awaiting definition
+- Status: Previous milestone (v1.5 工作记录管理) deferred 2026-05-05; no code shipped
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-03)
 
 **Core value:** 开箱即用的组织架构管理、表单审批和固定业务台账
-**Current focus:** v1.5 工作记录管理 — 日报/周报/月报填报、部门汇总和 Excel 归档
+**Current focus:** —（等待新里程碑需求定义；v1.5 工作记录管理因优先级调整暂缓）
 
 ## Current Position
 
-Phase: 28 工作记录数据模型 + 后端 API
+Phase: —
 Plan: —
-Status: Ready to plan
-Last activity: 2026-05-03 -- v1.5 requirements and roadmap defined
+Status: Awaiting milestone definition
+Last activity: 2026-05-05 -- v1.5 deferred; Phase 28 planning artefacts archived to .planning/milestones/v1.5-phases/
 
 Progress: [░░░░░░░░░░] 0%
 
-## Roadmap Summary
+## Deferred Milestones
 
-- Phase 28: 工作记录数据模型 + 后端 API (4 plans)
-- Phase 29: 员工填报页面 + 我的记录 (4 plans)
-- Phase 30: 部门汇总 + 管理视图 (4 plans)
-- Phase 31: 工作记录导出 + 验证收尾 (3 plans)
-
-## Validation Summary
-
-- v1.5 validation pending; implementation has not started
-- Requirements coverage: 24/24 mapped to Phases 28-31
+- **v1.5 工作记录管理** — Phases 28-31 planned, Phase 28 planning artefacts only (no code). Archived to `.planning/milestones/v1.5-ROADMAP.md` + `.planning/milestones/v1.5-REQUIREMENTS.md` + `.planning/milestones/v1.5-phases/28-api/`. Resume path documented in the v1.5 roadmap archive.
 
 ## Completed Scope
 
 - v1.4 completed fixed reimbursement module with application, attachments, two-level review signatures, audit timeline and Excel export
 
-## Deferred Scope
+## Next Step
 
-v1.5 defers reminder push/c催办, manager comments, return-for-edit, scoring, OKR/KPI, project task management and AI summaries until the basic work-record loop is validated.
+新里程碑需求尚未定义。开启下一里程碑时：
+
+1. 创建新的 `.planning/REQUIREMENTS.md`
+2. 更新 `.planning/ROADMAP.md` 增加新里程碑条目（Phase 编号从 32 开始，避免与 v1.5 冲突）
+3. 更新本文件的 `milestone` / `milestone_name` / `status` / `progress`
+4. 在 `.planning/MILESTONES.md` 顶部追加新里程碑概览
+
+## Deferred Scope Notes
+
+v1.5 原本把提醒推送/催办、主管评论、退回修改、评分、OKR/KPI、项目任务管理和 AI 摘要
+排除在首版之外；恢复 v1.5 时这些仍属 Out of Scope。

@@ -1,7 +1,7 @@
 # Project: OA 管理系统
 
 ## What This Is
-轻量开源 OA 平台，面向中小企业。v1.2 已交付完整的组织架构管理 + 自定义表单收集系统，含 12 列栅格布局设计器、分组标题、动态行表格、PDF 保真输出、PC/Mobile 响应式填写页和 Docker 一键部署。v2.0 已扩展为表单驱动的 OA 审批中心：员工通过动态表单提交内部申请，系统按模板绑定流程流转到审批人，并把申请、审批、备注、编辑、归档导出和统计串成闭环。v1.3 已交付固定的到访信息管理模块，用于沉淀渠道往来测试表中的学员到访、咨询接待、试听跟进和成交状态管理。v1.4 已交付固定报销管理模块，让员工提交报销申请、上传发票并由审核人员两级签字审批，支持明细导出。v1.5 正在规划固定工作记录管理模块，用于员工填写日报、周报、月报并按部门汇总归档。
+轻量开源 OA 平台，面向中小企业。v1.2 已交付完整的组织架构管理 + 自定义表单收集系统，含 12 列栅格布局设计器、分组标题、动态行表格、PDF 保真输出、PC/Mobile 响应式填写页和 Docker 一键部署。v2.0 已扩展为表单驱动的 OA 审批中心：员工通过动态表单提交内部申请，系统按模板绑定流程流转到审批人，并把申请、审批、备注、编辑、归档导出和统计串成闭环。v1.3 已交付固定的到访信息管理模块，用于沉淀渠道往来测试表中的学员到访、咨询接待、试听跟进和成交状态管理。v1.4 已交付固定报销管理模块，让员工提交报销申请、上传发票并由审核人员两级签字审批，支持明细导出。v1.5 工作记录管理已完成需求和 Phase 28 计划，但在 2026-05-05 因优先级调整封存归档，无代码产出。
 
 ## Core Value
 中小企业能用自定义表单快速上线可追踪、可审批、可归档的内部业务流程，并能通过固定业务模块沉淀高频台账数据 — `docker compose up -d` 即可运行。
@@ -13,19 +13,14 @@
 ✅ v2.0 表单驱动 OA 审批中心 implemented through Phase 19; milestone verification remains open for Phase 18 closure (2026-04-26)
 ✅ v1.3 到访信息管理 shipped (2026-05-02; manual testing passed)
 ✅ v1.4 报销管理 shipped (2026-05-03; manual testing passed)
-🚧 v1.5 工作记录管理 ready to plan (2026-05-03; requirements and roadmap defined)
+⏸️ v1.5 工作记录管理 deferred (2026-05-05; planning only, archived to `.planning/milestones/v1.5-*`)
+⏳ 下一里程碑待定义
 
-## Current Milestone: v1.5 工作记录管理
+## Current Milestone: —（awaiting definition）
 
-**Goal:** 新增轻量工作记录模块，让员工按固定模板填写日报、周报、月报，主管和管理员按部门、人员、周期和时间范围汇总查看并导出。
+**Status:** 无活跃里程碑。v1.5 工作记录管理因优先级调整于 2026-05-05 封存归档；新里程碑需求尚未定义。
 
-**Target features:**
-- 员工可创建、编辑、提交自己的日报、周报、月报，固定模板覆盖完成事项、计划、问题风险、需要协助和备注。
-- 普通员工只能查看自己的记录；部门负责人可查看本部门；管理员可查看全部。
-- 主管/管理员可按部门、人员、周期和日期范围查看提交率、已提交/未提交人员和记录摘要。
-- 授权用户可按当前筛选条件导出工作记录和部门汇总 Excel。
-
-**Research stance:** 借鉴钉钉/飞书工作汇报、15Five/Weekdone 周报和 Odoo/ERPNext 工时模块的成熟模式，但 v1.5 先自研固定业务模块，不引入绩效/OKR 或大型 HR 套件。
+**Resume v1.5 reference:** `.planning/milestones/v1.5-ROADMAP.md`、`.planning/milestones/v1.5-REQUIREMENTS.md`、`.planning/milestones/v1.5-phases/28-api/`
 
 ## Requirements
 
@@ -94,11 +89,7 @@
 - ✓ v1.4 明细导出：授权人员可按筛选条件导出报销 Excel 明细 — v1.4
 
 ### Active
-- [ ] 员工按日报、周报、月报周期填写固定模板工作记录
-- [ ] 工作记录列表、详情、编辑、提交和状态控制
-- [ ] 按本人、部门、全部的 RBAC 可见性边界
-- [ ] 部门提交情况、记录内容和基础汇总
-- [ ] 当前筛选条件 Excel 导出
+- 无活跃里程碑；v1.5 工作记录管理已封存归档，等待新里程碑定义。
 
 ### Out of Scope
 - 考勤打卡规则、工资/绩效、公告、文件管理 — 非 v2.0 审批中心 MVP
@@ -139,7 +130,7 @@ v1.2 新增 17,172 LOC，~50 commits，2 天内完成（5 phases, 16 plans）。
 v2.0 scope 来自客户沟通整理：`.planning/research/CLIENT_CHAT_NEXT_FEATURES.md`（2026-04-25）。客户重点从“公开表单收集”转向“内部纸质审批在线化”，首版优先实用审批闭环，不做复杂企业级流程平台。
 v1.3 于 2026-05-02 交付固定的到访信息管理模块，以《渠道往来测试表.xlsx》为业务样本，表格标题为「学员到访跟踪表」，字段包括姓名、年龄、学历、性别、渠道商、咨询师、接待状态、接待人、接待日期、咨询后状态、状态类别、状态说明、试听课后状态、解决方案、试听课时间；本里程碑采用固定业务模块，不复用自定义表单模板作为主数据模型。
 v1.4 于 2026-05-03 交付固定报销管理模块，覆盖报销申请、发票附件、部门初审、财务复核、手写签字和明细导出；自动化 focused gates 和人工 UAT 均已通过。
-v1.5 于 2026-05-03 启动工作记录管理，定位为轻量固定业务模块：日报/周报/月报使用固定模板，不复用自定义表单 schema，不做提醒、评论、评分、OKR/KPI 或绩效闭环；优先交付填报、部门汇总和 Excel 归档。
+v1.5 于 2026-05-03 启动工作记录管理需求定义并生成 Phase 28 计划产物；2026-05-05 因优先级调整封存为 Deferred，未产生代码。相关归档见 `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md` / `.planning/milestones/v1.5-phases/28-api/`。
 技术亮点：Bun 全链路构建、Quasar 双布局响应式、Prisma ORM、vue-draggable-plus 表单设计器、signature_pad 手写签名、html2canvas PDF 导出、vue-chartjs 统计图表、12 列栅格布局引擎、智能分页 PDF、QExpansionItem 移动端卡片。
 
 ## Key Decisions
@@ -183,9 +174,7 @@ v1.5 于 2026-05-03 启动工作记录管理，定位为轻量固定业务模块
 | 报销通过必须采集 Canvas 手写签名 | ✓ 签名图片、审核人、动作、意见和时间写入审核轨迹 |
 | 报销附件仅支持图片/PDF 上传预览下载 | ✓ 不做 OCR、发票查验、自动验重或自动识别金额 |
 | 报销本期只做 Excel 明细导出 | ✓ 不做统计看板、付款打款或财务系统对接 |
-| 工作记录管理采用固定业务模块 | ✓ v1.5 不复用自定义表单 JSONB 主模型 |
-| 日报/周报/月报使用固定模板字段 | ✓ 固定字段便于周期唯一约束、汇总和导出 |
-| v1.5 不做提醒、评论、评分和 OKR/KPI | ✓ 保持轻量填报与汇总闭环 |
+| v1.5 工作记录管理定位为轻量固定业务模块 | ⏸️ 2026-05-05 优先级调整后封存；规划结论保留在 `.planning/milestones/v1.5-*` 供恢复 |
 
 ## Evolution
 
@@ -205,4 +194,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-03 after v1.5 requirements and roadmap definition; v2.0 history preserved from 2026-04-25/26*
+*Last updated: 2026-05-05 after v1.5 milestone deferred and planning artefacts archived; v2.0 history preserved from 2026-04-25/26*

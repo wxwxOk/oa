@@ -8,7 +8,7 @@
 - ✅ **v2.0 表单驱动 OA 审批中心** — Phases 15-19 (implemented through 2026-04-26; Phase 18 verification pending)
 - ✅ **v1.3 到访信息管理** — Phases 20-23 (shipped 2026-05-02) → [archive](milestones/v1.3-ROADMAP.md)
 - ✅ **v1.4 报销管理** — Phases 24-27 (shipped 2026-05-03; manual UAT passed) → [archive](milestones/v1.4-ROADMAP.md)
-- 🚧 **v1.5 工作记录管理** — Phases 28-31 (ready to plan)
+- ⏸️ **v1.5 工作记录管理** — Phases 28-31 (deferred 2026-05-05; planning only, no code) → [archive](milestones/v1.5-ROADMAP.md)
 
 ## Phases
 
@@ -175,85 +175,13 @@ Archived to [v1.4-ROADMAP.md](milestones/v1.4-ROADMAP.md) and [v1.4-REQUIREMENTS
 
 </details>
 
-### 🚧 v1.5 工作记录管理 (Ready to Plan)
+### ⏸️ v1.5 工作记录管理 (Deferred 2026-05-05)
 
-**Milestone Goal:** 新增固定工作记录模块，让员工按日报、周报、月报固定模板填报，主管和管理员按部门、人员、周期和时间范围汇总查看并导出 Excel。
+Deferred before implementation — Phase 28 planning artefacts were produced (CONTEXT/RESEARCH/PLAN/TASKS/LOG), but no code was shipped. Phases 29-31 never passed planning.
 
-- [ ] **Phase 28: 工作记录数据模型 + 后端 API** - `WorkReport` 模型、周期规则、权限种子、可见性边界和 CRUD API
-- [ ] **Phase 29: 员工填报页面 + 我的记录** - PC/Mobile 填报、草稿、提交、列表筛选和详情查看
-- [ ] **Phase 30: 部门汇总 + 管理视图** - 部门/人员/周期汇总、提交率、未提交人员和记录摘要
-- [ ] **Phase 31: 工作记录导出 + 验证收尾** - 明细/汇总 Excel 导出、权限校验、公式注入防护和 UAT closeout
+Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md). Planning files kept under `milestones/v1.5-phases/28-api/` for resume.
 
-### Phase 28: 工作记录数据模型 + 后端 API
-**Goal**: 建立工作记录固定业务模块的数据层、周期口径、权限体系和后端接口，支撑员工填报与部门汇总。
-**Depends on**: Phase 27 (v1.4 shipped), Phase 19 (RBAC and Excel export patterns)
-**Requirements**: WRPT-01, WRPT-02, WRPT-03, WRPT-04, VIS-01, VIS-02, VIS-03, VIS-04, NFR-01, NFR-02
-**Success Criteria** (what must be TRUE):
-  1. Prisma schema 增加固定 `WorkReport` 模型、周期/状态枚举、提交人和部门快照字段，并通过 generate/migration gate
-  2. 后端统一计算和校验日报/周报/月报周期，拒绝同一员工同一周期重复提交
-  3. 工作记录权限种子覆盖 create/own/department/all/export，后端 API 仍做对象级可见性校验
-  4. 列表、详情、创建草稿、编辑草稿和提交接口完成分页、筛选、错误提示和 focused tests
-  5. 常用筛选字段具备索引或查询约束，避免一次性返回全部记录
-**Plans:** 0/4 plans planned
-Plans:
-- [ ] 28-01-PLAN.md — Backend contracts for period validation, visibility and work report CRUD
-- [ ] 28-02-PLAN.md — Prisma WorkReport model, migration and work-report permission seed
-- [ ] 28-03-PLAN.md — Work report service helpers for period, uniqueness, snapshots and scope filters
-- [ ] 28-04-PLAN.md — Elysia work-report routes, app registration and focused backend tests
-**UI hint**: no
-
-### Phase 29: 员工填报页面 + 我的记录
-**Goal**: 员工可在 PC/Mobile 创建、保存、提交和查看自己的日报、周报、月报。
-**Depends on**: Phase 28
-**Requirements**: FILL-01, FILL-02, FILL-03, FILL-04, FILL-05, UX-01, UX-02
-**Success Criteria** (what must be TRUE):
-  1. 前端 DTO、状态文案、周期类型辅助函数和 Pinia store 与后端 API 对齐
-  2. “我的工作记录”支持周期类型、状态、日期范围、关键词筛选，PC 表格和 Mobile 卡片均可用
-  3. 固定模板表单覆盖完成事项、下一周期计划、问题风险、需要协助和备注
-  4. 草稿可继续编辑并提交；提交后默认只读，重复提交和权限错误有清晰提示
-  5. 工作记录菜单、路由和按钮接入 RBAC，移动端填写和详情体验通过 smoke 验证
-**Plans:** 0/4 plans planned
-Plans:
-- [ ] 29-01-PLAN.md — Frontend work-report DTOs, status helpers, period helpers and Pinia store
-- [ ] 29-02-PLAN.md — My Work Reports list, filters, route and navigation entry
-- [ ] 29-03-PLAN.md — Work report create/edit/submit form for daily, weekly and monthly records
-- [ ] 29-04-PLAN.md — Work report detail, readonly submitted state and responsive smoke
-**UI hint**: yes
-
-### Phase 30: 部门汇总 + 管理视图
-**Goal**: 主管和管理员可按权限范围查看部门/人员/周期提交情况、未提交人员和记录摘要。
-**Depends on**: Phase 29
-**Requirements**: SUMM-01, SUMM-02, SUMM-03, SUMM-04
-**Success Criteria** (what must be TRUE):
-  1. 汇总接口按部门、人员、周期类型和日期范围过滤，并复用 Phase 28 的 scope 边界
-  2. 汇总结果提供应提交人数、已提交人数、未提交人数和提交率，口径由后端统一计算
-  3. 未提交人员清单基于当前用户/部门数据计算，不新增提醒、待办或调度表
-  4. 汇总页可展示提交摘要并跳转到符合权限范围的记录详情
-  5. 普通员工越权访问部门汇总时后端拒绝，管理员可查看全局汇总
-**Plans:** 0/4 plans planned
-Plans:
-- [ ] 30-01-PLAN.md — Backend summary contracts for department/person/period filters and scope boundaries
-- [ ] 30-02-PLAN.md — Summary service for submitted, unsubmitted and submission-rate calculations
-- [ ] 30-03-PLAN.md — Summary API routes and focused permission/regression tests
-- [ ] 30-04-PLAN.md — Management summary page, filters, cards/table and detail navigation
-**UI hint**: yes
-
-### Phase 31: 工作记录导出 + 验证收尾
-**Goal**: 授权用户可按当前筛选导出工作记录明细和汇总 Excel，并完成 v1.5 验证收尾。
-**Depends on**: Phase 30
-**Requirements**: EXPT-01, EXPT-02, EXPT-03
-**Success Criteria** (what must be TRUE):
-  1. 导出接口复用列表/汇总筛选和可见性边界，普通员工不能导出他人或部门数据
-  2. Excel 文件包含明细 sheet 和汇总 sheet，页面与导出口径一致
-  3. 导出复用既有 ExcelJS 模式，处理公式注入风险、行数上限和空结果提示
-  4. 前端导出按钮、加载态、失败提示和权限隐藏完成
-  5. UAT checklist 通过，focused backend/frontend tests 和构建验证完成并记录 closeout
-**Plans:** 0/3 plans planned
-Plans:
-- [ ] 31-01-PLAN.md — Backend Excel export service/routes with details and summary sheets
-- [ ] 31-02-PLAN.md — Frontend export action, permissions, loading and empty/error states
-- [ ] 31-03-PLAN.md — Focused validation, UAT checklist and milestone closeout prep
-**UI hint**: yes
+**Resume path:** 见 `milestones/v1.5-ROADMAP.md` 中 "Resume Path" 小节。
 
 
 ## Progress
@@ -282,11 +210,11 @@ Plans:
 | 25. 员工报销申请与详情页面 | v1.4 | 4/4 | Complete | 2026-05-03 |
 | 26. 两级审核与手写签字 | v1.4 | 4/4 | Complete | 2026-05-03 |
 | 27. 报销导出 + 验证收尾 | v1.4 | 4/4 | Complete | 2026-05-03 |
-| 28. 工作记录数据模型 + 后端 API | v1.5 | 0/4 | Planned |  |
-| 29. 员工填报页面 + 我的记录 | v1.5 | 0/4 | Planned |  |
-| 30. 部门汇总 + 管理视图 | v1.5 | 0/4 | Planned |  |
-| 31. 工作记录导出 + 验证收尾 | v1.5 | 0/3 | Planned |  |
+| 28. 工作记录数据模型 + 后端 API | v1.5 | 0/4 | Deferred |  |
+| 29. 员工填报页面 + 我的记录 | v1.5 | 0/4 | Deferred |  |
+| 30. 部门汇总 + 管理视图 | v1.5 | 0/4 | Deferred |  |
+| 31. 工作记录导出 + 验证收尾 | v1.5 | 0/3 | Deferred |  |
 
 ## Current Coverage
 
-v1.5 coverage is defined in [REQUIREMENTS.md](REQUIREMENTS.md); implementation is planned across Phases 28-31.
+No active milestone. v1.5 coverage is archived to [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md). Next milestone scope will be captured in a fresh `REQUIREMENTS.md` when planning resumes.
