@@ -9,24 +9,24 @@
 
 ### 渠道商账号 (PARTNER)
 
-- [ ] **PARTNER-01**: 管理员可在用户管理中创建渠道商账号，分配 `CHANNEL_PARTNER` 角色，并标记为外部用户（非本公司员工）
-- [ ] **PARTNER-02**: 管理员可为每个渠道商账号绑定唯一的 1 名内部主接收人（咨询师/客户经理），并允许后续重新绑定
-- [ ] **PARTNER-03**: 管理员可禁用/启用渠道商账号，禁用后渠道商无法登录但历史推送记录保留
+- [x] **PARTNER-01**: 管理员可在用户管理中创建渠道商账号，分配 `CHANNEL_PARTNER` 角色，并标记为外部用户（非本公司员工）
+- [x] **PARTNER-02**: 管理员可为每个渠道商账号绑定唯一的 1 名内部主接收人（咨询师/客户经理），并允许后续重新绑定
+- [x] **PARTNER-03**: 管理员可禁用/启用渠道商账号，禁用后渠道商无法登录但历史推送记录保留
 - [ ] **PARTNER-04**: 渠道商使用与员工相同的登录入口和 PC/Mobile 布局，按 RBAC 屏蔽员工菜单（仅可见「我的推送」相关菜单和个人设置）
 - [ ] **PARTNER-05**: 渠道商无法访问员工业务路径（用户/部门/角色/审批/到访/报销等），未授权访问时被前端路由守卫和后端权限拦截
 
 ### 学员推送 (PUSH)
 
-- [ ] **PUSH-01**: 渠道商可在线单条提交学员推送，必填学员姓名和手机号；可选填写年龄、学历、性别、意向状态、意向说明、备注
-- [ ] **PUSH-02**: 渠道商可上传 0~N 张图片或 PDF 附件（如身份证照片、聊天记录截图）作为推送的辅助材料，支持预览和下载
+- [x] **PUSH-01**: 渠道商可在线单条提交学员推送，必填学员姓名和手机号；可选填写年龄、学历、性别、意向状态、意向说明、备注
+- [x] **PUSH-02**: 渠道商可上传 0~N 张图片或 PDF 附件（如身份证照片、聊天记录截图）作为推送的辅助材料，支持预览和下载
 - [ ] **PUSH-03**: 渠道商可使用 Excel 批量导入推送，复用 v1.3 解析体验：标题/表头/数据行约定固定，导入前可预览有效行/无效行和错误原因
 - [ ] **PUSH-04**: Excel 批量导入按用户确认后批量创建推送记录，每条独立进入审核流，并返回成功/失败数量
-- [ ] **PUSH-05**: 渠道商可在「待审核」状态下编辑或撤回自己提交的推送；审核通过/驳回后不可再编辑或撤回
-- [ ] **PUSH-06**: 渠道商可在 PC/Mobile 查看「我的推送」列表，按学员姓名/手机号关键字搜索，按状态（待审核/已通过/已驳回/已撤回）和时间范围筛选
+- [x] **PUSH-05**: 渠道商可在「待审核」状态下编辑或撤回自己提交的推送；审核通过/驳回后不可再编辑或撤回
+- [x] **PUSH-06**: 渠道商可在 PC/Mobile 查看「我的推送」列表，按学员姓名/手机号关键字搜索，按状态（待审核/已通过/已驳回/已撤回）和时间范围筛选
 
 ### 重复检测 (DEDUP)
 
-- [ ] **DEDUP-01**: 渠道商提交单条或 Excel 推送时，系统按 (姓名, 手机号) 检测是否与同渠道商待审核或全部状态推送重复，并在前端提示，但不阻止提交
+- [x] **DEDUP-01**: 渠道商提交单条或 Excel 推送时，系统按 (姓名, 手机号) 检测是否与同渠道商待审核或全部状态推送重复，并在前端提示，但不阻止提交
 - [ ] **DEDUP-02**: 重复提示明确标出冲突的现有推送条目（学员姓名、手机号、状态、提交时间），便于渠道商人工判断
 
 ### 审核闭环 (REVIEW)
@@ -34,9 +34,9 @@
 - [ ] **REVIEW-01**: 主接收人可在「待我审核」列表中看到当前用户作为主接收人的待审推送，按状态、渠道商、时间范围筛选；列表 PC 表格 + Mobile 卡片
 - [ ] **REVIEW-02**: 主接收人所在部门负责人、上级部门负责人和超级管理员可只读查看名下/全部推送记录，但只有当前主接收人可执行通过/驳回操作（避免越权审批）
 - [ ] **REVIEW-03**: 主接收人可打开推送详情，查看渠道商提交的全部字段、附件预览、提交时间、当前状态和审核时间线
-- [ ] **REVIEW-04**: 主接收人可在审核前补充内部字段（计划接待人、预期接待日期、内部备注），补充字段不修改渠道商原始提交内容、仅对内部可见
+- [x] **REVIEW-04**: 主接收人可在审核前补充内部字段（计划接待人、预期接待日期、内部备注），补充字段不修改渠道商原始提交内容、仅对内部可见
 - [ ] **REVIEW-05**: 主接收人可对待审核推送执行「通过」或「驳回」操作；驳回必须填写驳回意见，通过可选填备注
-- [ ] **REVIEW-06**: 审核结果只更新推送记录状态（已通过/已驳回）和审核时间线，**不自动创建到访记录、不与 VisitRecord 联动**
+- [x] **REVIEW-06**: 审核结果只更新推送记录状态（已通过/已驳回）和审核时间线，**不自动创建到访记录、不与 VisitRecord 联动**
 - [ ] **REVIEW-07**: 主接收人可查看已审核（已通过/已驳回）的推送历史，按状态和时间筛选
 
 ### 通知与可见性 (NOTIF)
@@ -48,9 +48,9 @@
 
 ### 权限集成 (PERM)
 
-- [ ] **PERM-01**: 新增 RBAC 权限码：`channelPush:create`（渠道商提交）、`channelPush:viewOwn`（渠道商查看自己）、`channelPush:cancel`（渠道商撤回）、`channelPush:review`（主接收人审核）、`channelPush:viewScope`（按部门/管理员只读查看）
-- [ ] **PERM-02**: 新增 `CHANNEL_PARTNER` 角色，默认只持有 `channelPush:create / viewOwn / cancel` 权限码，且不持有任何员工业务权限
-- [ ] **PERM-03**: 后端所有 `/api/v1/channel-push/*` 端点强制 JWT + 权限码 + 数据范围（按渠道商 / 主接收人 / 部门负责人 / 上级 / ADMIN）联合校验
+- [x] **PERM-01**: 新增 RBAC 权限码：`channelPush:create`（渠道商提交）、`channelPush:viewOwn`（渠道商查看自己）、`channelPush:cancel`（渠道商撤回）、`channelPush:review`（主接收人审核）、`channelPush:viewScope`（按部门/管理员只读查看）
+- [x] **PERM-02**: 新增 `CHANNEL_PARTNER` 角色，默认只持有 `channelPush:create / viewOwn / cancel` 权限码，且不持有任何员工业务权限
+- [x] **PERM-03**: 后端所有 `/api/v1/channel-push/*` 端点强制 JWT + 权限码 + 数据范围（按渠道商 / 主接收人 / 部门负责人 / 上级 / ADMIN）联合校验
 - [ ] **PERM-04**: 前端按钮显隐和路由守卫覆盖渠道商和接收人侧的所有操作
 
 ## Future Requirements (Deferred)
@@ -91,33 +91,33 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PARTNER-01 | Phase 32 | Pending |
-| PARTNER-02 | Phase 32 | Pending |
-| PARTNER-03 | Phase 32 | Pending |
+| PARTNER-01 | Phase 32 | Complete |
+| PARTNER-02 | Phase 32 | Complete |
+| PARTNER-03 | Phase 32 | Complete |
 | PARTNER-04 | Phase 33 | Pending |
 | PARTNER-05 | Phase 33 | Pending |
-| PUSH-01 | Phase 33 | Pending |
-| PUSH-02 | Phase 33 | Pending |
+| PUSH-01 | Phase 33 | Complete |
+| PUSH-02 | Phase 33 | Complete |
 | PUSH-03 | Phase 34 | Pending |
 | PUSH-04 | Phase 34 | Pending |
-| PUSH-05 | Phase 33 | Pending |
-| PUSH-06 | Phase 33 | Pending |
-| DEDUP-01 | Phase 33 | Pending |
+| PUSH-05 | Phase 33 | Complete |
+| PUSH-06 | Phase 33 | Complete |
+| DEDUP-01 | Phase 33 | Complete |
 | DEDUP-02 | Phase 33 | Pending |
 | REVIEW-01 | Phase 35 | Pending |
 | REVIEW-02 | Phase 36 | Pending |
 | REVIEW-03 | Phase 35 | Pending |
-| REVIEW-04 | Phase 35 | Pending |
+| REVIEW-04 | Phase 35 | Complete |
 | REVIEW-05 | Phase 35 | Pending |
-| REVIEW-06 | Phase 35 | Pending |
+| REVIEW-06 | Phase 35 | Complete |
 | REVIEW-07 | Phase 35 | Pending |
 | NOTIF-01 | Phase 36 | Pending |
 | NOTIF-02 | Phase 36 | Pending |
 | NOTIF-03 | Phase 33 | Pending |
 | NOTIF-04 | Phase 36 | Pending |
-| PERM-01 | Phase 32 | Pending |
-| PERM-02 | Phase 32 | Pending |
-| PERM-03 | Phase 32 | Pending |
+| PERM-01 | Phase 32 | Complete |
+| PERM-02 | Phase 32 | Complete |
+| PERM-03 | Phase 32 | Complete |
 | PERM-04 | Phase 35 | Pending |
 
 **Coverage:**
