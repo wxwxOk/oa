@@ -255,7 +255,6 @@ describe('channel-partner admin service', () => {
   describe('patchChannelPartner', () => {
     it('updates realName / phone via prisma.user.update', async () => {
       findFirstMock.mockResolvedValueOnce(partnerRow());
-      findFirstMock.mockResolvedValueOnce(partnerRow({ realName: '渠道 A 改名' }));
 
       await patchChannelPartner(21, { realName: '渠道 A 改名', phone: '13900000000' });
 
@@ -266,7 +265,6 @@ describe('channel-partner admin service', () => {
     it('runs assertRecipientCanReceivePushes when primaryRecipientId changes', async () => {
       findFirstMock.mockResolvedValueOnce(partnerRow());
       findUniqueMock.mockResolvedValueOnce(recipientCandidate({ id: 11, status: 'ACTIVE' }));
-      findFirstMock.mockResolvedValueOnce(partnerRow());
 
       await patchChannelPartner(21, { primaryRecipientId: 11 });
 
