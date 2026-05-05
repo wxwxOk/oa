@@ -41,6 +41,20 @@ export const REIMBURSEMENT_PERMISSION_CODES = [
   'reimbursement:export',
 ];
 
+export const CHANNEL_PUSH_PERMISSION_CODES = [
+  'channelPush:create',
+  'channelPush:viewOwn',
+  'channelPush:cancel',
+  'channelPush:review',
+  'channelPush:viewScope',
+];
+
+export const CHANNEL_PARTNER_PERMISSION_CODES = [
+  'channelPush:create',
+  'channelPush:viewOwn',
+  'channelPush:cancel',
+];
+
 export const EMPLOYEE_PERMISSION_CODES = [
   'user:list',
   'department:list',
@@ -114,6 +128,12 @@ export const PERMISSIONS = [
   { code: 'reimbursement:finance-review', name: '财务复核报销', module: 'reimbursement' },
   { code: 'reimbursement:attachment', name: '访问报销附件', module: 'reimbursement' },
   { code: 'reimbursement:export', name: '导出报销数据', module: 'reimbursement' },
+  // 渠道商推送模块（v1.6）
+  { code: 'channelPush:create', name: '渠道商提交推送', module: 'channelPush' },
+  { code: 'channelPush:viewOwn', name: '渠道商查看自己推送', module: 'channelPush' },
+  { code: 'channelPush:cancel', name: '渠道商撤回推送', module: 'channelPush' },
+  { code: 'channelPush:review', name: '主接收人审核推送', module: 'channelPush' },
+  { code: 'channelPush:viewScope', name: '按部门/管理员只读查看推送', module: 'channelPush' },
 ];
 
 function resolveAdminPassword(): string {
@@ -168,6 +188,18 @@ export async function seedDatabase(): Promise<void> {
   await prisma.rolePermission.deleteMany({ where: { roleId: employeeRole.id } });
   await prisma.rolePermission.createMany({
     data: employeePerms.map((p) => ({ roleId: employeeRole.id, permissionId: p.id })),
+  });
+
+  // 4.5 CHANNEL_PARTNER 角色（v1.6 外部渠道商，仅可推送 / 查看自己 / 撤回）
+  const channelPartnerRole = await prisma.role.upsert({
+    where: { code: 'CHANNEL_PARTNER' },
+    update: { name: '渠道商', description: '外部渠道商账号，仅可推送学员信息' },
+    create: { code: 'CHANNEL_PARTNER', name: '渠道商', description: '外部渠道商账号，仅可推送学员信息' },
+  });
+  const channelPartnerPerms = allPerms.filter((p) => CHANNEL_PARTNER_PERMISSION_CODES.includes(p.code));
+  await prisma.rolePermission.deleteMany({ where: { roleId: channelPartnerRole.id } });
+  await prisma.rolePermission.createMany({
+    data: channelPartnerPerms.map((p) => ({ roleId: channelPartnerRole.id, permissionId: p.id })),
   });
 
   // 5. admin 用户
