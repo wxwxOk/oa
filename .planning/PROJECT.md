@@ -14,7 +14,7 @@
 ✅ v1.3 到访信息管理 shipped (2026-05-02; manual testing passed)
 ✅ v1.4 报销管理 shipped (2026-05-03; manual testing passed)
 ⏸️ v1.5 工作记录管理 deferred (2026-05-05; planning only, archived to `.planning/milestones/v1.5-*`)
-🚧 v1.6 渠道商信息推送 — planning (started 2026-05-05)
+🚧 v1.6 渠道商信息推送 — Phase 32 backend shipped + Phase 33 partner UI shipped (2026-05-06; UAT user-approved without execution)
 
 ## Current Milestone: v1.6 渠道商信息推送
 
@@ -96,7 +96,7 @@
 - ✓ v1.4 明细导出：授权人员可按筛选条件导出报销 Excel 明细 — v1.4
 
 ### Active
-- v1.6 渠道商信息推送：渠道商账号体系、单条/Excel 推送 + 附件、可编辑撤回、重复提示、接收人审核闭环、站内通知、状态可见性 — 详见 REQUIREMENTS.md
+- v1.6 渠道商信息推送：Phase 32 backend (固定 ChannelPush 模型 + RBAC + 提交/查询/编辑/撤回 + 附件 + 重复提示) shipped 2026-05-06; Phase 33 partner UI (我的推送 列表/详情/表单 + 附件面板 + 重复提示对话框 + 状态隔离) shipped 2026-05-06; remaining: Excel 批量导入 (Phase 34), 接收人审核 UI (Phase 35), 站内通知 + 收尾验证 (Phase 36) — 详见 REQUIREMENTS.md
 
 ### Out of Scope
 - 考勤打卡规则、工资/绩效、公告、文件管理 — 非 v2.0 审批中心 MVP
@@ -215,4 +215,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-05 after starting v1.6 渠道商信息推送 milestone planning; v1.5 deferred (2026-05-05) and earlier history preserved*
+*Last updated: 2026-05-06 after Phase 33 (渠道商提交体验 + 我的推送 UI) execution complete; UAT user-approved without execution; v1.6 next phase is 34 (Excel 批量推送导入)*
