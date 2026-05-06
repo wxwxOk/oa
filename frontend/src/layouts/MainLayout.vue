@@ -181,6 +181,7 @@ const allMenus: MenuConfig[] = [
   { path: '/roles', title: '角色', icon: 'security', perm: 'role:list' },
   { path: '/visits', title: '到访管理', icon: 'groups', perm: 'visit:list' },
   { path: '/reimbursements', title: '报销管理', icon: 'receipt_long', permAny: ['reimbursement:own', 'reimbursement:list', 'reimbursement:department-review', 'reimbursement:finance-review'] },
+  { path: '/channel-push', title: '我的推送', icon: 'forward_to_inbox', permAny: ['channelPush:viewOwn', 'channelPush:create'] },
   {
     title: '收集统计表', icon: 'assessment',
     children: [
