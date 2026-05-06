@@ -85,11 +85,11 @@ None - plan executed exactly as written.
 | `cd frontend && bun run build` | **EXIT 0** — `Build succeeded` (SPA, es2022) |
 | `cd backend && bun test src/modules/channel-push/__tests__/` | **EXIT 0** — 49 pass / 0 fail / 228 expect() calls (Phase 32 contract intact) |
 
-## Manual UAT (PENDING)
+## Manual UAT (APPROVED-WITHOUT-EXECUTION)
 
-> ⚠ **Awaiting human reviewer.** The plan's Task 2 requires browser-based UAT against running dev servers, which the executor cannot perform autonomously. Below are the steps the human reviewer should run; this summary will be updated when results are recorded.
+> **User decision (2026-05-06):** UAT approved without browser execution. Phase verification proceeds with `human_needed` items implicitly accepted by the user.
 
-### Steps to execute
+### Steps (not executed)
 
 1. Start backend: `cd backend && bun --hot src/index.ts`
 2. Start frontend: `cd frontend && bun run dev`
@@ -105,20 +105,20 @@ None - plan executed exactly as written.
    i. Visit a non-PENDING push detail; terminal banner displays; edit/cancel/upload/delete hidden.
    j. Mobile viewport (e.g. 390×844): list cards, FilterSheet dialog, sticky form actions, sticky detail mobile actions all usable.
 
-### Result template (fill in after manual run)
+### Result template (filled per user decision)
 
 | Step | Result | Notes |
 |------|--------|-------|
-| 5a Menu visibility | NOT_RUN | |
-| 5b Forbidden redirect | NOT_RUN | |
-| 5c Empty state | NOT_RUN | |
-| 5d Create flow | NOT_RUN | |
-| 5e Duplicate hint | NOT_RUN | |
-| 5f Attachment upload/preview/download | NOT_RUN | |
-| 5g Edit flow | NOT_RUN | |
-| 5h Cancel flow | NOT_RUN | |
-| 5i Terminal banner | NOT_RUN | |
-| 5j Mobile viewport | NOT_RUN | |
+| 5a Menu visibility | APPROVED | UAT skipped per user decision |
+| 5b Forbidden redirect | APPROVED | UAT skipped per user decision |
+| 5c Empty state | APPROVED | UAT skipped per user decision |
+| 5d Create flow | APPROVED | UAT skipped per user decision |
+| 5e Duplicate hint | APPROVED | UAT skipped per user decision |
+| 5f Attachment upload/preview/download | APPROVED | UAT skipped per user decision |
+| 5g Edit flow | APPROVED | UAT skipped per user decision |
+| 5h Cancel flow | APPROVED | UAT skipped per user decision |
+| 5i Terminal banner | APPROVED | UAT skipped per user decision |
+| 5j Mobile viewport | APPROVED | UAT skipped per user decision |
 
 ## Issues Encountered
 
@@ -135,4 +135,4 @@ None.
 
 ---
 *Phase: 33-ui*
-*Completed: Task 1 — 2026-05-06; Task 2 — pending human UAT*
+*Completed: 2026-05-06 (Task 1 auto-executed; Task 2 UAT approved without execution per user)*
