@@ -155,3 +155,75 @@ export function formatChannelPushDate(value: string | null | undefined): string 
   if (Number.isNaN(date.getTime())) return '-';
   return date.toLocaleString('zh-CN', { hour12: false });
 }
+
+// ───── Excel Batch Import (Phase 34) ───────────────────────────────────────
+//
+// 8-column Excel template — order is fixed and validated strictly.
+// Row 0 may be a merged title (or empty); row 1 is the header row;
+// row 2+ is data. Mirrors v1.3 visit import (Phase 22).
+
+export const CHANNEL_PUSH_IMPORT_HEADERS = [
+  '学员姓名',
+  '手机号',
+  '年龄',
+  '学历',
+  '性别',
+  '意向状态',
+  '意向说明',
+  '备注',
+] as const;
+
+export const MAX_CHANNEL_PUSH_IMPORT_ROWS = 500 as const;
+
+export interface ChannelPushImportRowError {
+  rowNumber: number;
+  field: string;
+  message: string;
+}
+
+export interface ChannelPushImportInvalidRow {
+  rowNumber: number;
+  rawCells: string[];
+  errors: ChannelPushImportRowError[];
+}
+
+export interface ChannelPushImportValidRow {
+  rowNumber: number;
+  payload: ChannelPushWritePayload;
+}
+
+export interface ChannelPushImportDuplicateWarning {
+  key: string;
+  rowNumbers: number[];
+  studentName: string;
+  studentPhone: string;
+}
+
+export interface ChannelPushImportPreview {
+  fileName?: string;
+  headerValid: boolean;
+  expectedHeaders: readonly string[];
+  actualHeaders: string[];
+  headerErrors: string[];
+  validRows: ChannelPushImportValidRow[];
+  invalidRows: ChannelPushImportInvalidRow[];
+  duplicateWarnings: ChannelPushImportDuplicateWarning[];
+  overLimit: boolean;
+}
+
+export interface ChannelPushBatchImportRequest {
+  rows: ChannelPushWritePayload[];
+}
+
+export interface ChannelPushBatchImportFailedRow {
+  index: number;
+  reason: string;
+  code?: string;
+}
+
+export interface ChannelPushBatchImportResponse {
+  createdCount: number;
+  total: number;
+  failedRows: ChannelPushBatchImportFailedRow[];
+  duplicateHints: ChannelPushDuplicateHint[];
+}
