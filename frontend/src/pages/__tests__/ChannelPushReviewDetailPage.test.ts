@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const detailSource = readFileSync(resolve(__dirname, '../ChannelPushReviewDetailPage.vue'), 'utf8');
+const routeSource = readFileSync(resolve(__dirname, '../../router/routes.ts'), 'utf8');
 const attachmentSource = readFileSync(
   resolve(__dirname, '../../components/channel-push/ChannelPushReviewAttachmentPanel.vue'),
   'utf8',
@@ -51,6 +52,18 @@ describe('ChannelPushReviewDetailPage contract', () => {
       expect(detailSource).toContain(selector);
     }
     expect(detailSource).toContain("detail.value?.status === 'PENDING'");
+  });
+
+  it('opens detail for viewScope users without granting mutation controls', () => {
+    expect(routeSource).toContain("permAny: ['channelPush:review', 'channelPush:viewScope']");
+    expect(detailSource).toContain('只读查看');
+    expect(detailSource).toContain('viewScope');
+    expect(detailSource).toContain('canEditReview');
+    expect(detailSource).toContain("auth.hasPerm('channelPush:viewScope')");
+    expect(detailSource).toContain(':disable="!canEditReview"');
+    expect(detailSource).toContain(':readonly="!canEditReview"');
+    expect(detailSource).toContain('if (!canEditReview.value) return;');
+    expect(detailSource).toContain('if (!canReview.value) return;');
   });
 
   it('pins approve/reject dialogs and rejection validation', () => {

@@ -21,6 +21,10 @@
       </q-btn>
     </div>
 
+    <q-banner v-if="isReadOnlyViewer" rounded class="read-only-banner q-mb-md">
+      只读查看：你拥有 viewScope 可见范围权限，可以查看推送审核列表和详情，审核操作仅对主接收人开放。
+    </q-banner>
+
     <q-tabs v-model="activeView" dense active-color="primary" indicator-color="primary" class="q-mb-md" @update:model-value="onViewChange">
       <q-tab name="pending" label="待我审核" />
       <q-tab name="handled" label="已审核" />
@@ -219,6 +223,7 @@ import { useRouter } from 'vue-router';
 import EmptyState from 'src/components/EmptyState.vue';
 import ChannelPushStatusChip from 'src/components/channel-push/ChannelPushStatusChip.vue';
 import { useResponsive } from 'src/composables/useResponsive';
+import { useAuthStore } from 'src/stores/auth';
 import { useChannelPushStore } from 'src/stores/channelPush';
 import {
   CHANNEL_PUSH_STATUSES,
@@ -233,6 +238,7 @@ defineOptions({ name: 'ChannelPushReviewPage' });
 
 const router = useRouter();
 const store = useChannelPushStore();
+const auth = useAuthStore();
 const { isDesktop, isMobile } = useResponsive();
 
 const activeView = ref<ChannelPushReviewViewMode>('pending');
@@ -254,6 +260,7 @@ const statusOptions = computed(() => {
 });
 
 const rows = computed(() => activeView.value === 'pending' ? store.reviewPendingRows : store.reviewHandledRows);
+const isReadOnlyViewer = computed(() => auth.hasPerm('channelPush:viewScope') && !auth.hasPerm('channelPush:review'));
 
 const columns = [
   { name: 'channelPartnerName', label: '渠道商', field: 'channelPartnerName', align: 'left' as const },
@@ -349,4 +356,8 @@ onMounted(() => {
 .wrap-text { overflow-wrap: anywhere; }
 .muted { color: var(--oa-text-secondary); }
 .state-panel { background: var(--oa-surface); }
+.read-only-banner {
+  background: rgba(25, 118, 210, 0.08);
+  color: var(--oa-text-primary);
+}
 </style>

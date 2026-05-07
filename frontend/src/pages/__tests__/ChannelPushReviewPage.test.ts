@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 
 const pageSource = readFileSync(resolve(__dirname, '../ChannelPushReviewPage.vue'), 'utf8');
 const storeSource = readFileSync(resolve(__dirname, '../../stores/channelPush.ts'), 'utf8');
+const routeSource = readFileSync(resolve(__dirname, '../../router/routes.ts'), 'utf8');
+const menuSource = readFileSync(resolve(__dirname, '../../layouts/MainLayout.vue'), 'utf8');
 
 describe('ChannelPushReviewPage contract', () => {
   it('pins title, tabs, filters, and status rendering', () => {
@@ -47,5 +49,15 @@ describe('ChannelPushReviewPage contract', () => {
     expect(pageSource).toContain('reviewHandledRows');
     expect(storeSource).toContain('/review/channel-push/pending');
     expect(storeSource).toContain('/review/channel-push/handled');
+  });
+
+  it('opens review routes and menu for reviewer or viewScope users while staying read-only on the list', () => {
+    const reviewPermAny = "permAny: ['channelPush:review', 'channelPush:viewScope']";
+    expect(routeSource).toContain(reviewPermAny);
+    expect(menuSource).toContain(reviewPermAny);
+    expect(pageSource).toContain('只读查看');
+    expect(pageSource).toContain('viewScope');
+    expect(pageSource).toContain("auth.hasPerm('channelPush:viewScope')");
+    expect(pageSource).toContain("!auth.hasPerm('channelPush:review')");
   });
 });

@@ -1,5 +1,5 @@
 <template>
-  <q-page padding :class="['channel-push-review-detail-page', { 'has-mobile-review-actions': isMobile && canReview }]">
+  <q-page padding :class="['channel-push-review-detail-page', { 'has-mobile-review-actions': isMobile && canEditReview }]">
     <div class="detail-wrapper">
       <div class="row items-center q-mb-md q-gutter-sm">
         <q-btn flat dense round icon="arrow_back" aria-label="返回" @click="goBack">
@@ -14,7 +14,7 @@
         <ChannelPushStatusChip v-if="detail" :status="detail.status" />
         <q-space v-if="isDesktop" />
         <q-btn
-          v-if="isDesktop && detail"
+          v-if="isDesktop && detail && canEditReview"
           outline
           color="primary"
           icon="save"
@@ -43,6 +43,10 @@
           @click="openRejectDialog"
         />
       </div>
+
+      <q-banner v-if="isReadOnlyViewer" rounded class="read-only-banner q-mb-md">
+        只读查看：你拥有 viewScope 可见范围权限，可以查看推送审核详情和附件，内部字段与审核操作仅对主接收人开放。
+      </q-banner>
 
       <div v-if="loading" class="detail-grid">
         <q-card flat bordered class="detail-section">
@@ -126,11 +130,12 @@
                     map-options
                     label="计划接待人"
                     :options="receiverOptions"
+                    :disable="!canEditReview"
                     @filter="filterReceivers"
                   />
-                  <q-input v-model="internalScheduledDate" outlined dense readonly label="预期接待日期">
+                  <q-input v-model="internalScheduledDate" outlined dense readonly label="预期接待日期" :disable="!canEditReview">
                     <template #append>
-                      <q-icon name="event" class="cursor-pointer" aria-label="选择预期接待日期">
+                      <q-icon v-if="canEditReview" name="event" class="cursor-pointer" aria-label="选择预期接待日期">
                         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                           <q-date v-model="internalScheduledDate" mask="YYYY-MM-DD" />
                         </q-popup-proxy>
@@ -145,6 +150,7 @@
                     maxlength="1000"
                     autogrow
                     class="internal-note"
+                    :readonly="!canEditReview"
                   />
                 </div>
               </q-card-section>
@@ -204,7 +210,7 @@
       </template>
     </div>
 
-    <div v-if="isMobile && detail" class="mobile-review-actions">
+    <div v-if="isMobile && detail && canEditReview" class="mobile-review-actions">
       <q-btn
         outline
         color="primary"
@@ -301,7 +307,9 @@ const internalNote = ref('');
 const receiverOptions = ref<ReceiverOption[]>([]);
 
 const routeId = computed(() => Number(route.params.id) || null);
-const canReview = computed(() => detail.value?.status === 'PENDING' && auth.hasPerm('channelPush:review'));
+const canEditReview = computed(() => auth.hasPerm('channelPush:review'));
+const isReadOnlyViewer = computed(() => auth.hasPerm('channelPush:viewScope') && !canEditReview.value);
+const canReview = computed(() => detail.value?.status === 'PENDING' && canEditReview.value);
 const canSubmitReject = computed(() => rejectComment.value.trim().length > 0);
 
 watch(detail, (next) => {
@@ -350,6 +358,7 @@ async function reloadAfterMutation() {
 }
 
 async function saveInternalFields() {
+  if (!canEditReview.value) return;
   if (!detail.value) return;
   try {
     detail.value = await store.saveReviewInternalFields(detail.value.id, {
@@ -365,6 +374,7 @@ async function saveInternalFields() {
 }
 
 function openApproveDialog() {
+  if (!canReview.value) return;
   approveComment.value = '';
   approveDialog.value = true;
 }
@@ -375,6 +385,7 @@ function closeApproveDialog() {
 }
 
 function openRejectDialog() {
+  if (!canReview.value) return;
   rejectComment.value = '';
   rejectDialog.value = true;
 }
@@ -385,6 +396,7 @@ function closeRejectDialog() {
 }
 
 async function submitApprove() {
+  if (!canReview.value) return;
   if (!detail.value) return;
   try {
     await store.approveReview(detail.value.id, { comment: approveComment.value });
@@ -397,6 +409,7 @@ async function submitApprove() {
 }
 
 async function submitReject() {
+  if (!canReview.value) return;
   if (!detail.value) return;
   const comment = rejectComment.value.trim();
   if (!comment) {
@@ -414,6 +427,12 @@ async function submitReject() {
 }
 
 async function filterReceivers(keyword: string, update: (fn: () => void) => void) {
+  if (!canEditReview.value) {
+    update(() => {
+      receiverOptions.value = [];
+    });
+    return;
+  }
   try {
     const { data } = await api.get('/users', {
       params: { keyword, page: 1, pageSize: 20, status: 'ACTIVE' },
@@ -509,6 +528,10 @@ onMounted(() => {
 }
 .duplicate-banner {
   background: rgba(25, 118, 210, 0.08);
+}
+.read-only-banner {
+  background: rgba(25, 118, 210, 0.08);
+  color: var(--oa-text-primary);
 }
 .empty-hints {
   color: var(--oa-text-secondary);
