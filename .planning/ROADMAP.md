@@ -191,7 +191,7 @@ Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS
 - [x] **Phase 32: 渠道推送数据模型 + 后端 API + RBAC** — ChannelPush Prisma 模型、CHANNEL_PARTNER 角色、5 个权限码、渠道商 CRUD/绑定接收人、推送提交/查询/编辑/撤回 API、附件存储复用 v1.4 模式 (completed 2026-05-05)
 - [x] **Phase 33: 渠道商提交体验 + 我的推送 UI** — 渠道商专用菜单和路由守卫、单条提交表单、附件上传、我的推送列表、详情、编辑/撤回、重复提示 UI (completed 2026-05-06)
 - [x] **Phase 34: Excel 批量推送导入** — 复用 v1.3 解析体验、表头约定、预览、有效/无效行展示、批量提交、独立审核流 (completed 2026-05-07)
-- [ ] **Phase 35: 接收人审核 UI + 内部补充字段** — 「待我审核」列表/详情、内部补充字段 UI、通过/驳回 + 必填驳回意见、已审核历史、PC 表格 + Mobile 卡片
+- [x] **Phase 35: 接收人审核 UI + 内部补充字段** — 「待我审核」列表/详情、内部补充字段 UI、通过/驳回 + 必填驳回意见、已审核历史、PC 表格 + Mobile 卡片 (completed 2026-05-07)
 - [ ] **Phase 36: 站内通知集成 + 跨角色可见性 + 验证收尾** — 渠道推送通知类型、铃铛跳转、渠道商通知接收、部门负责人/上级/ADMIN 只读可见性、端到端验证与归档
 
 
@@ -299,7 +299,7 @@ Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS
 | 32. 渠道推送数据模型 + 后端 API + RBAC | v1.6 | 4/4 | Complete    | 2026-05-05 |
 | 33. 渠道商提交体验 + 我的推送 UI | v1.6 | 4/4 | Complete    | 2026-05-06 |
 | 34. Excel 批量推送导入 | v1.6 | 2/2 | Complete    | 2026-05-07 |
-| 35. 接收人审核 UI + 内部补充字段 | v1.6 | 2/4 | In Progress|  |
+| 35. 接收人审核 UI + 内部补充字段 | v1.6 | 4/4 | Complete   | 2026-05-07 |
 | 36. 站内通知集成 + 跨角色可见性 + 验证收尾 | v1.6 | 0/3 | Pending |  |
 
 ## Current Coverage
