@@ -14,7 +14,7 @@
 ✅ v1.3 到访信息管理 shipped (2026-05-02; manual testing passed)
 ✅ v1.4 报销管理 shipped (2026-05-03; manual testing passed)
 ⏸️ v1.5 工作记录管理 deferred (2026-05-05; planning only, archived to `.planning/milestones/v1.5-*`)
-🚧 v1.6 渠道商信息推送 — Phase 32 backend shipped + Phase 33 partner UI shipped + Phase 34 Excel batch-import shipped (2026-05-07; PUSH-03/04 closed, automated suites green, manual UAT pending)
+🚧 v1.6 渠道商信息推送 — Phase 32 backend shipped + Phase 33 partner UI shipped + Phase 34 Excel batch-import shipped + Phase 35 recipient review UI shipped (2026-05-07; review workflow automated suites green, manual release UAT pending)
 
 ## Current Milestone: v1.6 渠道商信息推送
 
@@ -96,7 +96,7 @@
 - ✓ v1.4 明细导出：授权人员可按筛选条件导出报销 Excel 明细 — v1.4
 
 ### Active
-- v1.6 渠道商信息推送：Phase 32 backend (固定 ChannelPush 模型 + RBAC + 提交/查询/编辑/撤回 + 附件 + 重复提示) shipped 2026-05-06; Phase 33 partner UI (我的推送 列表/详情/表单 + 附件面板 + 重复提示对话框 + 状态隔离) shipped 2026-05-06; remaining: Excel 批量导入 (Phase 34), 接收人审核 UI (Phase 35), 站内通知 + 收尾验证 (Phase 36) — 详见 REQUIREMENTS.md
+- v1.6 渠道商信息推送：Phase 32 backend (固定 ChannelPush 模型 + RBAC + 提交/查询/编辑/撤回 + 附件 + 重复提示) shipped 2026-05-06; Phase 33 partner UI (我的推送 列表/详情/表单 + 附件面板 + 重复提示对话框 + 状态隔离) shipped 2026-05-06; Phase 34 Excel 批量导入 shipped 2026-05-07; Phase 35 接收人审核 UI (待我审核列表/详情、内部补充字段、通过/驳回、已审核历史) shipped 2026-05-07; remaining: 站内通知 + 跨角色只读可见性 + 收尾验证 (Phase 36) — 详见 REQUIREMENTS.md
 
 ### Out of Scope
 - 考勤打卡规则、工资/绩效、公告、文件管理 — 非 v2.0 审批中心 MVP
@@ -215,4 +215,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-07 after Phase 34 (Excel 批量推送导入) execution complete; PUSH-03 + PUSH-04 closed; v1.6 next phase is 35 (接收人审核 UI + 内部补充字段)*
+*Last updated: 2026-05-07 after Phase 35 (接收人审核 UI + 内部补充字段) execution complete; REVIEW-01/03/04/05/06/07 + PERM-04 closed; v1.6 next phase is 36 (站内通知集成 + 跨角色可见性 + 验证收尾)*
