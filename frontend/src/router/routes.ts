@@ -31,6 +31,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'reimbursements/:id/edit', component: () => import('pages/ReimbursementFormPage.vue'), meta: { title: '编辑报销申请', perm: 'reimbursement:create' } },
       { path: 'reimbursements/:id', component: () => import('pages/ReimbursementDetailPage.vue'), meta: { title: '报销详情', permAny: ['reimbursement:own', 'reimbursement:list', 'reimbursement:department-review', 'reimbursement:finance-review'] } },
       { path: 'channel-push', component: () => import('pages/ChannelPushPage.vue'), meta: { title: '我的推送', icon: 'forward_to_inbox', permAny: ['channelPush:viewOwn', 'channelPush:create'] } },
+      { path: 'review/channel-push', component: () => import('pages/ChannelPushReviewPage.vue'), meta: { title: '待我审核', icon: 'fact_check', perm: 'channelPush:review' } },
       { path: 'channel-push/new', component: () => import('pages/ChannelPushFormPage.vue'), meta: { title: '新建推送', perm: 'channelPush:create' } },
       { path: 'channel-push/:id/edit', component: () => import('pages/ChannelPushFormPage.vue'), meta: { title: '编辑推送', perm: 'channelPush:create' } },
       { path: 'channel-push/:id', component: () => import('pages/ChannelPushDetailPage.vue'), meta: { title: '推送详情', perm: 'channelPush:viewOwn' } },
