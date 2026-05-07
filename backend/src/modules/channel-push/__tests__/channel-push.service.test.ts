@@ -59,6 +59,7 @@ mock.module('../../../plugins/prisma', () => ({
 
 const {
   assertCanMutateOwnChannelPush,
+  batchCreateChannelPushes,
   cancelChannelPush,
   createChannelPush,
   normalizeChannelPushListFilters,
@@ -428,3 +429,116 @@ describe('channel-push service helpers', () => {
     });
   });
 });
+
+describe('batchCreateChannelPushes', () => {
+  it('throws CHANNEL_PARTNER_NOT_BOUND before iterating rows when partner has no profile', async () => {
+    findUniqueProfileMock.mockResolvedValueOnce(null as any);
+    let caught: BizError | null = null;
+    try {
+      await batchCreateChannelPushes(actor({ id: 999 }), [
+        { studentName: '甲', studentPhone: '13800138001' },
+        { studentName: '乙', studentPhone: '13800138002' },
+      ] as any);
+    } catch (e) {
+      caught = e as BizError;
+    }
+    expect(caught?.code).toBe('CHANNEL_PARTNER_NOT_BOUND');
+    expect(caught?.status).toBe(422);
+  });
+
+  it('partial-success: 3 valid + 2 invalid → createdCount=3, failedRows preserves index/code', async () => {
+    // Pre-flight + 3 successful per-row dedup queries (default mock returns [])
+    // Note: findUniqueProfileMock is set to resolve with a profile by default (line 3-7)
+    const result = await batchCreateChannelPushes(actor(), [
+      { studentName: '张三', studentPhone: '13800138001' },
+      { studentName: '李四', studentPhone: '13800138002' },
+      { studentName: '王五', studentPhone: '13800138003' },
+      { studentName: '', studentPhone: '13800138004' }, // missing name → CHANNEL_PUSH_FIELD_REQUIRED
+      { studentName: '赵六', studentPhone: '12345678901' }, // bad phone → CHANNEL_PUSH_PHONE_INVALID
+    ] as any);
+
+    expect(result.total).toBe(5);
+    expect(result.createdCount).toBe(3);
+    expect(result.failedRows).toHaveLength(2);
+    expect(result.failedRows[0]).toMatchObject({
+      index: 3,
+      code: 'CHANNEL_PUSH_FIELD_REQUIRED',
+    });
+    expect(result.failedRows[1]).toMatchObject({
+      index: 4,
+      code: 'CHANNEL_PUSH_PHONE_INVALID',
+    });
+    expect(result.failedRows[0]?.reason).toBeTruthy();
+    expect(result.failedRows[1]?.reason).toBeTruthy();
+  });
+
+  it('aggregates duplicateHints across rows by id (Map dedup)', async () => {
+    // Seed dedup query: every row sees the same existing push (id=100)
+    const seededHint = {
+      id: 100,
+      studentName: '张三',
+      studentPhone: '13800138000',
+      status: 'PENDING' as const,
+      submittedAt: new Date('2026-05-01T00:00:00.000Z'),
+    };
+    findManyPushMock.mockResolvedValue([seededHint]);
+
+    const result = await batchCreateChannelPushes(actor(), [
+      { studentName: '张三', studentPhone: '13800138000' },
+      { studentName: '张三', studentPhone: '13800138000' },
+      { studentName: '张三', studentPhone: '13800138000' },
+    ] as any);
+
+    expect(result.createdCount).toBe(3);
+    expect(result.duplicateHints).toHaveLength(1);
+    expect(result.duplicateHints[0]?.id).toBe(100);
+
+    // Reset for next test
+    findManyPushMock.mockResolvedValue([]);
+  });
+
+  it('mixed dedup: keeps unique duplicateHints per existing record', async () => {
+    const hintA = {
+      id: 100,
+      studentName: '张三',
+      studentPhone: '13800138000',
+      status: 'PENDING' as const,
+      submittedAt: new Date('2026-05-01T00:00:00.000Z'),
+    };
+    const hintB = {
+      id: 200,
+      studentName: '李四',
+      studentPhone: '13800138001',
+      status: 'PENDING' as const,
+      submittedAt: new Date('2026-05-02T00:00:00.000Z'),
+    };
+    findManyPushMock
+      .mockResolvedValueOnce([hintA])
+      .mockResolvedValueOnce([hintB])
+      .mockResolvedValueOnce([hintA]);
+
+    const result = await batchCreateChannelPushes(actor(), [
+      { studentName: '张三', studentPhone: '13800138000' },
+      { studentName: '李四', studentPhone: '13800138001' },
+      { studentName: '张三', studentPhone: '13800138000' },
+    ] as any);
+
+    expect(result.createdCount).toBe(3);
+    expect(result.duplicateHints).toHaveLength(2);
+    const ids = result.duplicateHints.map((h: any) => h.id).sort();
+    expect(ids).toEqual([100, 200]);
+
+    findManyPushMock.mockResolvedValue([]);
+  });
+
+  it('does NOT call prisma.channelPush.createMany (D-15: per-row creation only)', async () => {
+    const before = (createPushMock as any).mock.calls.length;
+    await batchCreateChannelPushes(actor(), [
+      { studentName: '甲', studentPhone: '13800138001' },
+      { studentName: '乙', studentPhone: '13800138002' },
+    ] as any);
+    // Each row goes through createChannelPush → tx.channelPush.create (not createMany)
+    expect((createPushMock as any).mock.calls.length).toBeGreaterThan(before);
+  });
+});
+
