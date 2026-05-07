@@ -14,6 +14,7 @@ import {
 import {
   assertCanMutateOwnChannelPush,
   attachFilesToChannelPush,
+  batchCreateChannelPushes,
   cancelChannelPush,
   createChannelPush,
   deleteChannelPushAttachmentRecord,
@@ -43,6 +44,16 @@ export const channelPushWriteBody = t.Object(
     intentStatus: t.Optional(t.String({ maxLength: 64 })),
     intentNote: t.Optional(t.String({ maxLength: 1000 })),
     remark: t.Optional(t.String({ maxLength: 1000 })),
+  },
+  { additionalProperties: false },
+);
+
+// Phase 34: batch import envelope. Reuses channelPushWriteBody as the row
+// schema so writable-field contracts cannot drift between single and batch.
+// JSON only — no t.Files / t.File. Per-row identity comes from JWT.
+export const channelPushBatchImportBody = t.Object(
+  {
+    rows: t.Array(channelPushWriteBody, { minItems: 1, maxItems: 500 }),
   },
   { additionalProperties: false },
 );
@@ -239,6 +250,21 @@ export const channelPushModule = new Elysia({ prefix: '/channel-push' })
         return { push: detail, duplicateHints: created.duplicateHints };
       },
       { body: channelPushCreateMultipartBody },
+    ),
+  )
+  .guard({}, (app) =>
+    app.use(authGuard('channelPush:create')).post(
+      '/batch-import',
+      async ({ body, currentUser }: any) => {
+        const actor = toActor(currentUser);
+        // body.rows is JSON-validated by channelPushBatchImportBody. Identity
+        // comes from JWT; the body MUST NOT carry channelPartnerId/status etc.
+        return batchCreateChannelPushes(
+          actor,
+          body.rows as ChannelPushWriteInput[],
+        );
+      },
+      { body: channelPushBatchImportBody },
     ),
   )
   .guard({}, (app) =>

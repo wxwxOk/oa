@@ -60,12 +60,19 @@ describe('channel-push batch-import route contract', () => {
     expect(source).toContain('batchCreateChannelPushes');
     expect(source).toContain('channelPushBatchImportBody');
 
-    // Negative-grep: no Excel parsing / multipart for batch-import
-    // (createChannelPush still has multipart for single-row attachments — that's OK,
-    // we only forbid these in the BATCH context which is JSON-only.)
-    // The new schema must not introduce t.Files/t.File for batch-import:
-    expect(source).not.toMatch(/channelPushBatchImportBody[\s\S]*t\.Files/);
-    expect(source).not.toMatch(/channelPushBatchImportBody[\s\S]*t\.File\(/);
+    // Negative-grep: the batch-import schema must NOT pull in t.Files/t.File
+    // (those are reserved for the multipart single-row create path).
+    // Extract just the channelPushBatchImportBody declaration block.
+    const batchSchemaBlock = source.match(
+      /export const channelPushBatchImportBody[\s\S]*?\);\s/,
+    );
+    expect(batchSchemaBlock).toBeTruthy();
+    expect(batchSchemaBlock![0]).not.toContain('t.Files');
+    expect(batchSchemaBlock![0]).not.toContain('t.File(');
+
+    // The /batch-import handler is wired to channelPushBatchImportBody (JSON envelope);
+    // a generic source-level check ensures the schema reference is present.
+    expect(source).toMatch(/body:\s*channelPushBatchImportBody/);
 
     // Forbidden DB shortcuts (D-15)
     expect(source).not.toContain('createMany');
