@@ -13,6 +13,19 @@
       </q-btn>
       <q-btn
         v-if="auth.hasPerm('channelPush:create')"
+        outline
+        color="primary"
+        icon="upload_file"
+        :label="isMobile ? '' : 'Excel 批量导入'"
+        :round="isMobile"
+        :aria-label="isMobile ? 'Excel 批量导入' : undefined"
+        :style="isMobile ? 'min-width:44px;min-height:44px' : ''"
+        @click="importDialogOpen = true"
+      >
+        <q-tooltip v-if="isMobile">Excel 批量导入</q-tooltip>
+      </q-btn>
+      <q-btn
+        v-if="auth.hasPerm('channelPush:create')"
         color="primary"
         icon="add"
         :label="isMobile ? '' : '新建推送'"
@@ -219,6 +232,15 @@
     <q-page-sticky v-if="isMobile && auth.hasPerm('channelPush:create')" position="bottom-right" :offset="[16, 72]">
       <q-btn fab icon="add" color="primary" aria-label="新建推送" @click="goCreate" />
     </q-page-sticky>
+
+    <ChannelPushImportDialog
+      v-model="importDialogOpen"
+      @duplicates="handleDuplicates"
+    />
+    <ChannelPushDuplicateDialog
+      v-model="dupDialogOpen"
+      :hints="pendingDuplicates"
+    />
   </q-page>
 </template>
 
@@ -228,6 +250,8 @@ import { Dialog, Notify } from 'quasar';
 import { useRouter } from 'vue-router';
 import EmptyState from 'src/components/EmptyState.vue';
 import ChannelPushStatusChip from 'src/components/channel-push/ChannelPushStatusChip.vue';
+import ChannelPushImportDialog from 'src/components/channel-push/ChannelPushImportDialog.vue';
+import ChannelPushDuplicateDialog from 'src/components/channel-push/ChannelPushDuplicateDialog.vue';
 import { useResponsive } from 'src/composables/useResponsive';
 import { useAuthStore } from 'src/stores/auth';
 import { useChannelPushStore } from 'src/stores/channelPush';
@@ -236,6 +260,7 @@ import {
   channelPushStatusLabel,
   createEmptyChannelPushFilters,
   formatChannelPushDate,
+  type ChannelPushDuplicateHint,
   type ChannelPushRow,
 } from 'src/types/channelPush';
 
@@ -252,6 +277,16 @@ const filterSheetOpen = ref(false);
 const firstLoading = ref(true);
 const error = ref(false);
 const pagination = ref({ page: 1, rowsPerPage: 10, rowsNumber: 0 });
+
+// Phase 34: Excel batch import dialog + cross-record duplicates dialog state.
+const importDialogOpen = ref(false);
+const dupDialogOpen = ref(false);
+const pendingDuplicates = ref<ChannelPushDuplicateHint[]>([]);
+
+function handleDuplicates(hints: ChannelPushDuplicateHint[]) {
+  pendingDuplicates.value = hints;
+  dupDialogOpen.value = true;
+}
 
 const columns = [
   { name: 'studentName', label: '学员姓名', field: 'studentName', align: 'left' as const },
