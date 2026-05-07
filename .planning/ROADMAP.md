@@ -299,7 +299,7 @@ Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS
 | 32. 渠道推送数据模型 + 后端 API + RBAC | v1.6 | 4/4 | Complete    | 2026-05-05 |
 | 33. 渠道商提交体验 + 我的推送 UI | v1.6 | 4/4 | Complete    | 2026-05-06 |
 | 34. Excel 批量推送导入 | v1.6 | 2/2 | Complete    | 2026-05-07 |
-| 35. 接收人审核 UI + 内部补充字段 | v1.6 | 0/4 | Planned    |  |
+| 35. 接收人审核 UI + 内部补充字段 | v1.6 | 1/4 | In Progress|  |
 | 36. 站内通知集成 + 跨角色可见性 + 验证收尾 | v1.6 | 0/3 | Pending |  |
 
 ## Current Coverage
