@@ -2,6 +2,9 @@ export const CHANNEL_PUSH_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'CANCEL
 export type ChannelPushStatus = (typeof CHANNEL_PUSH_STATUSES)[number];
 
 export const CHANNEL_PUSH_LIST_FILTER_KEYS = ['keyword', 'status', 'dateFrom', 'dateTo'] as const;
+export const CHANNEL_PUSH_REVIEW_VIEW_MODES = ['pending', 'handled'] as const;
+export type ChannelPushReviewViewMode = (typeof CHANNEL_PUSH_REVIEW_VIEW_MODES)[number];
+export const CHANNEL_PUSH_REVIEW_LIST_FILTER_KEYS = ['channelPartnerKeyword', 'status', 'dateFrom', 'dateTo'] as const;
 
 export const ALLOWED_CHANNEL_PUSH_MIME_TYPES = [
   'image/jpeg',
@@ -80,6 +83,13 @@ export interface ChannelPushListFilters {
   dateTo: string;
 }
 
+export interface ChannelPushReviewListFilters {
+  channelPartnerKeyword: string;
+  status: string;
+  dateFrom: string;
+  dateTo: string;
+}
+
 export type ChannelPushListRequest = Partial<ChannelPushListFilters> & {
   page?: number;
   size?: number;
@@ -91,6 +101,62 @@ export interface ChannelPushListResponse {
   page: number;
   size: number;
 }
+
+export type ChannelPushReviewListRequest = Partial<ChannelPushReviewListFilters> & {
+  page?: number;
+  size?: number;
+};
+
+export interface ChannelPushReviewRow {
+  id: number;
+  channelPartnerId: number;
+  channelPartnerName: string;
+  recipientUserId: number;
+  studentName: string;
+  studentPhone: string;
+  studentAge: number | null;
+  studentEducation: string | null;
+  studentGender: string | null;
+  intentStatus: string | null;
+  intentNote: string | null;
+  remark: string | null;
+  status: ChannelPushStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewComment: string | null;
+  internalScheduledReceiverId: number | null;
+  internalScheduledReceiverName: string | null;
+  internalScheduledDate: string | null;
+  internalNote: string | null;
+  attachmentCount: number;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export type ChannelPushReviewDetail = ChannelPushReviewRow & {
+  attachments: ChannelPushAttachment[];
+  reviewActions: ChannelPushReviewAction[];
+  duplicateHints: ChannelPushDuplicateHint[];
+};
+
+export interface ChannelPushReviewInternalFieldsPayload {
+  internalScheduledReceiverId?: number | null;
+  internalScheduledDate?: string | null;
+  internalNote?: string | null;
+}
+
+export interface ChannelPushReviewDecisionPayload {
+  comment?: string | null;
+}
+
+export interface ChannelPushReviewListResponse {
+  rows: ChannelPushReviewRow[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+export type ChannelPushReviewDetailResponse = ChannelPushReviewDetail;
 
 export interface ChannelPushSubmitResponse {
   push: ChannelPushDetail;
@@ -125,6 +191,14 @@ export function isPendingChannelPush(row: { status: ChannelPushStatus }): boolea
 
 export function createEmptyChannelPushFilters(): ChannelPushListFilters {
   return { keyword: '', status: '', dateFrom: '', dateTo: '' };
+}
+
+export function createEmptyChannelPushReviewFilters(): ChannelPushReviewListFilters {
+  return { channelPartnerKeyword: '', status: '', dateFrom: '', dateTo: '' };
+}
+
+export function channelPushReviewViewLabel(view: ChannelPushReviewViewMode): string {
+  return view === 'pending' ? '待我审核' : '已审核';
 }
 
 export function normalizeChannelPushPayload(input: ChannelPushWritePayload) {

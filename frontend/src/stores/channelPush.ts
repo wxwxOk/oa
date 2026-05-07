@@ -2,7 +2,9 @@ import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 import {
   CHANNEL_PUSH_LIST_FILTER_KEYS,
+  CHANNEL_PUSH_REVIEW_LIST_FILTER_KEYS,
   createEmptyChannelPushFilters,
+  createEmptyChannelPushReviewFilters,
   normalizeChannelPushPayload,
   type ChannelPushAttachment,
   type ChannelPushBatchImportResponse,
@@ -11,6 +13,12 @@ import {
   type ChannelPushListFilters,
   type ChannelPushListRequest,
   type ChannelPushListResponse,
+  type ChannelPushReviewDecisionPayload,
+  type ChannelPushReviewDetail,
+  type ChannelPushReviewInternalFieldsPayload,
+  type ChannelPushReviewListFilters,
+  type ChannelPushReviewListRequest,
+  type ChannelPushReviewListResponse,
   type ChannelPushRow,
   type ChannelPushSubmitResponse,
   type ChannelPushWritePayload,
@@ -28,6 +36,24 @@ function mergeFilters(base: ChannelPushListFilters, filters?: ChannelPushListReq
 function buildListParams(filters: ChannelPushListFilters, page: number, size: number) {
   const params: Record<string, unknown> = { page, size };
   for (const key of CHANNEL_PUSH_LIST_FILTER_KEYS) {
+    const value = filters[key]?.trim();
+    if (value) params[key] = value;
+  }
+  return params;
+}
+
+function mergeReviewFilters(base: ChannelPushReviewListFilters, filters?: ChannelPushReviewListRequest) {
+  const next = { ...base };
+  if (!filters) return next;
+  for (const key of CHANNEL_PUSH_REVIEW_LIST_FILTER_KEYS) {
+    if (key in filters) next[key] = (filters[key] ?? '') as string;
+  }
+  return next;
+}
+
+function buildReviewListParams(filters: ChannelPushReviewListFilters, page: number, size: number) {
+  const params: Record<string, unknown> = { page, size };
+  for (const key of CHANNEL_PUSH_REVIEW_LIST_FILTER_KEYS) {
     const value = filters[key]?.trim();
     if (value) params[key] = value;
   }
@@ -62,6 +88,21 @@ export const useChannelPushStore = defineStore('channelPush', {
     uploadLoading: false,
     downloadLoading: false,
     importLoading: false,
+    reviewPendingRows: [] as ChannelPushReviewListResponse['rows'],
+    reviewHandledRows: [] as ChannelPushReviewListResponse['rows'],
+    reviewPendingTotal: 0,
+    reviewHandledTotal: 0,
+    reviewPendingPage: 1,
+    reviewHandledPage: 1,
+    reviewPendingSize: 10,
+    reviewHandledSize: 10,
+    reviewPendingFilters: createEmptyChannelPushReviewFilters(),
+    reviewHandledFilters: createEmptyChannelPushReviewFilters(),
+    reviewCurrent: null as ChannelPushReviewDetail | null,
+    reviewLoading: false,
+    reviewDetailLoading: false,
+    reviewActionLoading: false,
+    reviewDownloadLoading: false,
   }),
   actions: {
     async fetchMine(filters?: ChannelPushListRequest) {
@@ -188,6 +229,112 @@ export const useChannelPushStore = defineStore('channelPush', {
         }
       } finally {
         this.actionLoading = false;
+      }
+    },
+
+    async fetchReviewPending(filters?: ChannelPushReviewListRequest) {
+      this.reviewLoading = true;
+      try {
+        const page = Number(filters?.page ?? this.reviewPendingPage) || 1;
+        const size = Number(filters?.size ?? this.reviewPendingSize) || 10;
+        const nextFilters = mergeReviewFilters(this.reviewPendingFilters, filters);
+        const { data } = await api.get('/review/channel-push/pending', {
+          params: buildReviewListParams(nextFilters, page, size),
+        });
+        const response = data as ChannelPushReviewListResponse;
+        this.reviewPendingRows = response.rows;
+        this.reviewPendingTotal = Number(response.total) || 0;
+        this.reviewPendingPage = Number(response.page) || page;
+        this.reviewPendingSize = Number(response.size) || size;
+        this.reviewPendingFilters = nextFilters;
+        return response;
+      } finally {
+        this.reviewLoading = false;
+      }
+    },
+
+    async fetchReviewHandled(filters?: ChannelPushReviewListRequest) {
+      this.reviewLoading = true;
+      try {
+        const page = Number(filters?.page ?? this.reviewHandledPage) || 1;
+        const size = Number(filters?.size ?? this.reviewHandledSize) || 10;
+        const nextFilters = mergeReviewFilters(this.reviewHandledFilters, filters);
+        const { data } = await api.get('/review/channel-push/handled', {
+          params: buildReviewListParams(nextFilters, page, size),
+        });
+        const response = data as ChannelPushReviewListResponse;
+        this.reviewHandledRows = response.rows;
+        this.reviewHandledTotal = Number(response.total) || 0;
+        this.reviewHandledPage = Number(response.page) || page;
+        this.reviewHandledSize = Number(response.size) || size;
+        this.reviewHandledFilters = nextFilters;
+        return response;
+      } finally {
+        this.reviewLoading = false;
+      }
+    },
+
+    async fetchReviewDetail(id: number) {
+      this.reviewDetailLoading = true;
+      try {
+        const { data } = await api.get(`/review/channel-push/${id}`);
+        this.reviewCurrent = data as ChannelPushReviewDetail;
+        return this.reviewCurrent;
+      } finally {
+        this.reviewDetailLoading = false;
+      }
+    },
+
+    async saveReviewInternalFields(id: number, payload: ChannelPushReviewInternalFieldsPayload) {
+      this.reviewActionLoading = true;
+      try {
+        const { data } = await api.patch(`/review/channel-push/${id}/internal-fields`, payload);
+        this.reviewCurrent = data as ChannelPushReviewDetail;
+        return this.reviewCurrent;
+      } finally {
+        this.reviewActionLoading = false;
+      }
+    },
+
+    async approveReview(id: number, payload: ChannelPushReviewDecisionPayload = {}) {
+      this.reviewActionLoading = true;
+      try {
+        const { data } = await api.post(`/review/channel-push/${id}/approve`, payload);
+        this.reviewCurrent = data as ChannelPushReviewDetail;
+        return this.reviewCurrent;
+      } finally {
+        this.reviewActionLoading = false;
+      }
+    },
+
+    async rejectReview(id: number, payload: ChannelPushReviewDecisionPayload) {
+      this.reviewActionLoading = true;
+      try {
+        const { data } = await api.post(`/review/channel-push/${id}/reject`, payload);
+        this.reviewCurrent = data as ChannelPushReviewDetail;
+        return this.reviewCurrent;
+      } finally {
+        this.reviewActionLoading = false;
+      }
+    },
+
+    async previewReviewAttachmentBlob(id: number, attachmentId: number) {
+      this.reviewDownloadLoading = true;
+      try {
+        const { data } = await api.get(`/review/channel-push/${id}/attachments/${attachmentId}/preview`, { responseType: 'blob' });
+        return data as Blob;
+      } finally {
+        this.reviewDownloadLoading = false;
+      }
+    },
+
+    async downloadReviewAttachmentBlob(id: number, attachmentId: number) {
+      this.reviewDownloadLoading = true;
+      try {
+        const { data } = await api.get(`/review/channel-push/${id}/attachments/${attachmentId}/download`, { responseType: 'blob' });
+        return data as Blob;
+      } finally {
+        this.reviewDownloadLoading = false;
       }
     },
   },
