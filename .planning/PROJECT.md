@@ -14,7 +14,7 @@
 ✅ v1.3 到访信息管理 shipped (2026-05-02; manual testing passed)
 ✅ v1.4 报销管理 shipped (2026-05-03; manual testing passed)
 ⏸️ v1.5 工作记录管理 deferred (2026-05-05; planning only, archived to `.planning/milestones/v1.5-*`)
-🚧 v1.6 渠道商信息推送 — Phase 32 backend shipped + Phase 33 partner UI shipped (2026-05-06; UAT user-approved without execution)
+🚧 v1.6 渠道商信息推送 — Phase 32 backend shipped + Phase 33 partner UI shipped + Phase 34 Excel batch-import shipped (2026-05-07; PUSH-03/04 closed, automated suites green, manual UAT pending)
 
 ## Current Milestone: v1.6 渠道商信息推送
 
@@ -215,4 +215,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-06 after Phase 33 (渠道商提交体验 + 我的推送 UI) execution complete; UAT user-approved without execution; v1.6 next phase is 34 (Excel 批量推送导入)*
+*Last updated: 2026-05-07 after Phase 34 (Excel 批量推送导入) execution complete; PUSH-03 + PUSH-04 closed; v1.6 next phase is 35 (接收人审核 UI + 内部补充字段)*
