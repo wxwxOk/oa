@@ -38,6 +38,7 @@ model User {
   channelPushesAsInternalScheduledReceiver ChannelPush[]              @relation("ChannelPushInternalScheduledReceiver")
   channelPushAttachments                   ChannelPushAttachment[]    @relation("ChannelPushAttachmentUploader")
   channelPushReviewActions                 ChannelPushReviewAction[]  @relation("ChannelPushReviewActionActor")
+  notifications                            UserNotification[]
   channelPartnerProfile                    ChannelPartnerProfile?     @relation("ChannelPartnerProfileUser")
   channelPartnerProfilesAsRecipient        ChannelPartnerProfile[]    @relation("ChannelPartnerProfileRecipient")
   defaultApproverDepartments               Department[]               @relation("DepartmentDefaultApprover")
@@ -170,6 +171,11 @@ enum ChannelPushReviewActionType {
   CANCEL
   APPROVE
   REJECT
+}
+
+enum UserNotificationType {
+  CHANNEL_PUSH_PENDING_REVIEW
+  CHANNEL_PUSH_REVIEWED
 }
 
 model ArchiveRecordMeta {
@@ -426,4 +432,22 @@ model ChannelPartnerProfile {
   updatedAt          DateTime @updatedAt
 
   @@index([primaryRecipientId])
+}
+
+model UserNotification {
+  id          Int                  @id @default(autoincrement())
+  userId      Int
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        UserNotificationType
+  title       String
+  summary     String?
+  targetRoute String
+  sourceType  String
+  sourceId    Int
+  readAt      DateTime?
+  createdAt   DateTime             @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([sourceType, sourceId])
 }

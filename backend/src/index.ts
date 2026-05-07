@@ -16,6 +16,7 @@ import { publicFillModule } from './modules/public/public.route';
 import { visitModule } from './modules/visit/visit.route';
 import { submissionArchiveModule } from './modules/submission-archive/archive.route';
 import { reimbursementModule } from './modules/reimbursement/reimbursement.route';
+import { channelPushNotificationModule } from './modules/channel-push/channel-push-notification.route';
 import { channelPushModule } from './modules/channel-push/channel-push.route';
 import { channelPushReviewModule } from './modules/channel-push/channel-push-review.route';
 
@@ -79,6 +80,7 @@ const app = new Elysia()
           .use(formStatsModule)
           .use(visitModule)
           .use(reimbursementModule)
+          .use(channelPushNotificationModule)
           .use(channelPushReviewModule)
           .use(channelPushModule),
       )
