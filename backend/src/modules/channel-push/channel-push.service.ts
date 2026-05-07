@@ -594,4 +594,64 @@ export async function loadChannelPushAttachment(pushId: number, attachmentId: nu
   return att;
 }
 
+// ───── Batch import (Phase 34) ─────────────────────────────────────────────
+//
+// Partial-success: each row creates its own push via createChannelPush
+// (preserves audit timeline, dedup, per-row tx). One failed row never
+// rolls back already-created rows. Pre-flight CHANNEL_PARTNER_NOT_BOUND
+// throws BEFORE iterating to avoid 500 wasted dedup queries.
+//
+// Hard contract (D-15): per-row creation only — no batch shortcuts.
+
+export async function batchCreateChannelPushes(
+  currentUser: ChannelPushActor,
+  rows: ChannelPushWriteInput[],
+): Promise<{
+  createdCount: number;
+  total: number;
+  failedRows: Array<{ index: number; reason: string; code?: string }>;
+  duplicateHints: DuplicateHint[];
+}> {
+  // Pre-flight — fail the entire batch if partner has no recipient profile.
+  const profile = await prisma.channelPartnerProfile.findUnique({
+    where: { userId: currentUser.id },
+  });
+  if (!profile) {
+    throw new BizError(
+      '未绑定接收人，请联系管理员',
+      422,
+      'CHANNEL_PARTNER_NOT_BOUND',
+    );
+  }
+
+  const failedRows: Array<{ index: number; reason: string; code?: string }> = [];
+  const hintMap = new Map<number, DuplicateHint>();
+  let createdCount = 0;
+
+  for (let i = 0; i < rows.length; i += 1) {
+    const row = rows[i]!;
+    try {
+      const result = await createChannelPush(currentUser, row, []);
+      createdCount += 1;
+      for (const hint of result.duplicateHints) {
+        if (!hintMap.has(hint.id)) hintMap.set(hint.id, hint);
+      }
+    } catch (err) {
+      const biz = err as BizError;
+      failedRows.push({
+        index: i,
+        reason: biz?.message ?? 'unknown error',
+        ...(biz?.code ? { code: biz.code } : {}),
+      });
+    }
+  }
+
+  return {
+    createdCount,
+    total: rows.length,
+    failedRows,
+    duplicateHints: Array.from(hintMap.values()),
+  };
+}
+
 export type { DuplicateHint };
