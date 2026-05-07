@@ -17,6 +17,7 @@ import { visitModule } from './modules/visit/visit.route';
 import { submissionArchiveModule } from './modules/submission-archive/archive.route';
 import { reimbursementModule } from './modules/reimbursement/reimbursement.route';
 import { channelPushModule } from './modules/channel-push/channel-push.route';
+import { channelPushReviewModule } from './modules/channel-push/channel-push-review.route';
 
 // 启动前强制校验 JWT_SECRET：长度不足 32 字符直接拒绝启动，
 // 杜绝使用开发默认值或弱 secret 的情况。
@@ -78,6 +79,7 @@ const app = new Elysia()
           .use(formStatsModule)
           .use(visitModule)
           .use(reimbursementModule)
+          .use(channelPushReviewModule)
           .use(channelPushModule),
       )
       .use(publicFillModule),
