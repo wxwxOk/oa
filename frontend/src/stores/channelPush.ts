@@ -5,6 +5,7 @@ import {
   createEmptyChannelPushFilters,
   normalizeChannelPushPayload,
   type ChannelPushAttachment,
+  type ChannelPushBatchImportResponse,
   type ChannelPushDetail,
   type ChannelPushDuplicateHint,
   type ChannelPushListFilters,
@@ -60,6 +61,7 @@ export const useChannelPushStore = defineStore('channelPush', {
     actionLoading: false,
     uploadLoading: false,
     downloadLoading: false,
+    importLoading: false,
   }),
   actions: {
     async fetchMine(filters?: ChannelPushListRequest) {
@@ -102,6 +104,22 @@ export const useChannelPushStore = defineStore('channelPush', {
         return response;
       } finally {
         this.actionLoading = false;
+      }
+    },
+
+    // Phase 34: Excel batch import. Body is strictly { rows } (D-21).
+    // Errors propagate so the global axios interceptor handles 4xx Notify (D-23).
+    // After success, refresh the list so imported rows appear immediately (M5).
+    // @see PLAN 34-02 task 02 — batchImport action contract.
+    async batchImport(rows: ChannelPushWritePayload[]): Promise<ChannelPushBatchImportResponse> {
+      this.importLoading = true;
+      try {
+        const { data } = await api.post('/channel-push/batch-import', { rows });
+        const response = data as ChannelPushBatchImportResponse;
+        await this.fetchMine(this.filters);
+        return response;
+      } finally {
+        this.importLoading = false;
       }
     },
 
