@@ -31,13 +31,13 @@
 
 ### 审核闭环 (REVIEW)
 
-- [ ] **REVIEW-01**: 主接收人可在「待我审核」列表中看到当前用户作为主接收人的待审推送，按状态、渠道商、时间范围筛选；列表 PC 表格 + Mobile 卡片
+- [x] **REVIEW-01**: 主接收人可在「待我审核」列表中看到当前用户作为主接收人的待审推送，按状态、渠道商、时间范围筛选；列表 PC 表格 + Mobile 卡片
 - [ ] **REVIEW-02**: 主接收人所在部门负责人、上级部门负责人和超级管理员可只读查看名下/全部推送记录，但只有当前主接收人可执行通过/驳回操作（避免越权审批）
-- [ ] **REVIEW-03**: 主接收人可打开推送详情，查看渠道商提交的全部字段、附件预览、提交时间、当前状态和审核时间线
+- [x] **REVIEW-03**: 主接收人可打开推送详情，查看渠道商提交的全部字段、附件预览、提交时间、当前状态和审核时间线
 - [x] **REVIEW-04**: 主接收人可在审核前补充内部字段（计划接待人、预期接待日期、内部备注），补充字段不修改渠道商原始提交内容、仅对内部可见
-- [ ] **REVIEW-05**: 主接收人可对待审核推送执行「通过」或「驳回」操作；驳回必须填写驳回意见，通过可选填备注
+- [x] **REVIEW-05**: 主接收人可对待审核推送执行「通过」或「驳回」操作；驳回必须填写驳回意见，通过可选填备注
 - [x] **REVIEW-06**: 审核结果只更新推送记录状态（已通过/已驳回）和审核时间线，**不自动创建到访记录、不与 VisitRecord 联动**
-- [ ] **REVIEW-07**: 主接收人可查看已审核（已通过/已驳回）的推送历史，按状态和时间筛选
+- [x] **REVIEW-07**: 主接收人可查看已审核（已通过/已驳回）的推送历史，按状态和时间筛选
 
 ### 通知与可见性 (NOTIF)
 
@@ -51,7 +51,7 @@
 - [x] **PERM-01**: 新增 RBAC 权限码：`channelPush:create`（渠道商提交）、`channelPush:viewOwn`（渠道商查看自己）、`channelPush:cancel`（渠道商撤回）、`channelPush:review`（主接收人审核）、`channelPush:viewScope`（按部门/管理员只读查看）
 - [x] **PERM-02**: 新增 `CHANNEL_PARTNER` 角色，默认只持有 `channelPush:create / viewOwn / cancel` 权限码，且不持有任何员工业务权限
 - [x] **PERM-03**: 后端所有 `/api/v1/channel-push/*` 端点强制 JWT + 权限码 + 数据范围（按渠道商 / 主接收人 / 部门负责人 / 上级 / ADMIN）联合校验
-- [ ] **PERM-04**: 前端按钮显隐和路由守卫覆盖渠道商和接收人侧的所有操作
+- [x] **PERM-04**: 前端按钮显隐和路由守卫覆盖渠道商和接收人侧的所有操作
 
 ## Future Requirements (Deferred)
 
@@ -104,13 +104,13 @@
 | PUSH-06 | Phase 33 | Complete |
 | DEDUP-01 | Phase 33 | Complete |
 | DEDUP-02 | Phase 33 | Pending |
-| REVIEW-01 | Phase 35 | Pending |
+| REVIEW-01 | Phase 35 | Complete |
 | REVIEW-02 | Phase 36 | Pending |
-| REVIEW-03 | Phase 35 | Pending |
+| REVIEW-03 | Phase 35 | Complete |
 | REVIEW-04 | Phase 35 | Complete |
-| REVIEW-05 | Phase 35 | Pending |
+| REVIEW-05 | Phase 35 | Complete |
 | REVIEW-06 | Phase 35 | Complete |
-| REVIEW-07 | Phase 35 | Pending |
+| REVIEW-07 | Phase 35 | Complete |
 | NOTIF-01 | Phase 36 | Pending |
 | NOTIF-02 | Phase 36 | Pending |
 | NOTIF-03 | Phase 33 | Pending |
@@ -118,7 +118,7 @@
 | PERM-01 | Phase 32 | Complete |
 | PERM-02 | Phase 32 | Complete |
 | PERM-03 | Phase 32 | Complete |
-| PERM-04 | Phase 35 | Pending |
+| PERM-04 | Phase 35 | Complete |
 
 **Coverage:**
 - v1 requirements: 28 total
