@@ -13,6 +13,7 @@ import {
   saveChannelPushAttachmentFile,
   removeChannelPushAttachmentFile,
 } from './channel-push-file.service';
+import { notifyChannelPushPendingReview } from './channel-push-notification.service';
 
 const MAX_PAGE_SIZE = 100;
 const MAX_NAME_LEN = 64;
@@ -172,7 +173,7 @@ export function assertCanMutateOwnChannelPush(
   if (record.channelPartnerId !== currentUser.id) {
     throw new BizError('无权操作他人推送', 403, 'CHANNEL_PUSH_NOT_OWNER');
   }
-  if (!CHANNEL_PUSH_OWNER_MUTABLE_STATUSES.includes(record.status)) {
+  if (record.status !== 'PENDING') {
     throw new BizError('仅 PENDING 状态可编辑/撤回', 422, 'CHANNEL_PUSH_NOT_PENDING');
   }
 }
@@ -238,6 +239,13 @@ export async function createChannelPush(
         actorName: currentUser.name,
         type: 'SUBMIT',
       },
+    });
+
+    await notifyChannelPushPendingReview(tx, {
+      recipientUserId: profile.primaryRecipientId,
+      pushId: push.id,
+      studentName: push.studentName,
+      channelPartnerName: currentUser.name,
     });
 
     return { push, attachments, submitAction };

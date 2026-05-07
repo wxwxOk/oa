@@ -19,9 +19,16 @@ const visitCreateMock = mock(async () => {
 const approvalCreateMock = mock(async () => {
   throw new Error('ApprovalApplication must NOT be created by review service');
 });
-const notificationCreateMock = mock(async () => {
-  throw new Error('Notification must NOT be created by review service');
+const notificationCreateMock = mock(async (_args: any) => {
+  return {};
 });
+const findUniqueUserMock = mock(async (_args: any) => ({ departmentId: 20 }));
+const findManyDepartmentMock = mock(async (_args: any) => [
+  { id: 10, parentId: null },
+  { id: 20, parentId: 10 },
+  { id: 21, parentId: 10 },
+  { id: 30, parentId: 20 },
+]);
 
 const transactionMock = mock(async (cb: any) => {
   if (typeof cb === 'function') {
@@ -31,6 +38,7 @@ const transactionMock = mock(async (cb: any) => {
         findUnique: findUniquePushMock,
       },
       channelPushReviewAction: { create: createReviewActionMock },
+      userNotification: { create: notificationCreateMock },
     });
   }
   return Promise.all(cb);
@@ -46,6 +54,8 @@ mock.module('../../../plugins/prisma', () => ({
       update: updatePushMock,
     },
     channelPushReviewAction: { create: createReviewActionMock },
+    user: { findUnique: findUniqueUserMock },
+    department: { findMany: findManyDepartmentMock },
     visitRecord: { create: visitCreateMock },
     approvalApplication: { create: approvalCreateMock },
     userNotification: { create: notificationCreateMock },
@@ -54,6 +64,7 @@ mock.module('../../../plugins/prisma', () => ({
 
 const {
   approveReviewChannelPush,
+  buildChannelPushDepartmentScopeIds,
   getReviewChannelPush,
   listReviewHandledChannelPushes,
   listReviewPendingChannelPushes,
@@ -144,6 +155,18 @@ describe('channel-push review service', () => {
     expect(filters.dateTo?.toISOString()).toBe('2026-05-02T23:59:59.999Z');
   });
 
+  it('builds department scope from same-level and lower departments', () => {
+    const departments = [
+      { id: 1, parentId: null },
+      { id: 2, parentId: 1 },
+      { id: 3, parentId: 1 },
+      { id: 4, parentId: 2 },
+      { id: 5, parentId: 4 },
+    ];
+    expect(buildChannelPushDepartmentScopeIds(2, departments).sort((a, b) => a - b)).toEqual([2, 3, 4, 5]);
+    expect(buildChannelPushDepartmentScopeIds(null, departments)).toEqual([]);
+  });
+
   it('filters pending queue by recipient, status, partner keyword, and submitted date', async () => {
     await listReviewPendingChannelPushes(actor(), {
       channelPartnerKeyword: '渠道',
@@ -152,7 +175,7 @@ describe('channel-push review service', () => {
     });
 
     const where = countPushMock.mock.calls.at(-1)?.[0]?.where;
-    expect(where.recipientUserId).toBe(99);
+    expect(where.OR).toEqual([{ recipientUserId: 99 }]);
     expect(where.status).toBe('PENDING');
     expect(where.channelPartner.OR[0].realName.contains).toBe('渠道');
     expect(where.submittedAt.gte).toBeInstanceOf(Date);
@@ -163,8 +186,21 @@ describe('channel-push review service', () => {
     await listReviewHandledChannelPushes(actor(), { status: 'REJECTED' });
 
     const where = countPushMock.mock.calls.at(-1)?.[0]?.where;
-    expect(where.recipientUserId).toBe(99);
+    expect(where.OR).toEqual([{ recipientUserId: 99 }]);
     expect(where.status).toBe('REJECTED');
+  });
+
+  it('allows viewScope actors to list pushes in their department scope', async () => {
+    await listReviewPendingChannelPushes(
+      actor({ id: 200, permissions: ['channelPush:viewScope'] }),
+      {},
+    );
+
+    const where = countPushMock.mock.calls.at(-1)?.[0]?.where;
+    expect(where.OR).toEqual([
+      { recipientUserId: 200 },
+      { recipient: { departmentId: { in: [20, 21, 30] } } },
+    ]);
   });
 
   it('serializes reviewer rows with partner name, derived review fields, internal fields, and attachment count', () => {
@@ -204,8 +240,8 @@ describe('channel-push review service', () => {
     expect(detail.duplicateHints[0]).toMatchObject({ id: 88, submittedAt: '2026-05-01T00:00:00.000Z' });
   });
 
-  it('rejects detail access for non-recipient actors', async () => {
-    findUniquePushMock.mockResolvedValueOnce(reviewPushRow({ recipientUserId: 123 }));
+  it('rejects detail access for non-recipient actors outside viewScope', async () => {
+    findUniquePushMock.mockResolvedValueOnce(reviewPushRow({ recipientUserId: 123, recipient: { departmentId: 999 } }));
     let caught: BizError | null = null;
     try {
       await getReviewChannelPush(11, actor());
@@ -214,6 +250,28 @@ describe('channel-push review service', () => {
     }
     expect(caught?.code).toBe('CHANNEL_PUSH_REVIEW_FORBIDDEN');
     expect(caught?.status).toBe(403);
+  });
+
+  it('allows viewScope detail access but keeps mutation recipient-only', async () => {
+    findUniquePushMock.mockResolvedValueOnce(reviewPushRow({
+      recipientUserId: 123,
+      recipient: { id: 123, departmentId: 30 },
+    }));
+
+    const detail = await getReviewChannelPush(11, actor({ id: 200, permissions: ['channelPush:viewScope'] }));
+    expect(detail.id).toBe(11);
+
+    findUniquePushMock.mockResolvedValueOnce(reviewPushRow({
+      recipientUserId: 123,
+      recipient: { id: 123, departmentId: 30 },
+    }));
+    let caught: BizError | null = null;
+    try {
+      await saveReviewInternalFields(11, actor({ id: 200, permissions: ['channelPush:viewScope'] }), { internalNote: '越权' });
+    } catch (e) {
+      caught = e as BizError;
+    }
+    expect(caught?.code).toBe('CHANNEL_PUSH_REVIEW_MUTATE_FORBIDDEN');
   });
 
   it('persists only internal fields on ChannelPush', async () => {
@@ -240,7 +298,7 @@ describe('channel-push review service', () => {
     expect(data.studentName).toBeUndefined();
   });
 
-  it('approves PENDING push, appends APPROVE action, and does not create side effects', async () => {
+  it('approves PENDING push, appends APPROVE action, and creates partner notification only', async () => {
     findUniquePushMock
       .mockResolvedValueOnce(reviewPushRow())
       .mockResolvedValueOnce(reviewPushRow({
@@ -252,7 +310,6 @@ describe('channel-push review service', () => {
       }));
     const visitBefore = visitCreateMock.mock.calls.length;
     const approvalBefore = approvalCreateMock.mock.calls.length;
-    const notificationBefore = notificationCreateMock.mock.calls.length;
 
     await approveReviewChannelPush(11, actor(), { comment: ' 同意 ' });
 
@@ -263,7 +320,15 @@ describe('channel-push review service', () => {
     expect(actionCall.data.comment).toBe('同意');
     expect(visitCreateMock.mock.calls.length).toBe(visitBefore);
     expect(approvalCreateMock.mock.calls.length).toBe(approvalBefore);
-    expect(notificationCreateMock.mock.calls.length).toBe(notificationBefore);
+    const notificationCall = notificationCreateMock.mock.calls.at(-1)?.[0];
+    expect(notificationCall.data).toMatchObject({
+      userId: 5,
+      type: 'CHANNEL_PUSH_REVIEWED',
+      title: '我的推送已审核',
+      targetRoute: '/channel-push/11',
+      sourceType: 'CHANNEL_PUSH',
+      sourceId: 11,
+    });
   });
 
   it('rejects require a comment and append REJECT action', async () => {

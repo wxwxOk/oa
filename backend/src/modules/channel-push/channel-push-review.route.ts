@@ -82,11 +82,14 @@ async function loadVisibleReviewAttachment(pushId: number, attachmentId: number,
   return loadChannelPushAttachment(pushId, attachmentId);
 }
 
+// Phase 36: read routes use authGuard() so channelPush:viewScope users can pass
+// JWT auth and then be checked by object-scope logic in the service. Mutations
+// stay behind authGuard('channelPush:review') and recipient-only service checks.
 // Route-order guardrail: pending before handled before :id.
 // GET /review/channel-push/pending -> GET /review/channel-push/handled -> GET /review/channel-push/:id
 export const channelPushReviewModule = new Elysia({ prefix: '/review/channel-push' })
   .guard({}, (app) =>
-    app.use(authGuard('channelPush:review')).get(
+    app.use(authGuard()).get(
       '/pending',
       async ({ query, currentUser }: any) =>
         listReviewPendingChannelPushes(
@@ -97,7 +100,7 @@ export const channelPushReviewModule = new Elysia({ prefix: '/review/channel-pus
     ),
   )
   .guard({}, (app) =>
-    app.use(authGuard('channelPush:review')).get(
+    app.use(authGuard()).get(
       '/handled',
       async ({ query, currentUser }: any) =>
         listReviewHandledChannelPushes(
@@ -108,7 +111,7 @@ export const channelPushReviewModule = new Elysia({ prefix: '/review/channel-pus
     ),
   )
   .guard({}, (app) =>
-    app.use(authGuard('channelPush:review')).get(
+    app.use(authGuard()).get(
       '/:id',
       async ({ params, currentUser }: any) =>
         getReviewChannelPush(Number(params.id), toActor(currentUser)),
@@ -140,7 +143,7 @@ export const channelPushReviewModule = new Elysia({ prefix: '/review/channel-pus
     ),
   )
   .guard({}, (app) =>
-    app.use(authGuard('channelPush:review')).get(
+    app.use(authGuard()).get(
       '/:id/attachments/:attachmentId/preview',
       async ({ params, currentUser }: any) => {
         const attachment = await loadVisibleReviewAttachment(
@@ -163,7 +166,7 @@ export const channelPushReviewModule = new Elysia({ prefix: '/review/channel-pus
     ),
   )
   .guard({}, (app) =>
-    app.use(authGuard('channelPush:review')).get(
+    app.use(authGuard()).get(
       '/:id/attachments/:attachmentId/download',
       async ({ params, currentUser }: any) => {
         const attachment = await loadVisibleReviewAttachment(

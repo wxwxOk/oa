@@ -19,8 +19,8 @@ const visitCreateMock = mock(async () => {
 const approvalCreateMock = mock(async () => {
   throw new Error('approvalApplication.create must NOT be called from channel-push service');
 });
-const notificationCreateMock = mock(async () => {
-  throw new Error('userNotification.create must NOT be called from channel-push service');
+const notificationCreateMock = mock(async (_args: any) => {
+  return {};
 });
 
 const transactionMock = mock(async (cb: any) => {
@@ -33,6 +33,7 @@ const transactionMock = mock(async (cb: any) => {
       },
       channelPushAttachment: { create: createAttachmentMock },
       channelPushReviewAction: { create: createReviewActionMock },
+      userNotification: { create: notificationCreateMock },
     });
   }
   return Promise.all(cb);
@@ -76,7 +77,7 @@ function actor(overrides: Partial<any> = {}) {
     roleCodes: ['CHANNEL_PARTNER'],
     permissions: ['channelPush:create', 'channelPush:viewOwn', 'channelPush:cancel'],
     ...overrides,
-  };
+  } as any;
 }
 
 function pushRow(overrides: Partial<any> = {}) {
@@ -105,7 +106,7 @@ function pushRow(overrides: Partial<any> = {}) {
     createdAt: new Date('2026-05-05T00:00:00.000Z'),
     updatedAt: new Date('2026-05-05T00:00:00.000Z'),
     ...overrides,
-  };
+  } as any;
 }
 
 describe('channel-push service helpers', () => {
@@ -262,6 +263,29 @@ describe('channel-push service helpers', () => {
       const createCall = createPushMock.mock.calls.at(-1)?.[0];
       expect(createCall.data.recipientUserId).toBe(99); // from profile, NOT 12345
       expect(createCall.data.channelPartnerId).toBe(5); // from currentUser.id
+    });
+
+    it('creates pending-review notification inside the same create transaction', async () => {
+      findUniqueProfileMock.mockResolvedValueOnce({
+        id: 1,
+        userId: 5,
+        primaryRecipientId: 99,
+      });
+
+      await createChannelPush(actor(), {
+        studentName: '王五',
+        studentPhone: '13700137000',
+      } as any);
+
+      const notificationCall = notificationCreateMock.mock.calls.at(-1)?.[0];
+      expect(notificationCall.data).toMatchObject({
+        userId: 99,
+        type: 'CHANNEL_PUSH_PENDING_REVIEW',
+        title: '渠道推送待审核',
+        targetRoute: '/review/channel-push/1',
+        sourceType: 'CHANNEL_PUSH',
+        sourceId: 1,
+      });
     });
 
     it('throws CHANNEL_PARTNER_NOT_BOUND when no profile exists for partner', async () => {
@@ -541,4 +565,3 @@ describe('batchCreateChannelPushes', () => {
     expect((createPushMock as any).mock.calls.length).toBeGreaterThan(before);
   });
 });
-

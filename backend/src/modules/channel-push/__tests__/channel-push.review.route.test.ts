@@ -77,7 +77,13 @@ describe('channel-push review route contract', () => {
     const source = await routeSource();
 
     expect(source).toContain("authGuard('channelPush:review')");
-    expect(source).not.toContain('channelPush:viewScope');
+    expect(source).toContain('authGuard()');
+    expect(source).toContain('channelPush:viewScope');
+    expect(source).toMatch(/authGuard\(\)\)\.get\(\s*['"]\/pending['"]/);
+    expect(source).toMatch(/authGuard\(\)\)\.get\(\s*['"]\/handled['"]/);
+    expect(source).toMatch(/authGuard\(\)\)\.get\(\s*['"]\/:id['"]/);
+    expect(source).toMatch(/authGuard\('channelPush:review'\)\)\.patch/);
+    expect(source).toMatch(/authGuard\('channelPush:review'\)\)\.post/);
     expect(source).toContain('pending before handled before :id');
     expect(source).toContain('listReviewPendingChannelPushes');
     expect(source).toContain('listReviewHandledChannelPushes');

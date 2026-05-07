@@ -10,6 +10,7 @@ import type {
   ChannelPushAttachmentDTO,
   ChannelPushReviewActionDTO,
 } from './channel-push.service';
+import { notifyChannelPushReviewed } from './channel-push-notification.service';
 
 const MAX_PAGE_SIZE = 100;
 const MAX_INTERNAL_NOTE_LEN = 1000;
@@ -41,6 +42,11 @@ type NormalizedReviewListFilters = {
   status?: ChannelPushStatus;
   dateFrom?: Date;
   dateTo?: Date;
+};
+
+type ChannelPushScopeNode = {
+  id: number;
+  parentId: number | null;
 };
 
 function isoOrNull(value: Date | string | null | undefined): string | null {
@@ -168,8 +174,103 @@ function serializeDuplicateHint(hint: DuplicateHint) {
   };
 }
 
-function buildReviewWhere(actor: ChannelPushActor, filters: NormalizedReviewListFilters, mode: 'pending' | 'handled') {
-  const where: Record<string, unknown> = { recipientUserId: actor.id };
+function isAdmin(actor: ChannelPushActor): boolean {
+  return actor.roleCodes.includes('ADMIN');
+}
+
+function hasPermission(actor: ChannelPushActor, permission: string): boolean {
+  return actor.permissions.includes(permission);
+}
+
+export function buildChannelPushDepartmentScopeIds(
+  actorDepartmentId: number | null | undefined,
+  departments: ChannelPushScopeNode[],
+): number[] {
+  if (actorDepartmentId == null) return [];
+
+  const parentById = new Map<number, number | null>();
+  const childrenByParent = new Map<number | null, number[]>();
+  for (const department of departments) {
+    parentById.set(department.id, department.parentId);
+    const siblings = childrenByParent.get(department.parentId) ?? [];
+    siblings.push(department.id);
+    childrenByParent.set(department.parentId, siblings);
+  }
+
+  const scopeIds = new Set<number>([actorDepartmentId]);
+  if (parentById.has(actorDepartmentId)) {
+    const actorParentId = parentById.get(actorDepartmentId) ?? null;
+    for (const siblingDepartmentId of childrenByParent.get(actorParentId) ?? []) {
+      scopeIds.add(siblingDepartmentId);
+    }
+  }
+
+  const stack = [...(childrenByParent.get(actorDepartmentId) ?? [])];
+  while (stack.length > 0) {
+    const departmentId = stack.pop();
+    if (departmentId == null || scopeIds.has(departmentId)) continue;
+    scopeIds.add(departmentId);
+    stack.push(...(childrenByParent.get(departmentId) ?? []));
+  }
+
+  return [...scopeIds];
+}
+
+async function loadActorChannelPushScopeIds(actorId: number): Promise<number[]> {
+  const user = await prisma.user.findUnique({ where: { id: actorId }, select: { departmentId: true } });
+  const actorDepartmentId = user?.departmentId ?? null;
+  if (actorDepartmentId == null) return [];
+  const departments = await prisma.department.findMany({ select: { id: true, parentId: true } });
+  return buildChannelPushDepartmentScopeIds(actorDepartmentId, departments);
+}
+
+function canViewReviewChannelPush(
+  push: { recipientUserId: number; recipient?: { departmentId?: number | null } | null },
+  actor: ChannelPushActor,
+  scopeDepartmentIds: number[] = [],
+): boolean {
+  if (push.recipientUserId === actor.id) return true;
+  if (isAdmin(actor)) return true;
+  return (
+    hasPermission(actor, 'channelPush:viewScope') &&
+    push.recipient?.departmentId != null &&
+    scopeDepartmentIds.includes(push.recipient.departmentId)
+  );
+}
+
+function assertCanViewReviewChannelPush(
+  push: { recipientUserId: number; recipient?: { departmentId?: number | null } | null },
+  actor: ChannelPushActor,
+  scopeDepartmentIds: number[] = [],
+) {
+  if (!canViewReviewChannelPush(push, actor, scopeDepartmentIds)) {
+    throw new BizError('无权查看该渠道推送', 403, 'CHANNEL_PUSH_REVIEW_FORBIDDEN');
+  }
+}
+
+function assertCanMutateReviewChannelPush(push: { recipientUserId: number }, actor: ChannelPushActor) {
+  if (push.recipientUserId !== actor.id) {
+    throw new BizError('仅主接收人可审核该渠道推送', 403, 'CHANNEL_PUSH_REVIEW_MUTATE_FORBIDDEN');
+  }
+}
+
+function buildReviewVisibilityWhere(actor: ChannelPushActor, scopeDepartmentIds: number[]) {
+  if (isAdmin(actor)) return {};
+
+  const or: Record<string, unknown>[] = [{ recipientUserId: actor.id }];
+  if (hasPermission(actor, 'channelPush:viewScope') && scopeDepartmentIds.length > 0) {
+    or.push({ recipient: { departmentId: { in: scopeDepartmentIds } } });
+  }
+  return { OR: or };
+}
+
+function buildReviewWhere(
+  actor: ChannelPushActor,
+  filters: NormalizedReviewListFilters,
+  mode: 'pending' | 'handled',
+  scopeDepartmentIds: number[] = [],
+) {
+  const where: Record<string, unknown> = buildReviewVisibilityWhere(actor, scopeDepartmentIds);
   where.status = mode === 'pending' ? 'PENDING' : { in: REVIEW_TERMINAL_STATUSES };
 
   if (mode === 'handled' && filters.status) {
@@ -201,6 +302,7 @@ function buildReviewWhere(actor: ChannelPushActor, filters: NormalizedReviewList
 function includeReviewRelations() {
   return {
     channelPartner: { select: { id: true, username: true, realName: true } },
+    recipient: { select: { id: true, username: true, realName: true, departmentId: true } },
     internalScheduledReceiver: { select: { id: true, username: true, realName: true } },
     attachments: { orderBy: { createdAt: 'asc' as const } },
     reviewActions: { orderBy: { createdAt: 'asc' as const } },
@@ -215,9 +317,8 @@ async function loadReviewChannelPushForActor(id: number, actor: ChannelPushActor
   if (!push) {
     throw new BizError('推送不存在', 404, 'CHANNEL_PUSH_NOT_FOUND');
   }
-  if (push.recipientUserId !== actor.id) {
-    throw new BizError('无权查看非本人接收的推送', 403, 'CHANNEL_PUSH_REVIEW_FORBIDDEN');
-  }
+  const scopeDepartmentIds = push.recipientUserId === actor.id || isAdmin(actor) ? [] : await loadActorChannelPushScopeIds(actor.id);
+  assertCanViewReviewChannelPush(push, actor, scopeDepartmentIds);
   return push;
 }
 
@@ -280,7 +381,8 @@ export function serializeChannelPushReviewDetail(push: any, duplicateHints: Dupl
 
 export async function listReviewPendingChannelPushes(actor: ChannelPushActor, query: ChannelPushReviewListFilters) {
   const filters = normalizeReviewListFilters(query);
-  const where = buildReviewWhere(actor, filters, 'pending');
+  const scopeDepartmentIds = isAdmin(actor) ? [] : await loadActorChannelPushScopeIds(actor.id);
+  const where = buildReviewWhere(actor, filters, 'pending', scopeDepartmentIds);
 
   const [total, rows] = await Promise.all([
     prisma.channelPush.count({ where }),
@@ -298,7 +400,8 @@ export async function listReviewPendingChannelPushes(actor: ChannelPushActor, qu
 
 export async function listReviewHandledChannelPushes(actor: ChannelPushActor, query: ChannelPushReviewListFilters) {
   const filters = normalizeReviewListFilters(query);
-  const where = buildReviewWhere(actor, filters, 'handled');
+  const scopeDepartmentIds = isAdmin(actor) ? [] : await loadActorChannelPushScopeIds(actor.id);
+  const where = buildReviewWhere(actor, filters, 'handled', scopeDepartmentIds);
 
   const [total, rows] = await Promise.all([
     prisma.channelPush.count({ where }),
@@ -331,6 +434,7 @@ export async function saveReviewInternalFields(
   body: ChannelPushReviewInternalFieldsInput,
 ) {
   const existing = await loadReviewChannelPushForActor(id, actor);
+  assertCanMutateReviewChannelPush(existing, actor);
 
   const data: Record<string, unknown> = {};
   const receiverId = normalizeOptionalUserId(body.internalScheduledReceiverId);
@@ -365,6 +469,7 @@ async function decideReviewChannelPush(
   decision: 'APPROVED' | 'REJECTED',
 ) {
   const existing = await loadReviewChannelPushForActor(id, actor);
+  assertCanMutateReviewChannelPush(existing, actor);
   assertChannelPushTransition(existing.status, decision);
 
   const comment = normalizeDecisionComment(body.comment, decision === 'REJECTED');
@@ -385,6 +490,13 @@ async function decideReviewChannelPush(
         comment,
         createdAt: reviewedAt,
       },
+    });
+    await notifyChannelPushReviewed(tx, {
+      channelPartnerId: existing.channelPartnerId,
+      pushId: id,
+      decision,
+      studentName: existing.studentName,
+      reviewerName: actor.name,
     });
     return tx.channelPush.findUnique({
       where: { id },
