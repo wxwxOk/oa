@@ -11,6 +11,6 @@
   "workflow": {
     "autoCommit": true,
     "requireApproval": true,
-    "_auto_chain_active": true
+    "_auto_chain_active": false
   }
 }
