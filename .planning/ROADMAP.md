@@ -9,7 +9,7 @@
 - ✅ **v1.3 到访信息管理** — Phases 20-23 (shipped 2026-05-02) → [archive](milestones/v1.3-ROADMAP.md)
 - ✅ **v1.4 报销管理** — Phases 24-27 (shipped 2026-05-03; manual UAT passed) → [archive](milestones/v1.4-ROADMAP.md)
 - ⏸️ **v1.5 工作记录管理** — Phases 28-31 (deferred 2026-05-05; planning only, no code) → [archive](milestones/v1.5-ROADMAP.md)
-- 🚧 **v1.6 渠道商信息推送** — Phases 32-36 (planning started 2026-05-05)
+- ✅ **v1.6 渠道商信息推送** — Phases 32-36 (shipped 2026-05-08)
 
 ## Phases
 
@@ -184,7 +184,7 @@ Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS
 
 **Resume path:** 见 `milestones/v1.5-ROADMAP.md` 中 "Resume Path" 小节。
 
-### 🚧 v1.6 渠道商信息推送 (Planning started 2026-05-05)
+### ✅ v1.6 渠道商信息推送 (Shipped 2026-05-08)
 
 **Milestone Goal:** 让外部渠道商通过本系统向绑定的内部接收人推送学员信息，由接收人审核闭环；推送数据独立沉淀和查询，不与 v1.3 到访记录混用。
 
@@ -192,7 +192,7 @@ Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS
 - [x] **Phase 33: 渠道商提交体验 + 我的推送 UI** — 渠道商专用菜单和路由守卫、单条提交表单、附件上传、我的推送列表、详情、编辑/撤回、重复提示 UI (completed 2026-05-06)
 - [x] **Phase 34: Excel 批量推送导入** — 复用 v1.3 解析体验、表头约定、预览、有效/无效行展示、批量提交、独立审核流 (completed 2026-05-07)
 - [x] **Phase 35: 接收人审核 UI + 内部补充字段** — 「待我审核」列表/详情、内部补充字段 UI、通过/驳回 + 必填驳回意见、已审核历史、PC 表格 + Mobile 卡片 (completed 2026-05-07)
-- [ ] **Phase 36: 站内通知集成 + 跨角色可见性 + 验证收尾** — 渠道推送通知类型、铃铛跳转、渠道商通知接收、部门负责人/上级/ADMIN 只读可见性、端到端验证与归档
+- [x] **Phase 36: 站内通知集成 + 跨角色可见性 + 验证收尾** — 渠道推送通知类型、铃铛跳转、渠道商通知接收、部门负责人/上级/ADMIN 只读可见性、端到端验证与归档 (completed 2026-05-08)
 
 
 ### Phase 32: 渠道推送数据模型 + 后端 API + RBAC
@@ -300,8 +300,8 @@ Archived to [v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) and [v1.5-REQUIREMENTS
 | 33. 渠道商提交体验 + 我的推送 UI | v1.6 | 4/4 | Complete    | 2026-05-06 |
 | 34. Excel 批量推送导入 | v1.6 | 2/2 | Complete    | 2026-05-07 |
 | 35. 接收人审核 UI + 内部补充字段 | v1.6 | 4/4 | Complete    | 2026-05-07 |
-| 36. 站内通知集成 + 跨角色可见性 + 验证收尾 | v1.6 | 0/3 | Pending |  |
+| 36. 站内通知集成 + 跨角色可见性 + 验证收尾 | v1.6 | 3/3 | Complete    | 2026-05-08 |
 
 ## Current Coverage
 
-**Active milestone:** v1.6 渠道商信息推送 (Phases 32-36) — 28 v1 requirements mapped across 5 phases (100% coverage). See [REQUIREMENTS.md](REQUIREMENTS.md) for detail; v1.5 archive remains at [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md).
+**Active milestone:** v1.6 渠道商信息推送 ✅ SHIPPED (Phases 32-36) — 28 v1 requirements mapped across 5 phases (100% coverage). See [REQUIREMENTS.md](REQUIREMENTS.md) for detail; v1.5 archive remains at [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md).

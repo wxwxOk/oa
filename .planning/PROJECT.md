@@ -14,11 +14,12 @@
 ✅ v1.3 到访信息管理 shipped (2026-05-02; manual testing passed)
 ✅ v1.4 报销管理 shipped (2026-05-03; manual testing passed)
 ⏸️ v1.5 工作记录管理 deferred (2026-05-05; planning only, archived to `.planning/milestones/v1.5-*`)
-🚧 v1.6 渠道商信息推送 — Phase 32 backend shipped + Phase 33 partner UI shipped + Phase 34 Excel batch-import shipped + Phase 35 recipient review UI shipped (2026-05-07; review workflow automated suites green, manual release UAT pending)
+✅ v1.6 渠道商信息推送 shipped (2026-05-08; Phase 32-36 complete, 双向站内通知 + 跨角色可见性 + 77 tests passed)
 
-## Current Milestone: v1.6 渠道商信息推送
+## Current Milestone: v1.6 渠道商信息推送 ✅ SHIPPED
 
 **Goal:** 让外部渠道商通过本系统向绑定的内部接收人推送学员信息，由接收人审核闭环；推送数据独立沉淀和查询，不与 v1.3 到访记录混用。
+**Status:** Shipped 2026-05-08 — 5 phases (32-36), 双向站内通知 + 跨角色可见性, 56 backend + 21 frontend tests passed, production build verified.
 
 **Target features:**
 - 渠道商账号体系：管理员手动开通外部账号 + CHANNEL_PARTNER 角色 + 渠道商↔内部接收人绑定关系；复用 PC/Mobile 布局，通过 RBAC 屏蔽其他菜单
