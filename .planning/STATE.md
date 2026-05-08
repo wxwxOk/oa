@@ -2,39 +2,43 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: 渠道商信息推送
-status: executing
-last_updated: "2026-05-07T11:43:44.125Z"
-last_activity: 2026-05-07
+status: complete
+last_updated: "2026-05-08T01:11:00.000Z"
+last_activity: 2026-05-08
 progress:
   total_phases: 10
-  completed_phases: 9
-  total_plans: 46
-  completed_plans: 46
+  completed_phases: 10
+  total_plans: 47
+  completed_plans: 47
   percent: 100
 ---
 
 # State
 
 - Initialized: 2026-04-17
-- Active Milestone: v1.6 渠道商信息推送 — Phases 32-36
-- Status: Roadmap approved; awaiting Phase 32 execution
+- Active Milestone: v1.6 渠道商信息推送 — Phases 32-36 ✅ COMPLETE
+- Status: Shipped and verified (2026-05-08)
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** 开箱即用的组织架构管理、表单审批和固定业务台账
-**Current focus:** Phase 36 — 站内通知集成 + 跨角色可见性 + 验证收尾
+**Milestone v1.6 complete:** 渠道商信息推送 (Phases 32-36) shipped with:
+- 渠道商账号体系 + 学员推送 + 审核闭环
+- 双向站内通知 + 跨角色只读可见性
+- 56 backend tests + 21 frontend tests + production build ✅
+- Verification: [36-VERIFICATION.md](phases/36-notify-visibility/36-VERIFICATION.md)
 
 ## Current Position
 
 Phase: 36
-Plan: Not started
-Status: Ready to execute
+Plan: 36-03 (closeout)
+Status: ✅ Complete
 Resume file: .planning/ROADMAP.md
-Last activity: 2026-05-07
+Last activity: 2026-05-08
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Deferred Milestones
 
@@ -42,11 +46,12 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Completed Scope
 
-- v1.4 completed fixed reimbursement module with application, attachments, two-level review signatures, audit timeline and Excel export
-
-## Next Step
-
-Run `/gsd-plan-phase 33` to plan the Phase 33 frontend (渠道商提交体验 + 我的推送 UI). Phase 32 backend contract is locked; CONTEXT.md captures route/menu/store/UI decisions and points planner at the v1.4 reimbursement skeleton for reuse.
+- v1.6 渠道商信息推送 — 5 phases (32-36), 站内通知 + 跨角色可见性 + 审核闭环
+- v1.4 报销管理 — fixed reimbursement module with application, attachments, two-level review signatures, audit timeline and Excel export
+- v1.3 到访信息管理 — visit records CRUD, Excel import, duplicate detection, stats
+- v1.2 模板管理优化 — v2 schema, grid designer, PDF export, responsive forms
+- v1.1 自定义表单收集 — form templates, drag-and-drop designer, share links, submissions management
+- v1.0 MVP — users, departments, roles, RBAC, auth, responsive layout
 
 ## Deferred Scope Notes
 

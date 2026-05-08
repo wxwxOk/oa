@@ -1,10 +1,10 @@
 # Milestones
 
-## v1.6 渠道商信息推送 (Planning: 2026-05-05)
+## v1.6 渠道商信息推送 (Shipped: 2026-05-08)
 
-**Status:** 🚧 PLANNED — roadmap approved, ready to execute Phase 32
-**Planned Phases:** 5 (Phases 32-36) | **Planned Plans:** 17 | **Requirements:** 28 v1
-**Timeline:** 2026-05-05 milestone started, requirements defined and roadmap approved
+**Status:** ✅ SHIPPED — Phases 32-36 complete, verified, pushed
+**Phases:** 5 (Phases 32-36) | **Plans:** 17 | **Requirements:** 28 v1
+**Timeline:** 2026-05-05 → 2026-05-08 (3 days)
 
 **Scope:**
 
@@ -13,6 +13,8 @@
 3. 重复提示但不阻止（按 姓名+手机号）
 4. 主接收人审核闭环（补充内部字段 + 通过/驳回 + 必填意见）
 5. 双向站内通知（复用 v2.0）+ 部门负责人/上级/ADMIN 只读可见
+
+**Closeout:** Phase 36 (站内通知集成 + 跨角色可见性) completed with 56 backend tests, 21 frontend tests, and successful production build. Verification evidence in [36-VERIFICATION.md](phases/36-notify-visibility/36-VERIFICATION.md).
 
 **Key decisions:**
 
